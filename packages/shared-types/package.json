@@ -19,8 +19,8 @@
   "sideEffects": false,
   "scripts": {
     "build": "npm run build:esm && npm run build:cjs && npm run build:cjs-pkg",
-    "build:esm": "../../node_modules/.bin/tsc -p tsconfig.esm.json",
-    "build:cjs": "../../node_modules/.bin/tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:cjs-pkg": "echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json"
   },
   "devDependencies": {
