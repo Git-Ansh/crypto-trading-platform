@@ -24,6 +24,22 @@ const { ActiveTradeMonitor, getMonitor } = require('./active-trade-monitor');
 const { apiInterceptor } = require('./freqtrade-api-interceptor');
 const { universalStakeOverride } = require('./universal-stake-override');
 
+// ======================================================================
+// PHASE 2: Multi-Tenant Container Pool System
+// ======================================================================
+const {
+  initPoolSystem,
+  shutdownPoolSystem,
+  poolProvisioner,
+  getPoolAwareBotUrl,
+  isInstancePooled,
+  getPoolComponents,
+  POOL_MODE_ENABLED
+} = require('./lib/pool-integration');
+
+// Pool system initialization flag
+let poolSystemInitialized = false;
+
 // Load environment variables from the bot-manager/.env file
 dotenv.config({ path: path.join(__dirname, '.env') });
 // Turso CLI command (allow overriding via env if path differs)
@@ -294,6 +310,118 @@ app.get('/api/health', (req, res) => {
   res.status(200).json(healthPayload());
 });
 app.head('/api/health', (req, res) => res.status(200).end());
+
+// ======================================================================
+// PHASE 2: Container Pool Management API
+// ======================================================================
+
+// Get pool system status
+app.get('/api/pool/status', authenticateToken, authorize(['admin']), async (req, res) => {
+  try {
+    if (!poolSystemInitialized) {
+      return res.json({
+        success: true,
+        poolMode: false,
+        message: 'Pool mode is disabled or not initialized',
+        legacyMode: true
+      });
+    }
+    
+    const stats = poolProvisioner.getPoolStats();
+    res.json({
+      success: true,
+      poolMode: true,
+      ...stats
+    });
+  } catch (err) {
+    console.error('[Pool API] Error getting pool status:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Manually trigger health check
+app.post('/api/pool/health-check', authenticateToken, authorize(['admin']), async (req, res) => {
+  try {
+    if (!poolSystemInitialized) {
+      return res.status(400).json({
+        success: false,
+        error: 'Pool system not initialized'
+      });
+    }
+    
+    const results = await poolProvisioner.runHealthCheck();
+    res.json({
+      success: true,
+      ...results
+    });
+  } catch (err) {
+    console.error('[Pool API] Error running health check:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Clean up empty pools
+app.post('/api/pool/cleanup', authenticateToken, authorize(['admin']), async (req, res) => {
+  try {
+    if (!poolSystemInitialized) {
+      return res.status(400).json({
+        success: false,
+        error: 'Pool system not initialized'
+      });
+    }
+    
+    const removedCount = await poolProvisioner.cleanupEmptyPools();
+    res.json({
+      success: true,
+      removedPools: removedCount,
+      message: `Cleaned up ${removedCount} empty pool containers`
+    });
+  } catch (err) {
+    console.error('[Pool API] Error cleaning up pools:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Get bot's pool assignment
+app.get('/api/pool/bot/:instanceId', authenticateToken, async (req, res) => {
+  try {
+    const { instanceId } = req.params;
+    
+    if (!poolSystemInitialized) {
+      return res.json({
+        success: true,
+        instanceId,
+        isPooled: false,
+        mode: 'legacy'
+      });
+    }
+    
+    const isPooled = isInstancePooled(instanceId);
+    
+    if (isPooled) {
+      const connection = await poolProvisioner.getBotConnection(instanceId);
+      res.json({
+        success: true,
+        instanceId,
+        isPooled: true,
+        mode: 'pooled',
+        connection
+      });
+    } else {
+      res.json({
+        success: true,
+        instanceId,
+        isPooled: false,
+        mode: 'legacy'
+      });
+    }
+  } catch (err) {
+    console.error('[Pool API] Error getting bot pool info:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ======================================================================
 
 // Serve the test streaming client
 app.get('/test-streaming-client.html', (req, res) => {
@@ -2493,7 +2621,25 @@ async function resolveInstanceDir(instanceId) {
 }
 
 // Build bot URL and credentials by reading its config.json
+// UPDATED: Now supports both pool mode and legacy mode
 async function getBotUrlByInstanceId(instanceId) {
+  // Phase 2: Check if bot is in pool mode first
+  if (poolSystemInitialized && isInstancePooled(instanceId)) {
+    try {
+      const poolConnection = await getPoolAwareBotUrl(instanceId);
+      return {
+        url: poolConnection.url,
+        username: poolConnection.username,
+        password: poolConnection.password,
+        isPooled: true,
+        poolId: poolConnection.poolId
+      };
+    } catch (poolErr) {
+      console.warn(`[getBotUrlByInstanceId] Pool lookup failed for ${instanceId}, falling back to legacy: ${poolErr.message}`);
+    }
+  }
+  
+  // Legacy mode: read from config.json
   const instanceDir = await resolveInstanceDir(instanceId);
   const cfgPath = path.join(instanceDir, 'config.json');
   if (!await fs.pathExists(cfgPath)) throw new Error('config.json not found');
@@ -2509,7 +2655,8 @@ async function getBotUrlByInstanceId(instanceId) {
   return {
     url: `http://${host}:${targetPort}`,
     username: config.api_server?.username,
-    password: config.api_server?.password
+    password: config.api_server?.password,
+    isPooled: false
   };
 }
 
@@ -3612,7 +3759,23 @@ const server = app.listen(PORT, '0.0.0.0', async () => {
   console.log(` Main Strategies Source: ${MAIN_STRATEGIES_SOURCE_DIR}`);
   console.log(` SHARED Data Directory: ${SHARED_DATA_DIR}`);
   console.log(` Firebase Admin: ${firebaseInitialized ? 'enabled' : 'not initialized'}; Project: ${process.env.FIREBASE_PROJECT_ID || 'n/a'}`);
+  console.log(` Pool Mode: ${POOL_MODE_ENABLED ? 'ENABLED' : 'DISABLED (legacy)'}`);
   console.log(`=================================================`);
+  
+  // Initialize Pool System (Phase 2: Multi-Tenant Architecture)
+  if (POOL_MODE_ENABLED) {
+    try {
+      console.log('[Server] Initializing Container Pool System...');
+      await initPoolSystem({
+        enableHealthMonitor: true
+      });
+      poolSystemInitialized = true;
+      console.log('[Server] ✅ Container Pool System initialized');
+    } catch (poolError) {
+      console.error('[Server] ❌ Failed to initialize Pool System:', poolError.message);
+      console.warn('[Server] Falling back to legacy mode (one container per bot)');
+    }
+  }
   
   // Start Active Trade Monitor for universal features (take profit, trailing stop, etc.)
   try {
@@ -3632,24 +3795,46 @@ module.exports = {
   runDockerCommand,
   resolveInstanceDir,
   BOT_BASE_DIR,
-  setPortfolioMonitor
+  setPortfolioMonitor,
+  // Phase 2: Export pool-related functions
+  poolProvisioner,
+  getPoolAwareBotUrl,
+  isInstancePooled,
+  getPoolComponents,
+  POOL_MODE_ENABLED
 };
 
-// Graceful shutdown - stop monitor and server
-process.on('SIGTERM', () => { 
+// Graceful shutdown - stop monitor, pool system, and server
+process.on('SIGTERM', async () => { 
   console.log('SIGTERM: closing server');
   const monitor = getMonitor();
   if (monitor && monitor.running) {
     monitor.stop();
   }
+  // Shutdown pool system gracefully
+  if (poolSystemInitialized) {
+    try {
+      await shutdownPoolSystem();
+    } catch (err) {
+      console.error('Pool system shutdown error:', err.message);
+    }
+  }
   server.close(() => { console.log('Server closed'); process.exit(0); }); 
   setTimeout(() => process.exit(1), 10000); 
 });
-process.on('SIGINT', () => { 
+process.on('SIGINT', async () => { 
   console.log('SIGINT: closing server');
   const monitor = getMonitor();
   if (monitor && monitor.running) {
     monitor.stop();
+  }
+  // Shutdown pool system gracefully
+  if (poolSystemInitialized) {
+    try {
+      await shutdownPoolSystem();
+    } catch (err) {
+      console.error('Pool system shutdown error:', err.message);
+    }
   }
   server.close(() => { console.log('Server closed'); process.exit(0); }); 
   setTimeout(() => process.exit(1), 10000); 
