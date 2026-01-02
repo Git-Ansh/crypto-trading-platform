@@ -16,6 +16,9 @@
     "@crypto-trading-platform/shared-config": "0.0.1",
     "@crypto-trading-platform/shared-types": "0.0.1",
     "@crypto-trading-platform/shared-utils": "0.0.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "~5.7.2",
+    "vite": "^7.3.0",
     "@coinpaprika/api-nodejs-client": "^2.0.0",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
@@ -61,13 +64,10 @@
     "@types/node": "^22.13.9",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
-    "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
-    "typescript": "~5.7.2",
-    "typescript-eslint": "^8.24.1",
-    "vite": "^7.3.0"
+    "typescript-eslint": "^8.24.1"
   }
 }
