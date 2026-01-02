@@ -197,11 +197,13 @@ router.get("/wallet", auth, async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Calculate total allocated to bots
+    // Calculate totals from bot allocations
     let totalAllocated = 0;
+    let totalCurrentValue = 0;
     if (user.botAllocations) {
       for (const [, allocation] of user.botAllocations) {
         totalAllocated += allocation.allocatedAmount || 0;
+        totalCurrentValue += allocation.currentValue || allocation.allocatedAmount || 0;
       }
     }
 
@@ -212,7 +214,9 @@ router.get("/wallet", auth, async (req, res) => {
         currency: user.paperWallet?.currency || 'USD',
         lastUpdated: user.paperWallet?.lastUpdated,
         totalAllocated,
-        totalPortfolioValue: (user.paperWallet?.balance || 1000) + totalAllocated,
+        totalCurrentValue,
+        totalPortfolioValue: (user.paperWallet?.balance || 1000) + totalCurrentValue,
+        unrealizedPnL: totalCurrentValue - totalAllocated,
         botAllocations: user.botAllocations ? Object.fromEntries(user.botAllocations) : {},
         recentTransactions: (user.walletTransactions || [])
           .sort((a, b) => b.timestamp - a.timestamp)
@@ -708,9 +712,11 @@ router.put(
       const allocation = user.botAllocations.get(botId);
       const lifetimePnL = currentValue - allocation.allocatedAmount;
 
-      // Update allocation values
+      // Update allocation values (spread doesn't work with Mongoose Map objects)
       user.botAllocations.set(botId, {
-        ...allocation,
+        allocatedAmount: allocation.allocatedAmount,
+        allocatedAt: allocation.allocatedAt,
+        botName: allocation.botName,
         currentValue,
         reservedInTrades: reservedInTrades !== undefined ? reservedInTrades : allocation.reservedInTrades,
         availableBalance: availableBalance !== undefined ? availableBalance : (currentValue - (reservedInTrades || 0)),
