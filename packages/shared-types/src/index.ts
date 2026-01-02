@@ -82,3 +82,71 @@ export interface CommonEnvConfig {
 
 export type Nullable<T> = T | null | undefined
 export type WithTimestamps<T> = T & { createdAt: number; updatedAt?: number }
+
+// ============== WALLET SYSTEM TYPES ==============
+
+export type WalletTransactionType = 'deposit' | 'withdraw' | 'allocate' | 'deallocate' | 'profit' | 'loss'
+
+export interface WalletTransaction {
+  type: WalletTransactionType
+  amount: number
+  botId?: string
+  botName?: string
+  description?: string
+  balanceAfter: number
+  timestamp: number
+}
+
+export interface PaperWallet {
+  balance: number
+  currency: string
+  lastUpdated: number
+}
+
+export interface BotPoolAllocation {
+  allocatedAmount: number
+  currentValue: number
+  reservedInTrades: number
+  availableBalance: number
+  lifetimePnL: number
+  allocatedAt: number
+}
+
+export interface BotPool extends BotPoolAllocation {
+  botId: string
+  botName: string
+  status: 'active' | 'paused' | 'stopped'
+}
+
+export interface WalletSummary {
+  balance: number
+  currency: string
+  totalAllocated: number
+  totalPortfolioValue: number
+  lastUpdated: number
+}
+
+export interface AllocateToBotRequest {
+  botId: string
+  botName: string
+  amount: number
+}
+
+export interface AllocateToBotResponse {
+  success: boolean
+  walletBalance: number
+  allocation: BotPoolAllocation
+  transaction: WalletTransaction
+}
+
+export interface ReturnFromBotRequest {
+  botId: string
+  returnAmount?: number // If not provided, returns currentValue
+}
+
+export interface ReturnFromBotResponse {
+  success: boolean
+  walletBalance: number
+  returnedAmount: number
+  transaction: WalletTransaction
+}

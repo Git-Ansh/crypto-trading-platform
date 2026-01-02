@@ -302,19 +302,186 @@ router.get('/bots/:instanceId/profit', auth, async (req, res) => {
   }
 });
 
-// POST /api/freqtrade/provision - Provision a new bot
+const User = require('../models/user');
+
+// POST /api/freqtrade/provision - Provision a new bot with wallet allocation
 router.post('/provision', auth, async (req, res) => {
   const token = getTokenFromRequest(req);
   if (!token) {
     return res.status(401).json({ success: false, message: 'No authentication token' });
   }
 
-  const result = await proxyRequest('POST', '/api/provision', token, req.body);
-  
-  if (result.success) {
-    res.json(result.data);
-  } else {
-    res.status(result.status).json(result.error);
+  try {
+    const { instanceId, initialBalance = 10000, strategy } = req.body;
+    const userId = req.user.id;
+    
+    // Get user and check wallet balance
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const currentBalance = user.paperWallet?.balance || 0;
+    
+    // Check sufficient funds
+    if (initialBalance > currentBalance) {
+      return res.status(400).json({
+        success: false,
+        message: `Insufficient funds. Available: $${currentBalance.toFixed(2)}, Requested: $${initialBalance.toFixed(2)}`,
+      });
+    }
+
+    // Check if bot already has allocation (use instanceId or generate one)
+    const botId = instanceId || `bot_${Date.now()}`;
+    if (user.botAllocations && user.botAllocations.has(botId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bot already has funds allocated.',
+      });
+    }
+
+    // Provision the bot first
+    const provisionResult = await proxyRequest('POST', '/api/provision-enhanced', token, {
+      ...req.body,
+      instanceId: botId,
+      initialBalance,
+    });
+    
+    if (!provisionResult.success) {
+      return res.status(provisionResult.status).json(provisionResult.data || provisionResult.error);
+    }
+
+    // If provisioning successful, allocate funds from wallet
+    const now = new Date();
+    const newBalance = currentBalance - initialBalance;
+
+    // Update wallet balance
+    user.paperWallet = {
+      balance: newBalance,
+      currency: user.paperWallet?.currency || 'USD',
+      lastUpdated: now,
+    };
+
+    // Create bot allocation with pool tracking
+    if (!user.botAllocations) {
+      user.botAllocations = new Map();
+    }
+    const botName = strategy || 'Bot';
+    user.botAllocations.set(botId, {
+      allocatedAmount: initialBalance,
+      currentValue: initialBalance,
+      reservedInTrades: 0,
+      availableBalance: initialBalance,
+      lifetimePnL: 0,
+      allocatedAt: now,
+      botName: `${botName} (${botId})`,
+    });
+
+    // Add transaction record
+    user.walletTransactions.push({
+      type: 'allocate',
+      amount: initialBalance,
+      botId,
+      botName: `${botName} (${botId})`,
+      description: `Allocated $${initialBalance.toFixed(2)} to new bot: ${botId}`,
+      balanceAfter: newBalance,
+      timestamp: now,
+    });
+
+    await user.save();
+
+    // Return combined response
+    res.json({
+      ...provisionResult.data,
+      wallet: {
+        previousBalance: currentBalance,
+        newBalance,
+        allocated: initialBalance,
+      },
+    });
+  } catch (error) {
+    console.error('Provision with wallet error:', error);
+    res.status(500).json({ success: false, message: 'Server error during provisioning' });
+  }
+});
+
+// DELETE /api/freqtrade/bots/:instanceId - Delete bot and return funds to wallet
+router.delete('/bots/:instanceId', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  try {
+    const { instanceId } = req.params;
+    const userId = req.user.id;
+
+    // Get user and check if bot has allocation
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const allocation = user.botAllocations?.get(instanceId);
+
+    // First, delete the bot from bot-orchestrator
+    const deleteResult = await proxyRequest('DELETE', `/api/bots/${instanceId}`, token);
+    
+    if (!deleteResult.success) {
+      // If bot doesn't exist in orchestrator but has allocation, still clean up wallet
+      if (deleteResult.status !== 404) {
+        return res.status(deleteResult.status).json(deleteResult.data || deleteResult.error);
+      }
+    }
+
+    // If bot had allocation, return funds to wallet
+    let walletUpdate = null;
+    if (allocation) {
+      const now = new Date();
+      const returnAmount = allocation.currentValue || allocation.allocatedAmount;
+      const currentBalance = user.paperWallet?.balance || 0;
+      const newBalance = currentBalance + returnAmount;
+      const pnl = returnAmount - allocation.allocatedAmount;
+
+      // Update wallet balance
+      user.paperWallet = {
+        balance: newBalance,
+        currency: user.paperWallet?.currency || 'USD',
+        lastUpdated: now,
+      };
+
+      // Remove bot allocation
+      user.botAllocations.delete(instanceId);
+
+      // Add transaction record
+      user.walletTransactions.push({
+        type: 'deallocate',
+        amount: returnAmount,
+        botId: instanceId,
+        botName: allocation.botName || instanceId,
+        description: `Returned $${returnAmount.toFixed(2)} from deleted bot (P&L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)})`,
+        balanceAfter: newBalance,
+        timestamp: now,
+      });
+
+      await user.save();
+
+      walletUpdate = {
+        previousBalance: currentBalance,
+        newBalance,
+        returned: returnAmount,
+        pnl,
+      };
+    }
+
+    res.json({
+      success: true,
+      message: `Bot ${instanceId} deleted successfully`,
+      wallet: walletUpdate,
+    });
+  } catch (error) {
+    console.error('Delete bot with wallet error:', error);
+    res.status(500).json({ success: false, message: 'Server error during bot deletion' });
   }
 });
 

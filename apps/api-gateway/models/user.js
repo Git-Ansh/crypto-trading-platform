@@ -154,13 +154,17 @@ const UserSchema = new mongoose.Schema({
   },
   walletTransactions: [WalletTransactionSchema],
   
-  // Bot allocations tracking
+  // Bot allocations tracking (Bot Pool)
   botAllocations: {
     type: Map,
     of: {
-      allocatedAmount: Number,
-      currentValue: Number,
+      allocatedAmount: Number,      // Initial allocation from wallet
+      currentValue: Number,         // Current value (allocated + P&L)
+      reservedInTrades: Number,     // Currently in open positions
+      availableBalance: Number,     // Free to trade
+      lifetimePnL: Number,          // Total profit/loss since creation
       allocatedAt: Date,
+      botName: String,
     },
     default: new Map(),
   },

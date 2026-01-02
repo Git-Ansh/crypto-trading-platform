@@ -484,6 +484,279 @@ router.put("/notifications", auth, async (req, res) => {
   }
 });
 
+// ============== ALLOCATE FUNDS TO BOT ==============
+router.post(
+  "/wallet/allocate-to-bot",
+  auth,
+  [
+    check("botId", "Bot ID is required").notEmpty(),
+    check("botName", "Bot name is required").notEmpty(),
+    check("amount", "Amount must be a positive number").isFloat({ min: 1 }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    try {
+      const { botId, botName, amount } = req.body;
+      const user = await User.findById(req.user.id);
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+
+      const currentBalance = user.paperWallet?.balance || 0;
+
+      // Check sufficient funds
+      if (amount > currentBalance) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient funds. Available: $${currentBalance.toFixed(2)}, Requested: $${amount.toFixed(2)}`,
+        });
+      }
+
+      // Check if bot already has allocation
+      if (user.botAllocations && user.botAllocations.has(botId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Bot already has funds allocated. Use top-up or return funds first.",
+        });
+      }
+
+      const newBalance = currentBalance - amount;
+      const now = new Date();
+
+      // Update wallet balance
+      user.paperWallet = {
+        balance: newBalance,
+        currency: user.paperWallet?.currency || 'USD',
+        lastUpdated: now,
+      };
+
+      // Create bot allocation with pool tracking
+      if (!user.botAllocations) {
+        user.botAllocations = new Map();
+      }
+      user.botAllocations.set(botId, {
+        allocatedAmount: amount,
+        currentValue: amount,
+        reservedInTrades: 0,
+        availableBalance: amount,
+        lifetimePnL: 0,
+        allocatedAt: now,
+        botName: botName,
+      });
+
+      // Add transaction record
+      const transaction = {
+        type: 'allocate',
+        amount,
+        botId,
+        botName,
+        description: `Allocated $${amount.toFixed(2)} to bot: ${botName}`,
+        balanceAfter: newBalance,
+        timestamp: now,
+      };
+      user.walletTransactions.push(transaction);
+
+      await user.save();
+
+      res.json({
+        success: true,
+        message: `Successfully allocated $${amount.toFixed(2)} to ${botName}`,
+        data: {
+          walletBalance: newBalance,
+          allocation: user.botAllocations.get(botId),
+          transaction,
+        },
+      });
+    } catch (error) {
+      console.error("Allocate to bot error:", error);
+      res.status(500).json({ success: false, message: "Server error" });
+    }
+  }
+);
+
+// ============== RETURN FUNDS FROM BOT ==============
+router.post(
+  "/wallet/return-from-bot",
+  auth,
+  [check("botId", "Bot ID is required").notEmpty()],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    try {
+      const { botId, returnAmount } = req.body;
+      const user = await User.findById(req.user.id);
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+
+      // Check if bot has allocation
+      if (!user.botAllocations || !user.botAllocations.has(botId)) {
+        return res.status(404).json({
+          success: false,
+          message: "No allocation found for this bot",
+        });
+      }
+
+      const allocation = user.botAllocations.get(botId);
+      
+      // If returnAmount not specified, return currentValue (includes P&L)
+      const amountToReturn = returnAmount !== undefined ? returnAmount : allocation.currentValue;
+
+      // Validate return amount
+      if (amountToReturn > allocation.currentValue) {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot return more than current value. Available: $${allocation.currentValue.toFixed(2)}`,
+        });
+      }
+
+      // Check if there are reserved funds in trades
+      if (allocation.reservedInTrades > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Bot has $${allocation.reservedInTrades.toFixed(2)} in open trades. Close all positions first.`,
+        });
+      }
+
+      const currentBalance = user.paperWallet?.balance || 0;
+      const newBalance = currentBalance + amountToReturn;
+      const now = new Date();
+
+      // Calculate P&L for this return
+      const pnl = amountToReturn - allocation.allocatedAmount;
+      const transactionType = pnl >= 0 ? 'deallocate' : 'deallocate';
+
+      // Update wallet balance
+      user.paperWallet = {
+        balance: newBalance,
+        currency: user.paperWallet?.currency || 'USD',
+        lastUpdated: now,
+      };
+
+      // Remove bot allocation
+      user.botAllocations.delete(botId);
+
+      // Add transaction record
+      const transaction = {
+        type: transactionType,
+        amount: amountToReturn,
+        botId,
+        botName: allocation.botName || botId,
+        description: `Returned $${amountToReturn.toFixed(2)} from bot (P&L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)})`,
+        balanceAfter: newBalance,
+        timestamp: now,
+      };
+      user.walletTransactions.push(transaction);
+
+      await user.save();
+
+      res.json({
+        success: true,
+        message: `Successfully returned $${amountToReturn.toFixed(2)} to wallet`,
+        data: {
+          walletBalance: newBalance,
+          returnedAmount: amountToReturn,
+          pnl,
+          transaction,
+        },
+      });
+    } catch (error) {
+      console.error("Return from bot error:", error);
+      res.status(500).json({ success: false, message: "Server error" });
+    }
+  }
+);
+
+// ============== UPDATE BOT POOL (called by bot-orchestrator) ==============
+router.put(
+  "/wallet/update-bot-pool",
+  auth,
+  [
+    check("botId", "Bot ID is required").notEmpty(),
+    check("currentValue", "Current value is required").isFloat({ min: 0 }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    try {
+      const { botId, currentValue, reservedInTrades, availableBalance } = req.body;
+      const user = await User.findById(req.user.id);
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+
+      if (!user.botAllocations || !user.botAllocations.has(botId)) {
+        return res.status(404).json({
+          success: false,
+          message: "No allocation found for this bot",
+        });
+      }
+
+      const allocation = user.botAllocations.get(botId);
+      const lifetimePnL = currentValue - allocation.allocatedAmount;
+
+      // Update allocation values
+      user.botAllocations.set(botId, {
+        ...allocation,
+        currentValue,
+        reservedInTrades: reservedInTrades !== undefined ? reservedInTrades : allocation.reservedInTrades,
+        availableBalance: availableBalance !== undefined ? availableBalance : (currentValue - (reservedInTrades || 0)),
+        lifetimePnL,
+      });
+
+      await user.save();
+
+      res.json({
+        success: true,
+        data: user.botAllocations.get(botId),
+      });
+    } catch (error) {
+      console.error("Update bot pool error:", error);
+      res.status(500).json({ success: false, message: "Server error" });
+    }
+  }
+);
+
+// ============== GET BOT POOL STATUS ==============
+router.get("/wallet/bot-pool/:botId", auth, async (req, res) => {
+  try {
+    const { botId } = req.params;
+    const user = await User.findById(req.user.id).select("botAllocations");
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (!user.botAllocations || !user.botAllocations.has(botId)) {
+      return res.status(404).json({
+        success: false,
+        message: "No allocation found for this bot",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: user.botAllocations.get(botId),
+    });
+  } catch (error) {
+    console.error("Get bot pool error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 // ============== SEND EMAIL VERIFICATION ==============
 router.post("/send-verification-email", auth, async (req, res) => {
   try {
