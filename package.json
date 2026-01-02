@@ -6,6 +6,7 @@
     "build:packages": "npm run build --workspace=packages/shared-types && npm run build --workspace=packages/shared-config",
     "build:web": "npm run build --workspace=apps/web",
     "build": "npm run build:packages && npm run build:web",
+    "vercel-build": "npm run build:packages && npm run build:web",
     "dev:web": "npm run dev --workspace=apps/web",
     "dev:api": "npm run dev --workspace=apps/api-gateway",
     "dev:bot": "npm run dev --workspace=apps/bot-orchestrator"

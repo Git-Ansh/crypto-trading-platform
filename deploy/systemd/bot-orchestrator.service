@@ -1,0 +1,23 @@
+[Unit]
+Description=Crypto Pilot Bot Orchestrator (FreqTrade Manager)
+After=network.target docker.service
+Wants=network-online.target docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/crypto-trading-platform/apps/bot-orchestrator
+EnvironmentFile=/root/crypto-trading-platform/apps/bot-orchestrator/.env.systemd
+ExecStart=/usr/bin/node index.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=bot-orchestrator
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

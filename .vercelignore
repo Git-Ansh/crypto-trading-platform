@@ -1,0 +1,22 @@
+# Skip NX cache and build artifacts
+.nx
+nx.json
+project.json
+
+# Skip backend apps (not deployed to Vercel)
+apps/api-gateway
+apps/bot-orchestrator
+
+# Skip docs
+*.md
+!README.md
+
+# Skip test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/__tests__
+
+# Skip local env files
+.env.local
+.env.development
