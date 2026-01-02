@@ -28,6 +28,7 @@ const POOL_BASE_PORT = parseInt(process.env.POOL_BASE_PORT) || 9000;
 const POOL_IMAGE = process.env.POOL_IMAGE || 'freqtrade-pool:latest';
 const BOT_BASE_DIR = process.env.BOT_BASE_DIR || '/root/Crypto-Pilot-Freqtrade/freqtrade-instances';
 const SHARED_DATA_DIR = process.env.SHARED_DATA_DIR || '/root/Crypto-Pilot-Freqtrade/freqtrade_shared_data';
+const STRATEGIES_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || '/root/Crypto-Pilot-Freqtrade/Admin Strategies';
 
 // In-memory state (will be persisted to disk)
 let containerPool = new Map(); // poolId -> PoolContainer
@@ -66,6 +67,7 @@ class ContainerPoolManager {
     this.poolImage = options.poolImage || POOL_IMAGE;
     this.botBaseDir = options.botBaseDir || BOT_BASE_DIR;
     this.sharedDataDir = options.sharedDataDir || SHARED_DATA_DIR;
+    this.strategiesDir = options.strategiesDir || STRATEGIES_DIR;
     this.stateFile = options.stateFile || path.join(this.botBaseDir, '.container-pool-state.json');
     
     // State
@@ -76,7 +78,6 @@ class ContainerPoolManager {
     // Initialize
     this._loadState();
   }
-
   /**
    * Load persisted state from disk
    */
@@ -175,6 +176,12 @@ class ContainerPoolManager {
     await fs.ensureDir(poolDir);
     await fs.ensureDir(path.join(poolDir, 'supervisor'));
     await fs.ensureDir(path.join(poolDir, 'logs'));
+    await fs.ensureDir(path.join(poolDir, 'bots'));
+    
+    // Set ownership to UID 1000 (ftuser in container) for writable directories
+    await execPromise(`chown -R 1000:1000 "${path.join(poolDir, 'logs')}"`);
+    await execPromise(`chown -R 1000:1000 "${path.join(poolDir, 'bots')}"`);
+    await execPromise(`chown -R 1000:1000 "${path.join(poolDir, 'supervisor')}"`);
     
     // Create supervisord configuration
     const supervisorConfig = this._generateSupervisorConfig(poolId);
@@ -292,6 +299,9 @@ class ContainerPoolManager {
     const botConfigDir = path.join(pool.poolDir, 'bots', instanceId);
     await fs.ensureDir(botConfigDir);
     await fs.writeFile(path.join(botConfigDir, 'config.json'), JSON.stringify(config, null, 2));
+    
+    // Set ownership to ftuser (UID 1000) so bot can write logs and db
+    await execPromise(`chown -R 1000:1000 "${botConfigDir}"`);
     
     // Notify supervisord to reload and start the new program
     try {
@@ -541,9 +551,9 @@ class ContainerPoolManager {
 
 [supervisord]
 nodaemon=true
-logfile=/var/log/supervisor/supervisord.log
+logfile=/pool/logs/supervisord.log
 pidfile=/tmp/supervisord.pid
-childlogdir=/var/log/supervisor
+childlogdir=/pool/logs
 
 [unix_http_server]
 file=/tmp/supervisor.sock
@@ -556,7 +566,7 @@ supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 serverurl=unix:///tmp/supervisor.sock
 
 [include]
-files = /etc/supervisor/conf.d/bot-*.conf
+files = /pool/supervisor/bot-*.conf
 `;
   }
 
@@ -575,10 +585,12 @@ services:
     container_name: ${containerName}
     restart: unless-stopped
     volumes:
-      # Pool-level config and supervisor files
-      - ${poolDir}/supervisor:/pool/supervisor:ro
+      # Pool-level config and supervisor files (rw for dynamic bot configs)
+      - ${poolDir}/supervisor:/pool/supervisor:rw
       - ${poolDir}/bots:/pool/bots:rw
-      - ${poolDir}/logs:/var/log/supervisor:rw
+      - ${poolDir}/logs:/pool/logs:rw
+      # Shared strategies (read-only, same for all bots)
+      - ${this.strategiesDir}:/pool/strategies:ro
       # Shared market data
       - ${this.sharedDataDir}:/freqtrade/shared_data:ro
     ports:
@@ -596,10 +608,11 @@ ${portMappings.join('\n')}
   _generateBotProgramConfig(instanceId, slot, config) {
     const botDir = `/pool/bots/${instanceId}`;
     const configPath = `${botDir}/config.json`;
-    const logPath = `/var/log/supervisor/bot-${instanceId}.log`;
+    const logPath = `/pool/logs/bot-${instanceId}.log`;
+    const strategy = config.strategy || 'DCAStrategy';
     
     return `[program:bot-${instanceId}]
-command=freqtrade trade --config ${configPath} --db-url sqlite:///${botDir}/tradesv3.sqlite --logfile ${botDir}/freqtrade.log
+command=freqtrade trade --config ${configPath} --strategy-path /pool/strategies --strategy ${strategy} --db-url sqlite:///${botDir}/tradesv3.sqlite --logfile ${botDir}/freqtrade.log
 directory=/freqtrade
 user=ftuser
 autostart=true

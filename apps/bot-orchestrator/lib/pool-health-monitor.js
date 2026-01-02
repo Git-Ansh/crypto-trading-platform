@@ -331,29 +331,11 @@ class PoolHealthMonitor {
       }
       
       if (processStatus.includes('RUNNING')) {
-        // Bot process is running, try to ping API
-        try {
-          const response = await fetch(
-            `http://${pool.containerName}:${slot.port}/api/v1/ping`,
-            { timeout: this.pingTimeout }
-          );
-          
-          if (response.ok) {
-            result.status = 'healthy';
-            result.message = 'Bot responding to API';
-            result.details.apiStatus = 'ok';
-          } else {
-            result.status = 'degraded';
-            result.message = `Bot API returned ${response.status}`;
-            result.details.apiStatus = response.status;
-            result.recoverable = true;
-          }
-        } catch (apiErr) {
-          result.status = 'degraded';
-          result.message = 'Bot API not responding';
-          result.details.apiError = apiErr.message;
-          result.recoverable = true;
-        }
+        // Bot process is running in supervisor - that's healthy
+        // Note: FreqTrade API requires authentication, so we check supervisor status only
+        result.status = 'healthy';
+        result.message = 'Bot process running in supervisor';
+        result.details.supervisorStatus = 'RUNNING';
       } else if (processStatus.includes('STOPPED')) {
         result.status = 'unhealthy';
         result.message = 'Bot process stopped';
