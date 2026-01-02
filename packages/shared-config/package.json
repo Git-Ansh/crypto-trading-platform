@@ -19,11 +19,14 @@
   "sideEffects": false,
   "scripts": {
     "build": "npm run build:esm && npm run build:cjs && npm run build:cjs-pkg",
-    "build:esm": "tsc -p tsconfig.esm.json",
-    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "npx tsc -p tsconfig.esm.json",
+    "build:cjs": "npx tsc -p tsconfig.cjs.json",
     "build:cjs-pkg": "echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json"
   },
   "dependencies": {
     "@crypto-trading-platform/shared-types": "0.0.1"
+  },
+  "devDependencies": {
+    "typescript": "~5.7.0"
   }
 }
