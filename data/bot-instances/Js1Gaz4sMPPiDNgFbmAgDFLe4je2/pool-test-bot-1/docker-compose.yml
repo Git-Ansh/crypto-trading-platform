@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  freqtrade:
+    image: freqtradeorg/freqtrade:stable
+    container_name: freqtrade-pool-test-bot-1
+    restart: unless-stopped
+    volumes:
+      # 1. Mount instance's user_data (logs, db, COPIED strategies, etc.) - Read/Write
+      - ./user_data:/freqtrade/user_data
+      # 2. Mount instance's config read-only
+      - ./config.json:/freqtrade/config.json:ro
+      # 3. Mount the specific SHARED host exchange data dir read-only to a separate location
+      #    FreqTrade will use the data from user_data/data but we can symlink or copy from shared data
+      - /root/Crypto-Pilot-Freqtrade/freqtrade_shared_data/kraken:/freqtrade/shared_data/kraken:ro
+    ports:
+      - "0.0.0.0:8103:8103"
+    environment:
+      - FREQTRADE_USER_DATA_DIR=/freqtrade/user_data
+    command: trade --config /freqtrade/config.json --db-url sqlite:///user_data/tradesv3.sqlite?check_same_thread=False&timeout=60 --logfile /freqtrade/user_data/logs/freqtrade.log

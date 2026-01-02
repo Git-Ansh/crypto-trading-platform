@@ -1,0 +1,58 @@
+{
+  "pools": {
+    "Js1Gaz4sMPPiDNgFbmAgDFLe4je2-pool-1": {
+      "id": "Js1Gaz4sMPPiDNgFbmAgDFLe4je2-pool-1",
+      "userId": "Js1Gaz4sMPPiDNgFbmAgDFLe4je2",
+      "containerName": "freqtrade-pool-Js1Gaz4sMPPiDNgFbmAgDFLe4je2-pool-1",
+      "basePort": 9000,
+      "capacity": 3,
+      "bots": [
+        "anshjarvis2003-bot-1",
+        "anshjarvis2003-bot-2",
+        "anshjarvis2003-bot-3"
+      ],
+      "status": "running",
+      "createdAt": "2026-01-02T20:57:34.512Z",
+      "poolDir": "/root/crypto-trading-platform/data/bot-instances/Js1Gaz4sMPPiDNgFbmAgDFLe4je2/Js1Gaz4sMPPiDNgFbmAgDFLe4je2-pool-1",
+      "metrics": {
+        "memoryUsageMB": 0,
+        "cpuPercent": 0,
+        "lastUpdated": null
+      }
+    }
+  },
+  "botMapping": {
+    "anshjarvis2003-bot-1": {
+      "poolId": "Js1Gaz4sMPPiDNgFbmAgDFLe4je2-pool-1",
+      "containerName": "freqtrade-pool-Js1Gaz4sMPPiDNgFbmAgDFLe4je2-pool-1",
+      "slotIndex": 0,
+      "port": 9000,
+      "status": "running",
+      "instanceId": "anshjarvis2003-bot-1",
+      "userId": "Js1Gaz4sMPPiDNgFbmAgDFLe4je2",
+      "createdAt": "2026-01-02T20:57:34.514Z"
+    },
+    "anshjarvis2003-bot-2": {
+      "poolId": "Js1Gaz4sMPPiDNgFbmAgDFLe4je2-pool-1",
+      "containerName": "freqtrade-pool-Js1Gaz4sMPPiDNgFbmAgDFLe4je2-pool-1",
+      "slotIndex": 1,
+      "port": 9001,
+      "status": "running",
+      "instanceId": "anshjarvis2003-bot-2",
+      "userId": "Js1Gaz4sMPPiDNgFbmAgDFLe4je2",
+      "createdAt": "2026-01-02T20:57:48.327Z"
+    },
+    "anshjarvis2003-bot-3": {
+      "poolId": "Js1Gaz4sMPPiDNgFbmAgDFLe4je2-pool-1",
+      "containerName": "freqtrade-pool-Js1Gaz4sMPPiDNgFbmAgDFLe4je2-pool-1",
+      "slotIndex": 2,
+      "port": 9002,
+      "status": "running",
+      "instanceId": "anshjarvis2003-bot-3",
+      "userId": "Js1Gaz4sMPPiDNgFbmAgDFLe4je2",
+      "createdAt": "2026-01-02T20:57:49.233Z"
+    }
+  },
+  "nextPoolId": 1,
+  "updatedAt": "2026-01-02T20:57:50.615Z"
+}

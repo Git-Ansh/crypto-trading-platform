@@ -32,6 +32,7 @@ const execPromise = util.promisify(exec);
 
 // Configuration - 3 bots per user pool
 const MAX_BOTS_PER_CONTAINER = parseInt(process.env.MAX_BOTS_PER_CONTAINER) || 3;
+const POOL_CONTAINER_PREFIX = process.env.POOL_CONTAINER_PREFIX || 'freqtrade-pool';
 const POOL_BASE_PORT = parseInt(process.env.POOL_BASE_PORT) || 9000;
 // Pool mode uses custom supervisord-enabled image
 const POOL_IMAGE = process.env.POOL_IMAGE || 'freqtrade-pool:latest';
