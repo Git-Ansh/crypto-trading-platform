@@ -398,10 +398,11 @@ app.post("/api/auth/google-verify", async (req, res) => {
   }
 });
 
-// Always serve static files and fallback to index.html for client-side routing
-const clientPath = path.join(__dirname, "..", "Client");
-// Serve static files from the client folder
-app.use(express.static(clientPath));
+// Static file serving only in development (frontend is on Vercel in production)
+if (process.env.NODE_ENV !== 'production') {
+  const clientPath = path.join(__dirname, "..", "web", "dist");
+  app.use(express.static(clientPath));
+}
 
 // Basic Route (optional)
 app.get("/", (req, res) => {
@@ -421,10 +422,13 @@ app.all("/api/*", (req, res) => {
   });
 });
 
-// Fallback route for client-side routing
-app.get("*", (req, res) => {
-  res.sendFile(path.join(clientPath, "index.html"));
-});
+// Fallback route for client-side routing (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  const clientPathForFallback = path.join(__dirname, "..", "web", "dist");
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(clientPathForFallback, "index.html"));
+  });
+}
 
 // Error Handling Middleware
 const errorHandler = require("./middleware/errorHandler");
