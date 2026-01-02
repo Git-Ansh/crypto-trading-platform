@@ -26,7 +26,8 @@ import {
     Settings,
     PieChart,
     History,
-    Crown
+    Crown,
+    Server
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -70,6 +71,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { PoolInfo } from '@/components/pool-info';
 
 // Types
 interface UserProfile {
@@ -555,7 +557,7 @@ export default function AccountSettingsPage() {
                     {/* Main Content */}
                     <main className="flex-1 p-6 w-full">
                         <Tabs defaultValue={defaultTab} className="w-full">
-                            <TabsList className="grid w-full max-w-2xl grid-cols-5 mb-6">
+                            <TabsList className="grid w-full max-w-2xl grid-cols-6 mb-6">
                                 <TabsTrigger value="profile" className="gap-1">
                                     <User className="h-4 w-4" />
                                     <span className="hidden sm:inline">Profile</span>
@@ -575,6 +577,10 @@ export default function AccountSettingsPage() {
                                 <TabsTrigger value="subscription" className="gap-1">
                                     <Crown className="h-4 w-4" />
                                     <span className="hidden sm:inline">Plan</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="pools" className="gap-1">
+                                    <Server className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Pools</span>
                                 </TabsTrigger>
                             </TabsList>
 
@@ -1226,6 +1232,13 @@ export default function AccountSettingsPage() {
                                             </div>
                                         </CardContent>
                                     </Card>
+                                </div>
+                            </TabsContent>
+
+                            {/* Pool Info Tab */}
+                            <TabsContent value="pools">
+                                <div className="grid gap-6 max-w-2xl">
+                                    <PoolInfo />
                                 </div>
                             </TabsContent>
                         </Tabs>
