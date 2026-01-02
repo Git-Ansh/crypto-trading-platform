@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "build:packages": "npm run build --workspace=packages/shared-types && npm run build --workspace=packages/shared-config",
+    "build:shared-types": "cd packages/shared-types && tsc -p tsconfig.esm.json && tsc -p tsconfig.cjs.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
+    "build:shared-config": "cd packages/shared-config && tsc -p tsconfig.esm.json && tsc -p tsconfig.cjs.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
+    "build:packages": "npm run build:shared-types && npm run build:shared-config",
     "build:web": "npm run build --workspace=apps/web",
     "build": "npm run build:packages && npm run build:web",
     "vercel-build": "npm run build:packages && npm run build:web",
