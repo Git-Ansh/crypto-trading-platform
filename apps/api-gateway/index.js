@@ -14,13 +14,33 @@ const helmet = require("helmet");
 
 // Initialize Firebase Admin SDK
 const admin = require("firebase-admin");
+const fs = require("fs");
+
+// Load private key from file or env var
+const getFirebasePrivateKey = () => {
+  // First try to load from file (preferred for systemd)
+  if (process.env.FIREBASE_PRIVATE_KEY_FILE) {
+    try {
+      return fs.readFileSync(process.env.FIREBASE_PRIVATE_KEY_FILE, "utf8");
+    } catch (err) {
+      console.error("Failed to read Firebase private key file:", err.message);
+    }
+  }
+  // Fall back to env var (for Vercel/other platforms)
+  if (process.env.FIREBASE_PRIVATE_KEY) {
+    return process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n");
+  }
+  return null;
+};
+
+const firebasePrivateKey = getFirebasePrivateKey();
 
 // Use environment variables instead of requiring the JSON file
 const firebaseConfig = {
   type: process.env.FIREBASE_TYPE || "service_account",
   project_id: process.env.FIREBASE_PROJECT_ID,
   private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-  private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+  private_key: firebasePrivateKey,
   client_email: process.env.FIREBASE_CLIENT_EMAIL,
   client_id: process.env.FIREBASE_CLIENT_ID,
   auth_uri:
@@ -38,7 +58,7 @@ const firebaseConfig = {
 if (
   process.env.FIREBASE_PROJECT_ID &&
   process.env.FIREBASE_CLIENT_EMAIL &&
-  process.env.FIREBASE_PRIVATE_KEY &&
+  firebasePrivateKey &&
   !admin.apps.length // Check if Firebase is already initialized
 ) {
   admin.initializeApp({
