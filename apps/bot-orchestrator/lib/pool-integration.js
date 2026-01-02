@@ -22,7 +22,7 @@ const { getHealthMonitor } = require('./pool-health-monitor');
 
 // Configuration
 const POOL_MODE_ENABLED = process.env.POOL_MODE_ENABLED !== 'false';
-const BOT_BASE_DIR = process.env.BOT_BASE_DIR || '/root/Crypto-Pilot-Freqtrade/freqtrade-instances';
+const BOT_BASE_DIR = process.env.BOT_BASE_DIR || path.join(__dirname, '../../../data/bot-instances');
 const MAIN_STRATEGIES_SOURCE_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || '/root/Admin Strategies';
 
 // Global instances
@@ -143,20 +143,30 @@ const poolProvisioner = {
       throw new Error('Pool system not initialized. Call initPoolSystem() first.');
     }
     
-    // Create bot directory structure (same as legacy)
+    // Create bot directory structure in pool
+    // Structure: data/bot-instances/{userId}/{userId}-pool-N/bots/{instanceId}/
+    // The pool directory is created by container-pool.js when allocating slots
     const userDir = path.join(BOT_BASE_DIR, userId);
+    await fs.ensureDir(userDir);
+    
+    console.log(`[PoolProvisioner] User directory ensured: ${userDir}`);
+    
+    // Assign bot to container (this will create pool if needed)
+    const assignment = await botMapper.assignBotToContainer(instanceId, userId, { port });
+    
+    // In pool mode, bot data is stored in pool's bots directory
+    // Reference directory for metadata (not used by FreqTrade directly)
     const instanceDir = path.join(userDir, instanceId);
     const userDataDir = path.join(instanceDir, 'user_data');
     const strategiesDir = path.join(userDataDir, 'strategies');
     const logsDir = path.join(userDataDir, 'logs');
     
-    await fs.ensureDir(userDir);
     await fs.ensureDir(instanceDir);
     await fs.ensureDir(userDataDir);
     await fs.ensureDir(strategiesDir);
     await fs.ensureDir(logsDir);
     
-    console.log(`[PoolProvisioner] Created directory structure for ${instanceId}`);
+    console.log(`[PoolProvisioner] Created reference directory structure for ${instanceId}`);
     
     // Copy strategies
     if (await fs.pathExists(MAIN_STRATEGIES_SOURCE_DIR)) {
@@ -182,9 +192,6 @@ const poolProvisioner = {
       else if (pyFiles.includes('EnhancedRiskManagedStrategy.py')) defaultStrategy = 'EnhancedRiskManagedStrategy';
       else defaultStrategy = pyFiles[0].replace('.py', '');
     }
-    
-    // Assign bot to container (pool or legacy)
-    const assignment = await botMapper.assignBotToContainer(instanceId, userId, { port });
     
     // Build final config with assigned port
     const configJson = {
@@ -364,6 +371,22 @@ const poolProvisioner = {
       ...poolManager.getPoolStats(),
       health: healthMonitor.getHealthSummary()
     };
+  },
+  
+  /**
+   * Get pool statistics for a specific user
+   * @param {string} userId - User ID
+   */
+  getUserPoolStats(userId) {
+    if (!initialized) {
+      return { error: 'Pool system not initialized' };
+    }
+    
+    if (!userId) {
+      throw new Error('userId is required');
+    }
+    
+    return poolManager.getUserPoolStats(userId);
   },
 
   /**

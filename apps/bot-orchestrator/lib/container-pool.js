@@ -2,16 +2,26 @@
  * Container Pool Management System
  * 
  * Implements multi-tenant container pooling to reduce resource usage.
- * Instead of one container per bot (~500MB each), this system manages
- * pool containers that each handle multiple bots (~600MB for 10 bots).
+ * Each user gets their own pool containers, with 3 bots per pool.
+ * Pool naming: {userId}-pool-{N} (e.g., Js1Gaz4sMPPiDNgFbmAgDFLe4je2-pool-1)
  * 
  * Architecture:
  * - Pool Container: A Docker container running a supervisor process
  *   that can manage multiple FreqTrade instances
  * - Each bot gets its own FreqTrade process, SQLite database, and port
  * - Bots are isolated by process, share only container resources
+ * - Each user has isolated pools under data/bot-instances/{userId}/
  * 
- * Savings: 50 bots = 5 containers × 600MB = 3GB (vs 25GB with 1:1)
+ * Structure:
+ * data/bot-instances/
+ *   {userId}/
+ *     {userId}-pool-1/
+ *       supervisor/
+ *       bots/
+ *         bot-1/
+ *         bot-2/
+ *         bot-3/
+ *       logs/
  */
 
 const fs = require('fs-extra');
@@ -20,13 +30,13 @@ const { spawn, exec } = require('child_process');
 const util = require('util');
 const execPromise = util.promisify(exec);
 
-// Configuration
-const MAX_BOTS_PER_CONTAINER = parseInt(process.env.MAX_BOTS_PER_CONTAINER) || 10;
-const POOL_CONTAINER_PREFIX = 'freqtrade-pool';
+// Configuration - 3 bots per user pool
+const MAX_BOTS_PER_CONTAINER = parseInt(process.env.MAX_BOTS_PER_CONTAINER) || 3;
 const POOL_BASE_PORT = parseInt(process.env.POOL_BASE_PORT) || 9000;
-// Pool mode uses custom supervisord-enabled image, legacy uses standard freqtrade
+// Pool mode uses custom supervisord-enabled image
 const POOL_IMAGE = process.env.POOL_IMAGE || 'freqtrade-pool:latest';
-const BOT_BASE_DIR = process.env.BOT_BASE_DIR || '/root/Crypto-Pilot-Freqtrade/freqtrade-instances';
+// Bot instances stored under monorepo data directory
+const BOT_BASE_DIR = process.env.BOT_BASE_DIR || path.join(__dirname, '../../../data/bot-instances');
 const SHARED_DATA_DIR = process.env.SHARED_DATA_DIR || '/root/Crypto-Pilot-Freqtrade/freqtrade_shared_data';
 const STRATEGIES_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || '/root/Crypto-Pilot-Freqtrade/Admin Strategies';
 
@@ -129,16 +139,54 @@ class ContainerPoolManager {
   }
 
   /**
-   * Find a pool container with available capacity
+   * Find a pool container with available capacity for a specific user
+   * @param {string} userId - User ID to find pool for
    * @returns {PoolContainer|null}
    */
-  findAvailablePool() {
+  findAvailablePool(userId) {
+    if (!userId) {
+      throw new Error('userId is required for pool allocation');
+    }
+    
     for (const [id, pool] of this.pools) {
-      if (pool.status === 'running' && pool.bots.length < pool.capacity) {
+      // Only match pools belonging to this user
+      if (pool.userId === userId && pool.status === 'running' && pool.bots.length < pool.capacity) {
         return pool;
       }
     }
     return null;
+  }
+  
+  /**
+   * Get all pools for a specific user
+   * @param {string} userId - User ID
+   * @returns {PoolContainer[]}
+   */
+  getUserPools(userId) {
+    const userPools = [];
+    for (const [id, pool] of this.pools) {
+      if (pool.userId === userId) {
+        userPools.push(pool);
+      }
+    }
+    return userPools;
+  }
+  
+  /**
+   * Get the next pool number for a user
+   * @param {string} userId - User ID
+   * @returns {number}
+   */
+  _getNextPoolNumberForUser(userId) {
+    const userPools = this.getUserPools(userId);
+    if (userPools.length === 0) return 1;
+    
+    // Find the highest pool number
+    const poolNumbers = userPools.map(p => {
+      const match = p.id.match(/-pool-(\d+)$/);
+      return match ? parseInt(match[1], 10) : 0;
+    });
+    return Math.max(...poolNumbers) + 1;
   }
 
   /**
@@ -159,24 +207,58 @@ class ContainerPoolManager {
     
     throw new Error('No available ports in pool');
   }
+  
+  /**
+   * Get the next available base port for a new pool
+   * Ensures no port conflicts with existing pools
+   * @returns {number}
+   */
+  _getNextAvailableBasePort() {
+    if (this.pools.size === 0) return this.basePort;
+    
+    // Find the highest used port across all pools
+    let maxPort = this.basePort;
+    for (const [id, pool] of this.pools) {
+      const poolMaxPort = pool.basePort + pool.capacity;
+      if (poolMaxPort > maxPort) maxPort = poolMaxPort;
+    }
+    return maxPort;
+  }
 
   /**
-   * Create a new pool container
+   * Create a new pool container for a specific user
+   * Pool naming: {userId}-pool-N (e.g., Js1Gaz4sMPPiDNgFbmAgDFLe4je2-pool-1)
+   * @param {string} userId - User ID who owns this pool
    * @returns {Promise<PoolContainer>}
    */
-  async createPoolContainer() {
-    const poolId = `pool-${this.nextPoolId++}`;
-    const containerName = `${this.poolPrefix}-${poolId}`;
-    const basePort = this.basePort + (this.nextPoolId - 1) * this.maxBotsPerContainer;
+  async createPoolContainer(userId) {
+    if (!userId) {
+      throw new Error('userId is required to create a pool container');
+    }
     
-    console.log(`[ContainerPool] Creating new pool container: ${containerName}`);
+    const poolNumber = this._getNextPoolNumberForUser(userId);
+    const poolId = `${userId}-pool-${poolNumber}`;
+    const containerName = `${this.poolPrefix}-${userId}-pool-${poolNumber}`;
+    const basePort = this._getNextAvailableBasePort();
     
-    // Create pool directory structure
-    const poolDir = path.join(this.botBaseDir, '.pools', poolId);
+    console.log(`[ContainerPool] Creating new user pool: ${poolId} (container: ${containerName})`);
+    
+    // Create user directory if it doesn't exist
+    const userDir = path.join(this.botBaseDir, userId);
+    await fs.ensureDir(userDir);
+    
+    // Create pool directory structure under user directory
+    // Structure: data/bot-instances/{userId}/{userId}-pool-N/
+    const poolDir = path.join(userDir, `${userId}-pool-${poolNumber}`);
     await fs.ensureDir(poolDir);
     await fs.ensureDir(path.join(poolDir, 'supervisor'));
     await fs.ensureDir(path.join(poolDir, 'logs'));
     await fs.ensureDir(path.join(poolDir, 'bots'));
+    
+    // Create individual bot directories within the pool
+    for (let i = 1; i <= this.maxBotsPerContainer; i++) {
+      await fs.ensureDir(path.join(poolDir, 'bots', `bot-${i}`));
+    }
     
     // Set ownership to UID 1000 (ftuser in container) for writable directories
     await execPromise(`chown -R 1000:1000 "${path.join(poolDir, 'logs')}"`);
@@ -197,6 +279,7 @@ class ContainerPoolManager {
       
       const pool = {
         id: poolId,
+        userId,  // Track which user owns this pool
         containerName,
         basePort,
         capacity: this.maxBotsPerContainer,
@@ -214,7 +297,7 @@ class ContainerPoolManager {
       this.pools.set(poolId, pool);
       await this._saveState();
       
-      console.log(`[ContainerPool] ✓ Pool container ${containerName} created and started`);
+      console.log(`[ContainerPool] ✓ User pool ${poolId} created and started for user ${userId}`);
       return pool;
       
     } catch (err) {
@@ -225,13 +308,18 @@ class ContainerPoolManager {
 
   /**
    * Allocate a slot in a pool for a new bot
+   * Finds an existing user pool with capacity, or creates a new user-specific pool
    * @param {string} instanceId - Bot instance ID
-   * @param {string} userId - User ID
+   * @param {string} userId - User ID (required - each user has their own pools)
    * @param {Object} botConfig - Bot configuration
    * @returns {Promise<BotSlot>}
    */
   async allocateBotSlot(instanceId, userId, botConfig) {
-    console.log(`[ContainerPool] Allocating slot for bot ${instanceId}`);
+    if (!userId) {
+      throw new Error('userId is required for bot slot allocation');
+    }
+    
+    console.log(`[ContainerPool] Allocating slot for bot ${instanceId} (user: ${userId})`);
     
     // Check if bot already has a slot
     if (this.botMapping.has(instanceId)) {
@@ -239,11 +327,11 @@ class ContainerPoolManager {
       return this.botMapping.get(instanceId);
     }
     
-    // Find or create a pool with capacity
-    let pool = this.findAvailablePool();
+    // Find or create a pool with capacity FOR THIS USER
+    let pool = this.findAvailablePool(userId);
     if (!pool) {
-      console.log(`[ContainerPool] No available pool, creating new one`);
-      pool = await this.createPoolContainer();
+      console.log(`[ContainerPool] No available pool for user ${userId}, creating new one`);
+      pool = await this.createPoolContainer(userId);
     }
     
     // Get next available port
@@ -462,6 +550,7 @@ class ContainerPoolManager {
     for (const [id, pool] of this.pools) {
       stats.pools.push({
         id: pool.id,
+        userId: pool.userId,
         containerName: pool.containerName,
         status: pool.status,
         botsCount: pool.bots.length,
@@ -472,6 +561,49 @@ class ContainerPoolManager {
     }
     
     return stats;
+  }
+  
+  /**
+   * Get pool statistics for a specific user
+   * @param {string} userId - User ID
+   * @returns {Object}
+   */
+  getUserPoolStats(userId) {
+    const userPools = this.getUserPools(userId);
+    const userBots = [];
+    
+    for (const pool of userPools) {
+      for (const instanceId of pool.bots) {
+        const slot = this.botMapping.get(instanceId);
+        if (slot) {
+          userBots.push({
+            instanceId,
+            poolId: pool.id,
+            slotIndex: slot.slotIndex,
+            port: slot.port,
+            status: slot.status
+          });
+        }
+      }
+    }
+    
+    return {
+      userId,
+      totalPools: userPools.length,
+      totalBots: userBots.length,
+      maxBotsPerPool: this.maxBotsPerContainer,
+      pools: userPools.map(pool => ({
+        id: pool.id,
+        containerName: pool.containerName,
+        status: pool.status,
+        botsCount: pool.bots.length,
+        capacity: pool.capacity,
+        utilizationPercent: Math.round((pool.bots.length / pool.capacity) * 100),
+        bots: pool.bots,
+        metrics: pool.metrics
+      })),
+      bots: userBots
+    };
   }
 
   /**

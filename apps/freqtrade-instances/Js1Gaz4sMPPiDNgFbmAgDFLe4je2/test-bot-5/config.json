@@ -1,0 +1,104 @@
+{
+  "universalFeatures": {
+    "takeProfitLevels": {
+      "enabled": true,
+      "mode": "ladder",
+      "levels": {
+        "0": {
+          "percentage": 2,
+          "exitPercent": 25
+        },
+        "1": {
+          "percentage": 5,
+          "exitPercent": 50
+        },
+        "2": {
+          "percentage": 10,
+          "exitPercent": 100
+        }
+      }
+    },
+    "trailingStop": {
+      "enabled": true,
+      "activationPercent": 3,
+      "callbackRate": 1.5,
+      "stepSize": 0.5,
+      "lockInProfit": true
+    },
+    "dailyLossProtection": {
+      "enabled": true,
+      "maxDailyLossPercent": 5,
+      "pauseUntil": "nextDay",
+      "closePositions": false,
+      "notifyUser": true
+    },
+    "tradingSchedule": {
+      "enabled": false,
+      "timezone": "UTC",
+      "activeHours": {
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "activeDays": [
+        "MON",
+        "TUE",
+        "WED",
+        "THU",
+        "FRI",
+        "SAT",
+        "SUN"
+      ],
+      "holidayMode": false
+    },
+    "positionLimits": {
+      "enabled": true,
+      "maxPercentPerAsset": 30,
+      "maxPositionsPerAsset": 3,
+      "minTimeBetweenSameAsset": 3600,
+      "maxCorrelatedPositions": 2
+    },
+    "volatilityAdjustment": {
+      "enabled": true,
+      "method": "ATR",
+      "lookbackPeriod": 14,
+      "scaleFactor": 1,
+      "minSizeMultiplier": 0.5,
+      "maxSizeMultiplier": 1.5
+    },
+    "emergencyStop": {
+      "enabled": true,
+      "triggers": {
+        "btcDropPercent": 15,
+        "btcDropTimeframe": 60,
+        "portfolioDropPercent": 20
+      },
+      "actions": {
+        "closeAllPositions": false,
+        "pauseDurationHours": 4,
+        "notifyUser": true
+      }
+    },
+    "orderExecution": {
+      "enabled": true,
+      "useLimit": true,
+      "limitOffsetPercent": 0.1,
+      "postOnly": true,
+      "timeInForce": "GTC",
+      "icebergOrders": {
+        "enabled": false,
+        "visiblePercent": 20
+      }
+    },
+    "compounding": {
+      "enabled": false,
+      "reinvestPercent": 80,
+      "withdrawalThreshold": 1000,
+      "compoundFrequency": "daily"
+    },
+    "_meta": {
+      "version": "2.0.0",
+      "createdAt": "2026-01-02T19:31:27.790Z",
+      "updatedAt": "2026-01-02T19:31:27.790Z"
+    }
+  }
+}
