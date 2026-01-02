@@ -621,7 +621,8 @@ environment=FREQTRADE_USER_DATA_DIR="/pool/bots/${instanceId}"
 
   async _runDockerCompose(workDir, args) {
     return new Promise((resolve, reject) => {
-      const proc = spawn('docker-compose', args, { cwd: workDir });
+      // Use 'docker compose' (plugin) instead of 'docker-compose' (Python)
+      const proc = spawn('docker', ['compose', ...args], { cwd: workDir });
       
       let stdout = '';
       let stderr = '';
@@ -633,7 +634,7 @@ environment=FREQTRADE_USER_DATA_DIR="/pool/bots/${instanceId}"
         if (code === 0) {
           resolve({ stdout, stderr });
         } else {
-          reject(new Error(`docker-compose ${args.join(' ')} failed (code ${code}): ${stderr}`));
+          reject(new Error(`docker compose ${args.join(' ')} failed (code ${code}): ${stderr}`));
         }
       });
       

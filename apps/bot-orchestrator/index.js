@@ -4,12 +4,16 @@ const { spawn } = require('child_process');
 const fs = require('fs-extra'); // Use fs-extra for ensureDir etc.
 const path = require('path');
 const dotenv = require('dotenv');
+
 // ----------------------------------------------------------------------
 // DEPLOYMENT WARNING:
 // 1. This app MUST run on PORT 5000 in production.
 // 2. Do NOT add CORS headers in Nginx (this app handles CORS).
 // 3. See DEPLOYMENT.md for systemd setup (No quotes in env vars!).
 // ----------------------------------------------------------------------
+
+// IMPORTANT: Load environment variables BEFORE any module that uses them
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const { formatDbUrl } = require('./lib/urlFormatter');
 const { URL } = require('url');
@@ -40,8 +44,6 @@ const {
 // Pool system initialization flag
 let poolSystemInitialized = false;
 
-// Load environment variables from the bot-manager/.env file
-dotenv.config({ path: path.join(__dirname, '.env') });
 // Turso CLI command (allow overriding via env if path differs)
 const TURSO_CMD = process.env.TURSO_CMD || 'turso';
 // Log which Turso CLI binary will be used
@@ -1386,6 +1388,62 @@ async function processProvisioningQueue() {
   if (enhanced) {
     console.log(`[${timestamp}] [${instanceId}] Enhanced provisioning with risk template: ${riskTemplate}, pairs: ${tradingPairs.join(', ')}`);
   }
+
+  // ======================================================================
+  // PHASE 2: Use Pool Provisioner when pool mode is enabled
+  // ======================================================================
+  if (POOL_MODE_ENABLED && poolProvisioner.isPoolModeEnabled()) {
+    console.log(`[${instanceId}] Using POOL MODE provisioning...`);
+    try {
+      const poolResult = await poolProvisioner.provisionBot({
+        instanceId,
+        userId,
+        port,
+        strategy,
+        tradingPairs,
+        initialBalance,
+        exchangeConfig,
+        apiUsername,
+        apiPassword,
+        enhanced,
+        riskTemplate,
+        customRiskConfig
+      });
+
+      console.log(`[${instanceId}] Pool provisioning result:`, JSON.stringify(poolResult, null, 2));
+
+      // Send success response
+      if (!task.res.headersSent) {
+        task.res.json({
+          success: true,
+          message: poolResult.isPooled ? 'Bot provisioned in container pool' : 'Bot provisioned successfully',
+          instanceId: poolResult.instanceId,
+          port: poolResult.port,
+          containerName: poolResult.containerName,
+          strategy: poolResult.config?.strategy || strategy,
+          isPooled: poolResult.isPooled,
+          poolId: poolResult.poolId
+        });
+      }
+
+      console.log(`[${instanceId}] ✓ Pool provisioning COMPLETE`);
+    } catch (poolErr) {
+      console.error(`[${instanceId}] Pool provisioning error:`, poolErr);
+      if (!task.res.headersSent) {
+        task.res.status(500).json({ success: false, message: poolErr.message });
+      }
+    } finally {
+      isProvisioning = false;
+      if (provisioningQueue.length > 0) {
+        console.log(`[${instanceId}] More tasks in queue, continuing...`);
+        processProvisioningQueue();
+      }
+    }
+    return;
+  }
+
+  // LEGACY MODE: Continue with traditional one-container-per-bot provisioning
+  console.log(`[${instanceId}] Using LEGACY MODE provisioning (one container per bot)`);
 
   // Define paths: ensure user directory, then instance directory
   const userDir = path.join(BOT_BASE_DIR, userId);
