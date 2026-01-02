@@ -1,0 +1,22 @@
+[Unit]
+Description=FreqTrade Local-to-Turso Database Sync Service
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/Crypto-Pilot-Freqtrade/bot-manager
+Environment=NODE_ENV=production
+Environment=PATH=/root/.turso:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/usr/bin/node sync-service.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Environment file
+EnvironmentFile=-/root/Crypto-Pilot-Freqtrade/bot-manager/.env
+
+[Install]
+WantedBy=multi-user.target

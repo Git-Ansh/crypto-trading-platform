@@ -1,0 +1,24 @@
+[Unit]
+Description=Crypto Trading Platform - Bot Orchestrator
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/crypto-trading-platform/apps/bot-orchestrator
+Environment="NODE_ENV=production"
+EnvironmentFile=/root/crypto-trading-platform/apps/bot-orchestrator/.env
+ExecStart=/usr/bin/node /root/crypto-trading-platform/apps/bot-orchestrator/index.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=bot-orchestrator
+
+# Resource limits
+LimitNOFILE=65536
+TimeoutStartSec=60
+
+[Install]
+WantedBy=multi-user.target

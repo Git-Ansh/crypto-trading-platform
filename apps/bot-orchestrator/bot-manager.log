@@ -1,0 +1,57 @@
+nohup: ignoring input
+Using TURSO_CMD: /root/.turso/turso
+Firebase Admin SDK initialized with service account
+Firebase was initialized by the main application. auth.js will use the existing instance.
+Using FREQTRADE_IMAGE: freqtradeorg/freqtrade:stable
+CRITICAL: All new bots will use the stable image with local SQLite DB: freqtradeorg/freqtrade:stable
+🌐 CORS allowed origins: [
+  'https://crypto-pilot.dev',
+  'https://freqtrade.crypto-pilot.dev',
+  'https://www.crypto-pilot.dev',
+  'https://app.crypto-pilot.dev',
+  'https://dashboard.crypto-pilot.dev',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5173',
+  'http://localhost:4173'
+]
+Ensuring bot instance base directory exists: /root/Crypto-Pilot-Freqtrade/freqtrade-instances
+=================================================
+ Freqtrade Bot Manager (API Gateway + SSE)
+-------------------------------------------------
+ HTTP Server: http://0.0.0.0:3001
+ SSE Stream: GET /api/stream?token=...
+ Bot Instance Base Dir: /root/Crypto-Pilot-Freqtrade/freqtrade-instances
+ Main Strategies Source: /root/Crypto-Pilot-Freqtrade/Admin Strategies
+ SHARED Data Directory: /root/freqtrade_shared_data
+ Firebase Admin: enabled; Project: crypto-pilot-b2376
+=================================================
+🚀 Starting universal risk management background services...
+=================================================
+ Freqtrade Bot Manager (API Gateway + SSE)
+-------------------------------------------------
+ HTTP Server: http://0.0.0.0:3001
+ SSE Stream: GET /api/stream?token=...
+ Bot Instance Base Dir: /root/Crypto-Pilot-Freqtrade/freqtrade-instances
+ Main Strategies Source: /root/Crypto-Pilot-Freqtrade/Admin Strategies
+ SHARED Data Directory: /root/freqtrade_shared_data
+ Firebase Admin: enabled; Project: crypto-pilot-b2376
+=================================================
+Ensuring shared strategies directory exists (for fallback): /root/Crypto-Pilot-Freqtrade/bot-manager/freqtrade-shared/strategies
+Checking main strategies source directory: /root/Crypto-Pilot-Freqtrade/Admin Strategies
+Main strategies source directory found.
+Ensuring base shared data directory exists: /root/freqtrade_shared_data
+Base directories ensured/checked.
+Validating Turso API token on startup...
+Using refresh-turso-token.js for validation and renewal...
+⚠️  Turso token validation failed, disabling Turso operations globally
+   To resolve: node refresh-turso-token.js --renew
+   Output: === Token Status Check ===
+❌ Current token is invalid or expired
+Token expires in -20 days (2025-08-31T00:17:28.362Z)
+⚠️  Token will expire soon and should be renewed
+
+   Error: 
+⚠️  Turso API token validation failed on startup
+   Turso sync is globally disabled to prevent repeated failed API calls
+   To resolve: node refresh-turso-token.js --renew

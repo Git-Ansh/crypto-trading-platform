@@ -1,0 +1,47 @@
+[Unit]
+Description=Portfolio Monitor Service - Continuous FreqTrade Portfolio Monitoring
+Documentation=https://github.com/Git-Ansh/Crypto-Pilot-Freqtrade
+After=network.target network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/root/Crypto-Pilot-Freqtrade/bot-manager
+ExecStart=/usr/bin/node portfolio-monitor-service.js
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Environment variables
+Environment=NODE_ENV=production
+Environment=BOT_BASE_DIR=/root/Crypto-Pilot-Freqtrade/freqtrade-instances
+
+# Restart configuration
+Restart=always
+RestartSec=10
+TimeoutStartSec=60
+TimeoutStopSec=30
+
+# Resource limits
+LimitNOFILE=8192
+MemoryMax=512M
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=portfolio-monitor
+
+# Security
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/root/Crypto-Pilot-Freqtrade/freqtrade-instances
+
+# Health checks
+WatchdogSec=300
+
+[Install]
+WantedBy=multi-user.target
+Alias=portfolio-monitor.service

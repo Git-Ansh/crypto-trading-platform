@@ -1,0 +1,17 @@
+[Unit]
+Description=Turso Token Auto-Renewal Scheduler
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/Crypto-Pilot-Freqtrade/bot-manager
+ExecStart=/usr/bin/node refresh-turso-token.js --schedule
+Restart=always
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

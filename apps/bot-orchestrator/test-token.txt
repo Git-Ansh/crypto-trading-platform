@@ -1,0 +1,15 @@
+================================================================================
+Phase 3 Test Token Generated
+================================================================================
+Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRlc3QtdXNlci0xMjMiLCJ1aWQiOiJ0ZXN0LXVzZXItMTIzIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJjdXN0b21fand0Ijp0cnVlLCJ0b2tlbl90eXBlIjoiYm90X21hbmFnZXJfand0IiwiaWF0IjoxNzU4NDk5MTc1LCJleHAiOjE3NTg1ODU1NzUsImF1ZCI6ImZyZXF0cmFkZS11c2VycyIsImlzcyI6ImJvdC1tYW5hZ2VyIn0.YMkFgP8T1y9YfyLGku5M1Lj0eAApPo-bR771S7a1kGk
+
+User Info:
+- ID: test-user-123
+- UID: test-user-123
+- Email: test@example.com
+- Role: user
+
+Copy this token into the Phase 3 test client:
+================================================================================
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRlc3QtdXNlci0xMjMiLCJ1aWQiOiJ0ZXN0LXVzZXItMTIzIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJjdXN0b21fand0Ijp0cnVlLCJ0b2tlbl90eXBlIjoiYm90X21hbmFnZXJfand0IiwiaWF0IjoxNzU4NDk5MTc1LCJleHAiOjE3NTg1ODU1NzUsImF1ZCI6ImZyZXF0cmFkZS11c2VycyIsImlzcyI6ImJvdC1tYW5hZ2VyIn0.YMkFgP8T1y9YfyLGku5M1Lj0eAApPo-bR771S7a1kGk
+================================================================================

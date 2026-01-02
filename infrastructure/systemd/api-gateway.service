@@ -1,0 +1,23 @@
+[Unit]
+Description=Crypto Trading Platform - API Gateway
+After=network.target mongodb.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/crypto-trading-platform/apps/api-gateway
+Environment="NODE_ENV=production"
+EnvironmentFile=/root/crypto-trading-platform/apps/api-gateway/.env
+ExecStart=/usr/bin/node /root/crypto-trading-platform/apps/api-gateway/index.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=api-gateway
+
+# Resource limits
+LimitNOFILE=65536
+TimeoutStartSec=60
+
+[Install]
+WantedBy=multi-user.target

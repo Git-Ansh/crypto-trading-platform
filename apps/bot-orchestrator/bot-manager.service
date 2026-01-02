@@ -1,0 +1,25 @@
+[Unit]
+Description=Freqtrade Bot Manager
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/Crypto-Pilot-Freqtrade/bot-manager
+EnvironmentFile=/root/Crypto-Pilot-Freqtrade/bot-manager/.env
+ExecStart=/usr/bin/env node /root/Crypto-Pilot-Freqtrade/bot-manager/index.js
+
+# Always restart on failure or exit
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=bot-manager
+
+# Health check
+TimeoutStartSec=30
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target

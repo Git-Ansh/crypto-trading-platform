@@ -16,6 +16,12 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022",
-    "customConditions": ["@crypto-trading-platform/source"]
+    "customConditions": ["@crypto-trading-platform/source"],
+    "paths": {
+      "@crypto-trading-platform/shared-types": ["packages/shared-types/src/index.ts"],
+      "@crypto-trading-platform/shared-auth": ["packages/shared-auth/src/index.ts"],
+      "@crypto-trading-platform/shared-config": ["packages/shared-config/src/index.ts"],
+      "@crypto-trading-platform/shared-utils": ["packages/shared-utils/src/index.ts"]
+    }
   }
 }

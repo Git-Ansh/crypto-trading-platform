@@ -1,0 +1,3234 @@
+nohup: ignoring input
+🚀 Starting Standalone Portfolio Monitor Service
+
+[PortfolioMonitor] Configuration loaded from portfolio-monitor-config.json
+[PortfolioMonitor] Initialized with base directory: /root/Crypto-Pilot-Freqtrade/freqtrade-instances
+[PortfolioMonitor] Snapshot interval: 30000ms
+[PortfolioMonitor] Bot discovery interval: 60000ms
+[PortfolioMonitor] Starting portfolio monitoring service...
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] Setting up monitoring for user Js1Gaz4sMPPiDNgFbmAgDFLe4je2 with 3 bots
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Initializing portfolio service...
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Loaded 84 existing snapshots
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] ✅ Portfolio service initialized
+[PortfolioMonitor] ✅ User Js1Gaz4sMPPiDNgFbmAgDFLe4je2 portfolio monitoring initialized
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[PortfolioMonitor] ✅ Portfolio monitoring service started successfully
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.68, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 205ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.45, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 177ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.45, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 164ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: network timeout at: http://localhost:8103/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.47, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 5165ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.47, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 164ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.47, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 179ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.22, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 164ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.20, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 182ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.26, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 156ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.26, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 188ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 5.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30012.91, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 174ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30012.93, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 186ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30012.99, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 157ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30012.99, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 167ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.01, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 200ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.02, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 236ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.05, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 174ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.05, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 171ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.05, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 186ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.05, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 268ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 10.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.03, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 181ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.03, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 240ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: network timeout at: http://localhost:8103/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.97, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 5158ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: network timeout at: http://localhost:8103/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.78, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 5157ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.78, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 160ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.76, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 151ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.71, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 149ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.71, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 137ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.71, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 137ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.69, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 147ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 15.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.48, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 152ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.48, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 152ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.48, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 161ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.48, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 162ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.48, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 158ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.48, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 249ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.48, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 129ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.48, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 167ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.48, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 156ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.48, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 138ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 20.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.58, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 171ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: request to http://localhost:8103/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.64, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 188ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29912.64, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 337ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29912.64, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 181ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29912.64, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 153ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29912.64, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 163ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29912.73, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 200ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29912.90, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 198ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29912.96, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 166ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29912.98, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 237ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 25.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29913.44, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 196ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29913.41, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 205ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29913.40, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 371ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: network timeout at: http://localhost:8103/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.40, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 5186ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29913.32, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 265ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29913.32, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 197ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: network timeout at: http://localhost:8103/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.32, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 5183ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29913.32, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 215ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29913.32, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 201ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 30.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29913.42, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 181ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29913.42, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 182ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29913.52, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 183ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=29913.56, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 314ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.05, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 212ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.12, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 176ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.08, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 173ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.06, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 192ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.05, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 170ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.05, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 185ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 35.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.06, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 169ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.39, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 219ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.33, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 168ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.33, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 175ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.22, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 180ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.11, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 268ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.08, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 198ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.11, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 249ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.12, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 175ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.15, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 248ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 40.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.18, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 175ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30013.18, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 370ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: network timeout at: http://localhost:8103/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=19813.70, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 6105ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: network timeout at: http://localhost:8103/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=19813.70, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 5159ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: network timeout at: http://localhost:8103/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=19813.65, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 5135ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: request to http://localhost:8103/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.85, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 181ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.77, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 242ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.98, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 222ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.96, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 144ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.07, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 154ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 45.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.14, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 151ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.73, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 149ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.75, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 159ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.74, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 155ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.58, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 152ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.81, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 137ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.86, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 155ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.84, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 160ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.88, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 159ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 50.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20012.89, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 147ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-3: FetchError: request to http://localhost:8102/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=10006.46, Bots=1/3
+[PortfolioMonitor] Captured 1 snapshots in 121ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30012.48, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 1842ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-2: FetchError: network timeout at: http://localhost:8101/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-3: FetchError: network timeout at: http://localhost:8102/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: network timeout at: http://localhost:8103/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 15115ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-2: FetchError: network timeout at: http://localhost:8101/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: request to http://localhost:8103/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 5092ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 76ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 88ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 78ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 55.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 75ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 95ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 70ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 60.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 78ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30011.31, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 180ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30011.46, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 184ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30011.60, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 236ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30011.57, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 162ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30011.63, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 194ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30011.47, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 182ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30011.57, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 207ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 65.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30011.60, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 186ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30011.94, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 211ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30011.98, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 197ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30011.79, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 181ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-2: FetchError: request to http://localhost:8101/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-3: FetchError: request to http://localhost:8102/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: request to http://localhost:8103/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 893ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: network timeout at: http://localhost:8103/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.46, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 5169ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: network timeout at: http://localhost:8103/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.75, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 5158ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.85, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 142ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.79, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 139ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 70.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.73, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 147ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=30012.88, Bots=3/3
+[PortfolioMonitor] Captured 1 snapshots in 2030ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: network timeout at: http://localhost:8103/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.72, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 5163ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-4: FetchError: request to http://localhost:8103/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.03, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 354ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.97, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 147ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.02, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 155ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.02, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 163ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.15, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 148ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.10, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 152ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.04, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 143ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 75.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.08, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 153ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.30, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 158ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.47, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 146ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.50, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 146ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.09, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 143ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.51, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 1735ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.55, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 135ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.32, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 149ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.37, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 152ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.34, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 145ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 80.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.32, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 155ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.30, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 154ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.92, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 155ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.93, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 136ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.95, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 158ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.12, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 143ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.19, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 140ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.90, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 146ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.93, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 176ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.90, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 182ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 85.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.92, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 167ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.87, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 183ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.81, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 155ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.82, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 180ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.88, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 177ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.25, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 249ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.17, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 174ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.08, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 148ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.05, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 164ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.23, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 156ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 90.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.25, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 175ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.23, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 177ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.29, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 211ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.28, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 154ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.51, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 148ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.64, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 178ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.71, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 172ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.97, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 139ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.96, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 160ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.95, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 177ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 95.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.01, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 151ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.01, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 152ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.01, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 213ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.04, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 178ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.24, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 140ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.31, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 504ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.47, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 152ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.50, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 154ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.62, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 148ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.64, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 134ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 100.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.69, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 155ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.79, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 169ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.84, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 145ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.84, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 149ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.78, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 143ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.75, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 155ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.54, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 150ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.50, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 154ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.41, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 146ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.41, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 163ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 105.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.20, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 145ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.06, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 175ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.06, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 149ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.12, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 152ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.98, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 151ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.74, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 517ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.84, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 144ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.00, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 211ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.16, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 156ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 110.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.26, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 166ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.29, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 154ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.06, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 157ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.11, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 161ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.06, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 228ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.11, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 140ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.09, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 173ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.06, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 161ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.97, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 151ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.99, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 152ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 115.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.93, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 168ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.01, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 151ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20015.04, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 175ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.80, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 161ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.79, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 169ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.71, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 156ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.56, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 736ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.56, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 161ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.52, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 146ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.50, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 141ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 120.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.36, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 162ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.16, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 159ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20014.01, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 166ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.74, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 161ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.74, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 205ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.74, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 160ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.74, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 151ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.74, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 174ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.74, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 142ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.80, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 149ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 125.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.84, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 142ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.72, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 195ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.69, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 155ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=20013.69, Bots=2/3
+[PortfolioMonitor] Captured 1 snapshots in 239ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-2: FetchError: network timeout at: http://localhost:8101/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-3: FetchError: network timeout at: http://localhost:8102/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 10314ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-2: FetchError: network timeout at: http://localhost:8101/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-3: FetchError: network timeout at: http://localhost:8102/api/v1/status
+    at Timeout.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1494:13)
+    at listOnTimeout (node:internal/timers:569:17)
+    at process.processTimers (node:internal/timers:512:7) {
+  type: 'request-timeout'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 10104ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-2: FetchError: request to http://localhost:8101/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-3: FetchError: request to http://localhost:8102/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 90ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-2: FetchError: request to http://localhost:8101/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-3: FetchError: request to http://localhost:8102/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 102ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-2: FetchError: request to http://localhost:8101/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-3: FetchError: request to http://localhost:8102/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-2: FetchError: request to http://localhost:8101/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-3: FetchError: request to http://localhost:8102/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 101ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 130.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-2: FetchError: request to http://localhost:8101/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-3: FetchError: request to http://localhost:8102/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 86ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-2: FetchError: request to http://localhost:8101/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-3: FetchError: request to http://localhost:8102/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 165ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-2: FetchError: request to http://localhost:8101/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-3: FetchError: request to http://localhost:8102/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 107ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-2: FetchError: request to http://localhost:8101/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-3: FetchError: request to http://localhost:8102/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 98ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-2: FetchError: request to http://localhost:8101/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-3: FetchError: request to http://localhost:8102/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 88ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Error fetching bot data for anshjarvis2003-bot-3: FetchError: request to http://localhost:8102/api/v1/status failed, reason: read ECONNRESET
+    at ClientRequest.<anonymous> (/root/Crypto-Pilot-Freqtrade/bot-manager/node_modules/node-fetch/lib/index.js:1501:11)
+    at ClientRequest.emit (node:events:517:28)
+    at Socket.socketErrorListener (node:_http_client:501:9)
+    at Socket.emit (node:events:517:28)
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  type: 'system',
+  errno: 'ECONNRESET',
+  code: 'ECONNRESET'
+}
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 97ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 97ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 96ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 88ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 135.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 97ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 95ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 86ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 98ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 140.0min
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 114ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 113ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 99ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 73ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 83ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 94ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 77ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 145.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 109ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 115ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 77ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 150.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 86ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 97ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 66ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 86ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 68ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 155.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 77ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 80ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 78ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 73ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 78ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 160.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 72ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 76ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 78ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 74ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 72ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 165.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 72ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 94ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 74ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 75ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 88ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 170.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 83ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 76ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 86ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 105ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 83ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 175.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 88ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 88ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 102ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 83ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 180.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 102ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 73ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 105ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 90ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 140ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 76ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 107ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 94ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 125ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 185.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 121ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 104ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 102ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 100ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 126ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 71ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 142ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 190.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 97ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 1122ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 119ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 94ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 98ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 195.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 105ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 74ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 95ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 86ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 200.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 103ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 122ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 83ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 96ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 83ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 103ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 205.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 114ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 98ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 97ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 77ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 74ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 210.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 101ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 76ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 77ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 80ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 90ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 100ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 215.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 75ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 99ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 96ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 90ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 78ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 220.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 94ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 143ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 90ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 71ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 98ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 72ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 77ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 225.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 119ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 94ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 83ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 118ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 223ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 102ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 230.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 77ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 78ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 77ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 80ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 235.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 80ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 99ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 90ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 86ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 240.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 96ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 75ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 90ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 88ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 80ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 245.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 95ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 98ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 215ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 77ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 102ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 97ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 250.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 107ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 107ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 86ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 83ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 101ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 88ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 255.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 94ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 83ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 83ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 106ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 99ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 102ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 105ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 260.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 77ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 96ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 100ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 119ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 90ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 169ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 265.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 102ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 90ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 116ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 104ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 101ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 99ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 101ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 270.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 96ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 90ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 83ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 75ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 103ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 124ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 275.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 90ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 103ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 98ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 87ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 280.0min
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 80ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 86ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 101ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 78ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 285.0min
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 76ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 71ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 78ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 77ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 100ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 117ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 113ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 95ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 290.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 99ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 118ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 119ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 95ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 101ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 295.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 77ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 95ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 95ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 86ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 300.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 86ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 112ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 94ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 78ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 80ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 77ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 305.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 89ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 88ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 310.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 74ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 88ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 98ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 78ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 74ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 76ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 315.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 86ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 76ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 100ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 94ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 75ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 70ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 73ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 106ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 320.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 81ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 93ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 98ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 129ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 88ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 273ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 285ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 108ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 74ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 98ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 325.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 82ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 323ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 94ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 102ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 95ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 130ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 85ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 98ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 101ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 106ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 330.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 79ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 276ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 91ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 83ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 74ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 98ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 108ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 83ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 114ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 335.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 84ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 259ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 239ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 86ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 95ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 86ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 189ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 83ms
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 92ms
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 97ms
+[PortfolioMonitor] Status: RUNNING | Users: 1 | Uptime: 340.0min
+[PortfolioMonitor] Discovering all user bots...
+[PortfolioMonitor] Found 2 potential user directories
+[PortfolioMonitor] No bots found for user mybot1
+[PortfolioMonitor] Setup complete for 1 users
+[UserPortfolio:Js1Gaz4sMPPiDNgFbmAgDFLe4je2] Snapshot added: Value=0.00, Bots=0/3
+[PortfolioMonitor] Captured 1 snapshots in 72ms
