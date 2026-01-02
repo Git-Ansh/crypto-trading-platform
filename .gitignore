@@ -42,6 +42,25 @@ Thumbs.db
 .nx/workspace-data
 
 vite.config.*.timestamp*
-vitest.config.*.timestamp*# Systemd env files with secrets
+vitest.config.*.timestamp*
+
+# Systemd env files with secrets
 **/.env.systemd
 apps/api-gateway/firebase-key.pem
+
+# Bot instance data and user data (changes rapidly, contains sensitive info)
+data/bot-instances/
+apps/bot-orchestrator/data/bot-instances/
+**/freqtrade-instances/
+**/bot-instances/
+
+# Exclude all user token files
+*_token*.txt
+working_token*.txt
+current_token.txt
+fresh_token*.txt
+latest_token*.txt
+
+# Logs
+logs/
+*.log
