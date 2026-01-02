@@ -423,6 +423,73 @@ app.get('/api/pool/bot/:instanceId', authenticateToken, async (req, res) => {
   }
 });
 
+// Get user's pool statistics (user-specific pools)
+app.get('/api/pool/user/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const requestingUserId = req.user.uid || req.user.id;
+    
+    // Users can only view their own pools unless they're admin
+    if (requestingUserId !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Forbidden: Can only view your own pool statistics'
+      });
+    }
+    
+    if (!poolSystemInitialized) {
+      return res.json({
+        success: true,
+        userId,
+        poolMode: false,
+        message: 'Pool mode is disabled',
+        totalPools: 0,
+        totalBots: 0,
+        pools: []
+      });
+    }
+    
+    const stats = poolProvisioner.getUserPoolStats(userId);
+    res.json({
+      success: true,
+      poolMode: true,
+      ...stats
+    });
+  } catch (err) {
+    console.error('[Pool API] Error getting user pool stats:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Get current user's pool statistics (convenience endpoint)
+app.get('/api/pool/my-pools', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.uid || req.user.id;
+    
+    if (!poolSystemInitialized) {
+      return res.json({
+        success: true,
+        userId,
+        poolMode: false,
+        message: 'Pool mode is disabled',
+        totalPools: 0,
+        totalBots: 0,
+        pools: []
+      });
+    }
+    
+    const stats = poolProvisioner.getUserPoolStats(userId);
+    res.json({
+      success: true,
+      poolMode: true,
+      ...stats
+    });
+  } catch (err) {
+    console.error('[Pool API] Error getting user pool stats:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ======================================================================
 
 // Serve the test streaming client
