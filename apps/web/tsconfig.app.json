@@ -8,9 +8,7 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     },
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -27,5 +25,19 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "references": [
+    {
+      "path": "../../packages/shared-utils"
+    },
+    {
+      "path": "../../packages/shared-types/tsconfig.cjs.json"
+    },
+    {
+      "path": "../../packages/shared-config"
+    },
+    {
+      "path": "../../packages/shared-auth"
+    }
+  ]
 }

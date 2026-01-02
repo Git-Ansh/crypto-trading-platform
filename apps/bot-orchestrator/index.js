@@ -2664,13 +2664,68 @@ async function listUserBotInstances(userId) {
   if (!(await fs.pathExists(userDir))) return bots;
 
   try {
+    // If pool mode is enabled, get bots from pool manager
+    if (poolSystemInitialized && poolProvisioner.isPoolModeEnabled()) {
+      console.log('[listUserBotInstances] Pool mode enabled, getting bots from pool manager');
+      const poolStats = poolProvisioner.getUserPoolStats(userId);
+      
+      // For each pool, get the bots
+      for (const pool of poolStats.pools) {
+        const poolDir = path.join(userDir, pool.id);
+        
+        for (const botInstanceId of pool.bots) {
+          try {
+            const botDir = path.join(poolDir, 'bots', botInstanceId);
+            const configPath = path.join(botDir, 'config.json');
+            
+            if (!(await fs.pathExists(configPath))) {
+              console.log('[listUserBotInstances] Config not found for', botInstanceId);
+              continue;
+            }
+            
+            const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
+            
+            // Get bot slot info from poolStats
+            const botSlot = poolStats.bots.find(b => b.instanceId === botInstanceId);
+            const port = botSlot ? botSlot.port : config.api_server?.listen_port;
+            
+            console.log('[listUserBotInstances] Adding pooled bot:', botInstanceId, 'port:', port);
+            bots.push({
+              instanceId: botInstanceId,
+              userId,
+              strategy: config.strategy,
+              port,
+              containerName: pool.containerName,
+              containerStatus: pool.status === 'running' ? 'running' : 'stopped',
+              exchange: config.exchange?.name,
+              dry_run: config.dry_run,
+              stake_currency: config.stake_currency,
+              stake_amount: config.stake_amount,
+              max_open_trades: config.max_open_trades,
+              username: config.api_server?.username,
+              password: config.api_server?.password,
+              isPooled: true,
+              poolId: pool.id,
+              slotIndex: botSlot ? botSlot.slotIndex : null
+            });
+          } catch (botErr) {
+            console.warn(`[listUserBotInstances] Error processing bot ${botInstanceId}:`, botErr.message);
+          }
+        }
+      }
+      
+      return bots;
+    }
+    
+    // Legacy mode: scan for individual bot directories
     const instanceIds = await fs.readdir(userDir);
     console.log('[listUserBotInstances] Found entries:', instanceIds);
 
     for (const instanceId of instanceIds) {
       try {
-        // Skip temp files and non-bot files
-        if (instanceId.includes('.tmp') || instanceId.includes('.json') || instanceId.includes('.backup') || instanceId === 'historical_backups' || instanceId === 'permanent_backups') {
+        // Skip temp files, pool directories, and non-bot files
+        if (instanceId.includes('.tmp') || instanceId.includes('.json') || instanceId.includes('.backup') || 
+            instanceId.includes('-pool-') || instanceId === 'historical_backups' || instanceId === 'permanent_backups') {
           console.log('[listUserBotInstances] Skipping:', instanceId);
           continue;
         }
@@ -2718,7 +2773,8 @@ async function listUserBotInstances(userId) {
           stake_amount: config.stake_amount,
           max_open_trades: config.max_open_trades,
           username: config.api_server?.username,
-          password: config.api_server?.password
+          password: config.api_server?.password,
+          isPooled: false
         });
       } catch (instanceErr) {
         console.warn(`[listUserBotInstances] Error processing instance ${instanceId}:`, instanceErr.message);

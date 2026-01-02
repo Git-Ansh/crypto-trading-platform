@@ -154,44 +154,17 @@ const poolProvisioner = {
     // Assign bot to container (this will create pool if needed)
     const assignment = await botMapper.assignBotToContainer(instanceId, userId, { port });
     
-    // In pool mode, bot data is stored in pool's bots directory
-    // Reference directory for metadata (not used by FreqTrade directly)
-    const instanceDir = path.join(userDir, instanceId);
-    const userDataDir = path.join(instanceDir, 'user_data');
-    const strategiesDir = path.join(userDataDir, 'strategies');
-    const logsDir = path.join(userDataDir, 'logs');
-    
-    await fs.ensureDir(instanceDir);
-    await fs.ensureDir(userDataDir);
-    await fs.ensureDir(strategiesDir);
-    await fs.ensureDir(logsDir);
-    
-    console.log(`[PoolProvisioner] Created reference directory structure for ${instanceId}`);
-    
-    // Copy strategies
-    if (await fs.pathExists(MAIN_STRATEGIES_SOURCE_DIR)) {
-      await fs.copy(MAIN_STRATEGIES_SOURCE_DIR, strategiesDir, {
-        overwrite: true,
-        filter: (src) => {
-          const stats = fs.statSync(src);
-          return stats.isDirectory() || path.extname(src) === '.py';
-        }
-      });
-      console.log(`[PoolProvisioner] Copied strategies to ${instanceId}`);
-    }
+    // In pool mode, ALL bot data is stored in pool's bots directory
+    // No reference directories needed - everything is in the pool
+    console.log(`[PoolProvisioner] Bot assigned to pool ${assignment.poolId} at slot ${assignment.slotIndex}`);
     
     // Build config
     const finalTradingPairs = tradingPairs?.length > 0 ? tradingPairs : ["BTC/USD", "ETH/USD", "ADA/USD", "SOL/USD"];
     const finalInitialBalance = initialBalance || 10000;
     
-    // Determine strategy
+    // Determine strategy (use provided or default)
     let defaultStrategy = strategy || 'EmaRsiStrategy';
-    const pyFiles = (await fs.readdir(strategiesDir)).filter(f => f.endsWith('.py'));
-    if (!pyFiles.includes(`${defaultStrategy}.py`) && pyFiles.length > 0) {
-      if (pyFiles.includes('EmaRsiStrategy.py')) defaultStrategy = 'EmaRsiStrategy';
-      else if (pyFiles.includes('EnhancedRiskManagedStrategy.py')) defaultStrategy = 'EnhancedRiskManagedStrategy';
-      else defaultStrategy = pyFiles[0].replace('.py', '');
-    }
+    // Strategies are mounted in the pool container from shared location, no need to check files here
     
     // Build final config with assigned port
     const configJson = {
@@ -253,10 +226,8 @@ const poolProvisioner = {
       }
     };
     
-    // Write config to instance directory (for reference)
-    const configPath = path.join(instanceDir, 'config.json');
-    await fs.writeFile(configPath, JSON.stringify(configJson, null, 2));
-    console.log(`[PoolProvisioner] Config written to ${configPath}`);
+    // Config is written directly to pool by startBotInPool, no need for reference copy
+    console.log(`[PoolProvisioner] Config prepared for ${instanceId}`);
     
     if (assignment.isPooled) {
       // Start bot in pool container
@@ -278,8 +249,7 @@ const poolProvisioner = {
       containerName: assignment.containerName,
       port: assignment.port,
       url: assignment.url,
-      config: configJson,
-      instanceDir
+      config: configJson
     };
   },
 
@@ -291,26 +261,9 @@ const poolProvisioner = {
       throw new Error('Pool system not initialized');
     }
     
-    // Get bot config
-    const connection = await botMapper.getBotConnection(instanceId);
-    
-    if (connection.isPooled) {
-      // Read config from instance directory
-      const instanceDir = await this._resolveInstanceDir(instanceId);
-      const configPath = path.join(instanceDir, 'config.json');
-      const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
-      
-      await botMapper.startBot(instanceId, config);
-    } else {
-      // Legacy: start docker container
-      const { exec } = require('child_process');
-      await new Promise((resolve, reject) => {
-        exec(`docker start ${connection.containerName}`, (err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
-    }
+    // In pool mode, the bot is managed by supervisor
+    // We just need to trigger the start via botMapper
+    await botMapper.startBot(instanceId);
     
     return { success: true, instanceId };
   },
@@ -409,33 +362,6 @@ const poolProvisioner = {
     }
     
     return poolManager.cleanupEmptyPools();
-  },
-
-  /**
-   * Resolve instance directory path
-   * @private
-   */
-  async _resolveInstanceDir(instanceId) {
-    // Try direct path
-    const directPath = path.join(BOT_BASE_DIR, instanceId);
-    if (await fs.pathExists(directPath)) {
-      return directPath;
-    }
-    
-    // Search user directories
-    const users = await fs.readdir(BOT_BASE_DIR);
-    for (const userId of users) {
-      const userDir = path.join(BOT_BASE_DIR, userId);
-      const stat = await fs.stat(userDir);
-      if (!stat.isDirectory()) continue;
-      
-      const instancePath = path.join(userDir, instanceId);
-      if (await fs.pathExists(instancePath)) {
-        return instancePath;
-      }
-    }
-    
-    throw new Error(`Instance directory not found for ${instanceId}`);
   }
 };
 
