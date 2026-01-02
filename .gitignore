@@ -44,3 +44,4 @@ Thumbs.db
 vite.config.*.timestamp*
 vitest.config.*.timestamp*# Systemd env files with secrets
 **/.env.systemd
+apps/api-gateway/firebase-key.pem
