@@ -60,7 +60,7 @@ export const assertConfig = (
   requiredKeys: Array<keyof CommonEnvConfig>
 ): void => {
   const missing = requiredKeys.filter((key) => {
-    const value = (config as Record<string, unknown>)[key]
+    const value = config[key]
     return value === undefined || value === null || value === ""
   })
 

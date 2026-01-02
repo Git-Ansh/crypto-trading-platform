@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "composite": true,
     "rootDir": "./src",
     "outDir": "./dist/cjs",
     "declaration": true,
@@ -10,11 +9,7 @@
     "target": "ES2022",
     "strict": true,
     "skipLibCheck": true,
-    "esModuleInterop": true,
-    "baseUrl": ".",
-    "paths": {
-      "@crypto-trading-platform/shared-types": ["../shared-types/src/index.ts"]
-    }
+    "esModuleInterop": true
   },
   "include": ["src/**/*.ts"]
 }
