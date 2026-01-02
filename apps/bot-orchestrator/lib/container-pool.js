@@ -24,7 +24,8 @@ const execPromise = util.promisify(exec);
 const MAX_BOTS_PER_CONTAINER = parseInt(process.env.MAX_BOTS_PER_CONTAINER) || 10;
 const POOL_CONTAINER_PREFIX = 'freqtrade-pool';
 const POOL_BASE_PORT = parseInt(process.env.POOL_BASE_PORT) || 9000;
-const FREQTRADE_IMAGE = process.env.FREQTRADE_IMAGE || 'freqtradeorg/freqtrade:stable';
+// Pool mode uses custom supervisord-enabled image, legacy uses standard freqtrade
+const POOL_IMAGE = process.env.POOL_IMAGE || 'freqtrade-pool:latest';
 const BOT_BASE_DIR = process.env.BOT_BASE_DIR || '/root/Crypto-Pilot-Freqtrade/freqtrade-instances';
 const SHARED_DATA_DIR = process.env.SHARED_DATA_DIR || '/root/Crypto-Pilot-Freqtrade/freqtrade_shared_data';
 
@@ -62,7 +63,7 @@ class ContainerPoolManager {
     this.maxBotsPerContainer = options.maxBotsPerContainer || MAX_BOTS_PER_CONTAINER;
     this.poolPrefix = options.poolPrefix || POOL_CONTAINER_PREFIX;
     this.basePort = options.basePort || POOL_BASE_PORT;
-    this.freqtradeImage = options.freqtradeImage || FREQTRADE_IMAGE;
+    this.poolImage = options.poolImage || POOL_IMAGE;
     this.botBaseDir = options.botBaseDir || BOT_BASE_DIR;
     this.sharedDataDir = options.sharedDataDir || SHARED_DATA_DIR;
     this.stateFile = options.stateFile || path.join(this.botBaseDir, '.container-pool-state.json');
@@ -533,21 +534,26 @@ class ContainerPoolManager {
   // ==================== Private Helper Methods ====================
 
   _generateSupervisorConfig(poolId) {
-    return `[supervisord]
+    // Note: The base supervisord is pre-configured in the freqtrade-pool image
+    // This generates the per-pool include config that references bot configs
+    return `; Supervisor config for pool ${poolId}
+; Bot configs are in /etc/supervisor/conf.d/bot-*.conf
+
+[supervisord]
 nodaemon=true
 logfile=/var/log/supervisor/supervisord.log
-pidfile=/var/run/supervisord.pid
+pidfile=/tmp/supervisord.pid
 childlogdir=/var/log/supervisor
 
 [unix_http_server]
-file=/var/run/supervisor.sock
+file=/tmp/supervisor.sock
 chmod=0700
 
 [rpcinterface:supervisor]
-supervisor.rpc_interface_factory = supervisor.rpcinterface:make_main_rpcinterface
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
 [supervisorctl]
-serverurl=unix:///var/run/supervisor.sock
+serverurl=unix:///tmp/supervisor.sock
 
 [include]
 files = /etc/supervisor/conf.d/bot-*.conf
@@ -565,20 +571,9 @@ files = /etc/supervisor/conf.d/bot-*.conf
     return `version: '3.8'
 services:
   freqtrade-pool:
-    image: ${this.freqtradeImage}
+    image: ${this.poolImage}
     container_name: ${containerName}
     restart: unless-stopped
-    entrypoint: ["/bin/bash", "-c"]
-    command:
-      - |
-        # Install supervisor
-        apt-get update && apt-get install -y supervisor
-        mkdir -p /var/log/supervisor /etc/supervisor/conf.d
-        cp /pool/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
-        # Copy any existing bot configs
-        cp /pool/supervisor/bot-*.conf /etc/supervisor/conf.d/ 2>/dev/null || true
-        # Start supervisord
-        exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
     volumes:
       # Pool-level config and supervisor files
       - ${poolDir}/supervisor:/pool/supervisor:ro
@@ -591,7 +586,7 @@ ${portMappings.join('\n')}
     environment:
       - POOL_ID=${poolId}
     healthcheck:
-      test: ["CMD", "supervisorctl", "status"]
+      test: ["CMD", "/usr/local/bin/healthcheck.sh"]
       interval: 30s
       timeout: 10s
       retries: 3
