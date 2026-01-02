@@ -14,6 +14,9 @@
     "dev:bot": "npm run dev --workspace=apps/bot-orchestrator"
   },
   "private": true,
+  "dependencies": {
+    "typescript": "~5.7.0"
+  },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
     "@nx/eslint": "22.3.3",
