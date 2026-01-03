@@ -988,7 +988,8 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
     let gracefulExitMessage = '';
 
     try {
-      const instanceDir = path.join(BOT_BASE_DIR, userId, instanceId);
+      // Use instanceDir from middleware (supports pool structure)
+      const instanceDir = req.instanceDir || path.join(BOT_BASE_DIR, userId, instanceId);
       const configPath = path.join(instanceDir, 'config.json');
 
       if (await fs.pathExists(configPath)) {
@@ -1040,11 +1041,11 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
       console.log(`[API] Container ${containerName} removal failed: ${rmErr.message}`);
     }
 
-    // 2. Remove the instance directory
-    const instanceDir = path.join(BOT_BASE_DIR, userId, instanceId);
-    if (await fs.pathExists(instanceDir)) {
-      await fs.remove(instanceDir);
-      console.log(`[API] ✓ Instance directory removed: ${instanceDir}`);
+    // 2. Remove the instance directory (use req.instanceDir for pool support)
+    const instanceDirToRemove = req.instanceDir || path.join(BOT_BASE_DIR, userId, instanceId);
+    if (await fs.pathExists(instanceDirToRemove)) {
+      await fs.remove(instanceDirToRemove);
+      console.log(`[API] ✓ Instance directory removed: ${instanceDirToRemove}`);
     }
 
     // 3. Optional: Clean up Turso database if it exists
@@ -1093,8 +1094,8 @@ app.get('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, asyn
     const user = req.user || {};
     const userId = user.uid || user.id;
 
-    // Get bot configuration
-    const instanceDir = path.join(BOT_BASE_DIR, userId, instanceId);
+    // Get bot configuration (use req.instanceDir for pool support)
+    const instanceDir = req.instanceDir || path.join(BOT_BASE_DIR, userId, instanceId);
     const configPath = path.join(instanceDir, 'config.json');
 
     if (!await fs.pathExists(configPath)) {
@@ -1102,15 +1103,34 @@ app.get('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, asyn
     }
 
     const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
-    const containerName = `freqtrade-${instanceId}`;
-
-    // Check container status
-    let containerStatus = 'unknown';
-    try {
-      const statusOutput = await runDockerCommand(['ps', '-f', `name=${containerName}`, '--format', '{{.Names}}']);
-      containerStatus = statusOutput.includes(containerName) ? 'running' : 'stopped';
-    } catch (statusErr) {
-      console.warn(`[API] Could not check container status: ${statusErr.message}`);
+    
+    // Check if bot is pooled and get appropriate container info
+    let containerName, containerStatus = 'unknown', isPooled = false, poolId = null;
+    
+    if (poolSystemInitialized && isInstancePooled(instanceId)) {
+      isPooled = true;
+      try {
+        const connection = await poolProvisioner.getBotConnection(instanceId);
+        if (connection) {
+          containerName = connection.host; // Pool container name
+          poolId = connection.poolId;
+          // Check pool container status
+          const statusOutput = await runDockerCommand(['ps', '-f', `name=${containerName}`, '--format', '{{.Names}}']);
+          containerStatus = statusOutput.includes(containerName) ? 'running' : 'stopped';
+        }
+      } catch (poolErr) {
+        console.warn(`[API] Could not get pool connection: ${poolErr.message}`);
+        containerName = `freqtrade-${instanceId}`;
+      }
+    } else {
+      containerName = `freqtrade-${instanceId}`;
+      // Check legacy container status
+      try {
+        const statusOutput = await runDockerCommand(['ps', '-f', `name=${containerName}`, '--format', '{{.Names}}']);
+        containerStatus = statusOutput.includes(containerName) ? 'running' : 'stopped';
+      } catch (statusErr) {
+        console.warn(`[API] Could not check container status: ${statusErr.message}`);
+      }
     }
 
     const botInfo = {
@@ -1120,6 +1140,8 @@ app.get('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, asyn
       port: config.api_server?.listen_port,
       containerName,
       containerStatus,
+      isPooled,
+      poolId,
       exchange: config.exchange?.name,
       dry_run: config.dry_run,
       stake_currency: config.stake_currency,
@@ -1199,8 +1221,17 @@ app.get('/api/bots/:instanceId/strategy', authenticateToken, checkInstanceOwners
 
     console.log(`[API] Getting strategy for bot ${instanceId}`);
 
-    const instanceDir = path.join(BOT_BASE_DIR, userId, instanceId);
-    const configPath = path.join(instanceDir, 'config.json');
+    // Use instanceDir attached by checkInstanceOwnership (supports pool structure)
+    const instanceDir = req.instanceDir;
+    if (!instanceDir) {
+      // Fallback to legacy path if middleware didn't attach it
+      const legacyDir = path.join(BOT_BASE_DIR, userId, instanceId);
+      if (await fs.pathExists(legacyDir)) {
+        req.instanceDir = legacyDir;
+      }
+    }
+    
+    const configPath = path.join(req.instanceDir || path.join(BOT_BASE_DIR, userId, instanceId), 'config.json');
 
     if (!await fs.pathExists(configPath)) {
       return res.status(404).json({ success: false, message: 'Bot configuration not found' });
@@ -1235,7 +1266,8 @@ app.put('/api/bots/:instanceId/strategy', authenticateToken, checkInstanceOwners
 
     console.log(`[API] Updating strategy for bot ${instanceId} to ${strategy}`);
 
-    const instanceDir = path.join(BOT_BASE_DIR, userId, instanceId);
+    // Use req.instanceDir for pool structure support
+    const instanceDir = req.instanceDir || path.join(BOT_BASE_DIR, userId, instanceId);
     const configPath = path.join(instanceDir, 'config.json');
 
     if (!await fs.pathExists(configPath)) {
@@ -3871,16 +3903,38 @@ app.use('/api/proxy/:instanceId', authenticateToken, checkInstanceOwnership, asy
   console.log(`[Proxy] Debug: Request for ${instanceId}, Path: ${apiPath}`);
 
   try {
-    // 1. Get bot configuration to find port
     // 1. Get bot configuration from request (attached by checkInstanceOwnership)
     const config = req.botConfig;
     if (!config) return res.status(500).json({ error: 'Config missing' });
-    const port = config.api_server?.listen_port || 8080;
-
-    // In production Docker environment, use container name and internal port 8080
+    
+    let targetHost, targetPort;
     const isProduction = process.env.NODE_ENV === 'production';
-    const targetHost = isProduction ? `freqtrade-${instanceId}` : '127.0.0.1';
-    const targetPort = isProduction ? 8080 : port;
+    
+    // Check if bot is in pool mode
+    if (poolSystemInitialized && isInstancePooled(instanceId)) {
+      try {
+        const connection = await poolProvisioner.getBotConnection(instanceId);
+        if (connection) {
+          // Pool mode: use pool container's external port
+          // Since bot-orchestrator runs on host, always use localhost with the mapped port
+          // The pool container maps ports to host (e.g., 9000-9002 -> 9000-9002)
+          targetHost = 'localhost';
+          targetPort = connection.port;
+          console.log(`[Proxy] Pool mode: ${instanceId} -> ${targetHost}:${targetPort}`);
+        }
+      } catch (err) {
+        console.warn(`[Proxy] Failed to get pool connection for ${instanceId}:`, err.message);
+      }
+    }
+    
+    // Fallback to legacy mode if pool info not available
+    if (!targetHost) {
+      const port = config.api_server?.listen_port || 8080;
+      targetHost = isProduction ? `freqtrade-${instanceId}` : '127.0.0.1';
+      targetPort = isProduction ? 8080 : port;
+      console.log(`[Proxy] Legacy mode: ${instanceId} -> ${targetHost}:${targetPort}`);
+    }
+    
     const targetUrl = `http://${targetHost}:${targetPort}${apiPath}`;
 
     // 2. Prepare request options
@@ -4285,7 +4339,7 @@ app.get('/api/bots/:instanceId/risk-config', authenticateToken, checkInstanceOwn
     const userId = user.uid || user.id;
 
     // Use UniversalRiskManager to get computed risk config from bot-settings.json
-    const riskManager = new UniversalRiskManager(instanceId, userId);
+    const riskManager = new UniversalRiskManager(instanceId, userId, req.instanceDir);
     await riskManager.loadSettings();
 
     // Get the computed risk config based on current riskLevel
@@ -4326,7 +4380,7 @@ app.put('/api/bots/:instanceId/risk-config', authenticateToken, checkInstanceOwn
     }
 
     // Use UniversalRiskManager to update settings in bot-settings.json
-    const riskManager = new UniversalRiskManager(instanceId, userId);
+    const riskManager = new UniversalRiskManager(instanceId, userId, req.instanceDir);
     await riskManager.loadSettings();
 
     // Build settings update object
@@ -4339,8 +4393,8 @@ app.put('/api/bots/:instanceId/risk-config', authenticateToken, checkInstanceOwn
     await riskManager.updateSettings(settingsUpdate);
     console.log(`[RiskAPI] ✓ Risk settings updated for ${instanceId} via UniversalRiskManager`);
 
-    // Update bot's main config.json with risk settings
-    const instanceDir = path.join(BOT_BASE_DIR, userId, instanceId);
+    // Update bot's main config.json with risk settings (use req.instanceDir for pool support)
+    const instanceDir = req.instanceDir || path.join(BOT_BASE_DIR, userId, instanceId);
     const configPath = path.join(instanceDir, 'config.json');
 
     if (await fs.pathExists(configPath)) {
@@ -4813,14 +4867,14 @@ app.get('/api/universal-settings/:instanceId', authenticateToken, checkInstanceO
     const { instanceId } = req.params;
     const userId = req.user.id;
 
-    const instanceDir = await resolveBotInstancePath(instanceId);
+    const instanceDir = req.instanceDir; // Use pool-aware path from middleware
 
     if (!instanceDir) {
       return res.status(404).json({ success: false, error: 'Bot instance not found' });
     }
 
     // Use UniversalRiskManager to read from bot's config.json
-    const riskManager = new UniversalRiskManager(instanceId, userId);
+    const riskManager = new UniversalRiskManager(instanceId, userId, req.instanceDir);
     await riskManager.loadSettings();
 
     // Check if universalSettings exists in config.json
@@ -4939,7 +4993,7 @@ app.put('/api/universal-settings/:instanceId', authenticateToken, checkInstanceO
     const userId = req.user.id;
     const { riskLevel, autoRebalance, dcaEnabled, enabled = true } = req.body;
 
-    const instanceDir = await resolveBotInstancePath(instanceId);
+    const instanceDir = req.instanceDir; // Use pool-aware path from middleware
 
     if (!instanceDir) {
       return res.status(404).json({ success: false, error: 'Bot instance not found' });
@@ -4951,7 +5005,7 @@ app.put('/api/universal-settings/:instanceId', authenticateToken, checkInstanceO
     }
 
     // Use UniversalRiskManager to update settings in bot-settings.json
-    const riskManager = new UniversalRiskManager(instanceId, userId);
+    const riskManager = new UniversalRiskManager(instanceId, userId, req.instanceDir);
     await riskManager.loadSettings();
 
     // Update settings
@@ -4979,11 +5033,11 @@ app.put('/api/universal-settings/:instanceId', authenticateToken, checkInstanceO
 });
 
 // Get risk metrics with universal risk management data
-app.get('/api/risk-metrics/:instanceId', authenticateToken, async (req, res) => {
+app.get('/api/risk-metrics/:instanceId', authenticateToken, checkInstanceOwnership, async (req, res) => {
   try {
     const { instanceId } = req.params;
     const userId = req.user.id; // Get authenticated user's ID (set by auth middleware)
-    const instanceDir = await resolveBotInstancePath(instanceId);
+    const instanceDir = req.instanceDir; // Use pool-aware path from middleware
 
     if (!instanceDir) {
       return res.status(404).json({ success: false, error: 'Bot instance not found' });
@@ -4994,7 +5048,7 @@ app.get('/api/risk-metrics/:instanceId', authenticateToken, async (req, res) => 
 
     // Add universal risk management status
     // Use userId instead of instanceDir so it reads from user-specific settings file
-    const riskManager = new UniversalRiskManager(instanceId, userId);
+    const riskManager = new UniversalRiskManager(instanceId, userId, req.instanceDir);
     await riskManager.loadSettings();
 
     metrics.universalRiskManagement = {
@@ -5022,14 +5076,14 @@ app.post('/api/universal-settings/:instanceId/reset', authenticateToken, checkIn
   try {
     const { instanceId } = req.params;
     const userId = req.user.id; // Get authenticated user's ID (set by auth middleware)
-    const instanceDir = await resolveBotInstancePath(instanceId);
+    const instanceDir = req.instanceDir; // Use pool-aware path from middleware
 
     if (!instanceDir) {
       return res.status(404).json({ success: false, error: 'Bot instance not found' });
     }
 
     // Use userId instead of instanceDir so it writes to user-specific settings file
-    const riskManager = new UniversalRiskManager(instanceId, userId);
+    const riskManager = new UniversalRiskManager(instanceId, userId, req.instanceDir);
     await riskManager.updateSettings(riskManager.defaultSettings);
 
     // Clear API interceptor cache to ensure fresh settings on next request
@@ -5121,7 +5175,7 @@ app.get('/api/universal-features/:instanceId', authenticateToken, checkInstanceO
     const { instanceId } = req.params;
     const userId = req.user.id;
     
-    const features = new UniversalFeatures(instanceId, userId);
+    const features = new UniversalFeatures(instanceId, userId, req.instanceDir);
     await features.loadFeatures();
     
     res.json({
@@ -5143,7 +5197,7 @@ app.put('/api/universal-features/:instanceId', authenticateToken, checkInstanceO
     const userId = req.user.id;
     const newFeatures = req.body;
     
-    const features = new UniversalFeatures(instanceId, userId);
+    const features = new UniversalFeatures(instanceId, userId, req.instanceDir);
     const updatedFeatures = await features.updateFeatures(newFeatures);
     
     // Clear API interceptor cache for immediate effect
@@ -5181,7 +5235,7 @@ app.post('/api/universal-features/:instanceId/reset', authenticateToken, checkIn
     const { instanceId } = req.params;
     const userId = req.user.id;
     
-    const features = new UniversalFeatures(instanceId, userId);
+    const features = new UniversalFeatures(instanceId, userId, req.instanceDir);
     const defaults = JSON.parse(JSON.stringify(DEFAULT_FEATURES));
     defaults._meta.createdAt = new Date().toISOString();
     defaults._meta.updatedAt = new Date().toISOString();

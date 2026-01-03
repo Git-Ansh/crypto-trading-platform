@@ -202,6 +202,31 @@ router.get('/charts/portfolio', auth, async (req, res) => {
   }
 });
 
+// GET /api/freqtrade/trade-monitor/status - Lightweight status used by frontend
+// We don't have a dedicated trade-monitor endpoint in bot-orchestrator, so we synthesize
+// status from the bots list to keep the UI happy.
+router.get('/trade-monitor/status', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  const botsResult = await proxyRequest('GET', '/api/bots', token);
+
+  if (!botsResult.success) {
+    return res.status(botsResult.status).json({ success: false, message: 'Failed to fetch bots' });
+  }
+
+  const bots = botsResult.data?.bots || [];
+  return res.json({
+    success: true,
+    data: {
+      running: true,
+      botCount: bots.length
+    }
+  });
+});
+
 // GET /api/freqtrade/charts/portfolio/:interval - Get chart data for specific interval
 router.get('/charts/portfolio/:interval', auth, async (req, res) => {
   const token = getTokenFromRequest(req);
@@ -546,6 +571,107 @@ router.put('/universal-settings/:instanceId', auth, async (req, res) => {
   }
 });
 
+// GET /api/freqtrade/universal-features/:instanceId - Get universal features for specific bot
+router.get('/universal-features/:instanceId', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  const { instanceId } = req.params;
+  const result = await proxyRequest('GET', `/api/universal-features/${instanceId}`, token);
+  
+  if (result.success) {
+    res.json(result.data);
+  } else {
+    res.status(result.status).json(result.error);
+  }
+});
+
+// PUT /api/freqtrade/universal-features/:instanceId - Update universal features for specific bot
+router.put('/universal-features/:instanceId', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  const { instanceId } = req.params;
+  const result = await proxyRequest('PUT', `/api/universal-features/${instanceId}`, token, req.body);
+  
+  if (result.success) {
+    res.json(result.data);
+  } else {
+    res.status(result.status).json(result.error);
+  }
+});
+
+// GET /api/freqtrade/universal-features-defaults - Get default universal features
+router.get('/universal-features-defaults', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  const result = await proxyRequest('GET', '/api/universal-features-defaults', token);
+  
+  if (result.success) {
+    res.json(result.data);
+  } else {
+    res.status(result.status).json(result.error);
+  }
+});
+
+// POST /api/freqtrade/universal-features/:instanceId/reset - Reset universal features to defaults
+router.post('/universal-features/:instanceId/reset', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  const { instanceId } = req.params;
+  const result = await proxyRequest('POST', `/api/universal-features/${instanceId}/reset`, token);
+  
+  if (result.success) {
+    res.json(result.data);
+  } else {
+    res.status(result.status).json(result.error);
+  }
+});
+
+// POST /api/freqtrade/universal-features/:instanceId/resume - Resume trading after emergency pause
+router.post('/universal-features/:instanceId/resume', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  const { instanceId } = req.params;
+  const result = await proxyRequest('POST', `/api/universal-features/${instanceId}/resume`, token);
+  
+  if (result.success) {
+    res.json(result.data);
+  } else {
+    res.status(result.status).json(result.error);
+  }
+});
+
+// POST /api/freqtrade/universal-settings/:instanceId/reset - Reset universal settings to defaults
+router.post('/universal-settings/:instanceId/reset', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  const { instanceId } = req.params;
+  const result = await proxyRequest('POST', `/api/universal-settings/${instanceId}/reset`, token);
+  
+  if (result.success) {
+    res.json(result.data);
+  } else {
+    res.status(result.status).json(result.error);
+  }
+});
+
 // GET /api/freqtrade/proxy/:instanceId/api/v1/performance - Get bot performance
 router.get('/proxy/:instanceId/api/v1/performance', auth, async (req, res) => {
   const token = getTokenFromRequest(req);
@@ -577,6 +703,64 @@ router.get('/proxy/:instanceId/api/v1/profit', auth, async (req, res) => {
     res.json(result.data);
   } else {
     res.status(result.status).json(result.error);
+  }
+});
+
+// GET /api/freqtrade/proxy/:instanceId/api/v1/balance - Get bot balance
+router.get('/proxy/:instanceId/api/v1/balance', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  const { instanceId } = req.params;
+  const result = await proxyRequest('GET', `/api/proxy/${instanceId}/api/v1/balance`, token);
+  
+  if (result.success) {
+    res.json(result.data);
+  } else {
+    res.status(result.status).json(result.error);
+  }
+});
+
+// GET /api/freqtrade/proxy/:instanceId/api/v1/status - Get bot status
+router.get('/proxy/:instanceId/api/v1/status', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  const { instanceId } = req.params;
+  const result = await proxyRequest('GET', `/api/proxy/${instanceId}/api/v1/status`, token);
+  
+  if (result.success) {
+    res.json(result.data);
+  } else {
+    res.status(result.status).json(result.error);
+  }
+});
+
+// Catch-all proxy route for any FreqTrade API endpoint
+// This handles any /api/freqtrade/proxy/:instanceId/* requests not explicitly defined above
+router.all('/proxy/:instanceId/*', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  const { instanceId } = req.params;
+  // Extract the path after /proxy/:instanceId/
+  const apiPath = req.params[0]; // Everything after the wildcard
+  const fullPath = `/api/proxy/${instanceId}/${apiPath}`;
+  
+  console.log(`[FreqTrade Proxy] Catch-all: ${req.method} ${fullPath}`);
+  
+  const result = await proxyRequest(req.method, fullPath, token, req.body);
+  
+  if (result.success) {
+    res.json(result.data);
+  } else {
+    res.status(result.status).json(result.error || result.data);
   }
 });
 

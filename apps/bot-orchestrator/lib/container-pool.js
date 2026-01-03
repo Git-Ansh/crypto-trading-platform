@@ -40,6 +40,33 @@ const POOL_IMAGE = process.env.POOL_IMAGE || 'freqtrade-pool:latest';
 const BOT_BASE_DIR = process.env.BOT_BASE_DIR || path.join(__dirname, '../../../data/bot-instances');
 const SHARED_DATA_DIR = process.env.SHARED_DATA_DIR || '/root/Crypto-Pilot-Freqtrade/freqtrade_shared_data';
 const STRATEGIES_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || '/root/Crypto-Pilot-Freqtrade/Admin Strategies';
+const POOL_HOST_MODE = (process.env.POOL_HOST_MODE || 'host').toLowerCase(); // host | container | auto
+const POOL_HOST_OVERRIDE = process.env.POOL_HOST_OVERRIDE;
+
+// Decide how to reach pool containers (host vs container network)
+function isRunningInDocker() {
+  try {
+    if (fs.existsSync('/.dockerenv')) return true;
+    const cgroup = fs.readFileSync('/proc/1/cgroup', 'utf8');
+    return cgroup.includes('docker') || cgroup.includes('kubepods');
+  } catch (_err) {
+    return false;
+  }
+}
+
+function resolvePoolHost(containerName) {
+  if (POOL_HOST_OVERRIDE && POOL_HOST_OVERRIDE.trim()) {
+    return POOL_HOST_OVERRIDE.trim();
+  }
+  if (POOL_HOST_MODE === 'container') {
+    return containerName;
+  }
+  if (POOL_HOST_MODE === 'auto') {
+    return isRunningInDocker() ? containerName : 'localhost';
+  }
+  // Default: host can reach mapped ports on localhost
+  return 'localhost';
+}
 
 // In-memory state (will be persisted to disk)
 let containerPool = new Map(); // poolId -> PoolContainer
@@ -343,6 +370,7 @@ class ContainerPoolManager {
     const slot = {
       poolId: pool.id,
       containerName: pool.containerName,
+      host: resolvePoolHost(pool.containerName),
       slotIndex,
       port,
       status: 'pending',
@@ -519,13 +547,15 @@ class ContainerPoolManager {
       return null;
     }
     
+    const host = slot.host || resolvePoolHost(slot.containerName);
     // In pool mode, we connect to the pool container on the bot's assigned port
     return {
-      host: slot.containerName,
+      host,
       port: slot.port,
-      url: `http://${slot.containerName}:${slot.port}`,
+      url: `http://${host}:${slot.port}`,
       poolId: slot.poolId,
-      slotIndex: slot.slotIndex
+      slotIndex: slot.slotIndex,
+      containerName: slot.containerName
     };
   }
 

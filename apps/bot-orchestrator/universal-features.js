@@ -133,12 +133,13 @@ const CORRELATION_GROUPS = {
 };
 
 class UniversalFeatures {
-  constructor(instanceId, userId) {
+  constructor(instanceId, userId, instanceDir = null) {
     this.instanceId = instanceId;
     this.userId = userId;
     
-    // Bot instance paths
-    this.instanceDir = path.join(__dirname, '..', 'freqtrade-instances', this.userId, instanceId);
+    // Bot instance paths (pool-aware). Prefer provided instanceDir, else BOT_BASE_DIR, else legacy path.
+    const baseDir = process.env.BOT_BASE_DIR || path.join(__dirname, '..', 'data', 'bot-instances');
+    this.instanceDir = instanceDir || path.join(baseDir, this.userId, instanceId);
     this.configPath = path.join(this.instanceDir, 'config.json');
     
     // Runtime data paths

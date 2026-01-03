@@ -447,19 +447,21 @@ export default function BotConsolePage() {
                             <AlertDialogContent>
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                    <AlertDialogDescription className="space-y-2">
-                                        <p>This action cannot be undone. This will permanently delete the bot container and all associated data.</p>
+                                    <AlertDialogDescription asChild>
+                                        <div className="space-y-2 text-sm text-muted-foreground">
+                                            <span>This action cannot be undone. This will permanently delete the bot container and all associated data.</span>
 
-                                        {botToDelete?.dry_run && (
-                                            <div className="p-2 bg-muted rounded text-foreground font-medium border-l-4 border-emerald-500 pl-4 text-xs">
-                                                All active positions will be cashed out and calculated value returned to your global portfolio.
-                                            </div>
-                                        )}
-                                        {!botToDelete?.dry_run && (
-                                            <div className="p-2 bg-muted rounded text-foreground font-medium border-l-4 border-destructive pl-4 text-xs">
-                                                Warning: Live trading bot. Ensure all positions are closed or this action will force a shutdown.
-                                            </div>
-                                        )}
+                                            {botToDelete?.dry_run && (
+                                                <div className="p-2 bg-muted rounded text-foreground font-medium border-l-4 border-emerald-500 pl-4 text-xs">
+                                                    All active positions will be cashed out and calculated value returned to your global portfolio.
+                                                </div>
+                                            )}
+                                            {!botToDelete?.dry_run && (
+                                                <div className="p-2 bg-muted rounded text-foreground font-medium border-l-4 border-destructive pl-4 text-xs">
+                                                    Warning: Live trading bot. Ensure all positions are closed or this action will force a shutdown.
+                                                </div>
+                                            )}
+                                        </div>
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>

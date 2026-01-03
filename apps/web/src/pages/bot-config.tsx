@@ -31,7 +31,7 @@ import {
     SidebarInset,
     SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Loading } from "@/components/ui/loading";
+import { Loading, LoadingSpinner } from "@/components/ui/loading";
 import { AppSidebar } from '@/components/app-sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
@@ -361,8 +361,8 @@ export default function BotConfigPage() {
                 return;
             }
 
-            // Fetch bot info
-            const botsResponse = await fetch(`${config.botManager.baseUrl}/api/bots`, {
+            // Fetch bot info (using API gateway proxy for CORS compatibility)
+            const botsResponse = await fetch(`${config.api.baseUrl}/api/freqtrade/bots`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
@@ -377,9 +377,9 @@ export default function BotConfigPage() {
                 }
             }
 
-            // Fetch universal features
+            // Fetch universal features (using API gateway proxy)
             const featuresResponse = await fetch(
-                `${config.botManager.baseUrl}/api/universal-features/${botId}`,
+                `${config.api.baseUrl}/api/freqtrade/universal-features/${botId}`,
                 { headers: { 'Authorization': `Bearer ${token}` } }
             );
             
@@ -392,9 +392,9 @@ export default function BotConfigPage() {
                 }
             }
 
-            // Fetch risk settings (existing universal-settings)
+            // Fetch risk settings (existing universal-settings) - using API gateway proxy
             const riskResponse = await fetch(
-                `${config.botManager.baseUrl}/api/universal-settings`,
+                `${config.api.baseUrl}/api/freqtrade/universal-settings`,
                 { headers: { 'Authorization': `Bearer ${token}` } }
             );
             
@@ -412,9 +412,9 @@ export default function BotConfigPage() {
                 }
             }
 
-            // Fetch monitor status
+            // Fetch monitor status - using API gateway proxy
             const monitorResponse = await fetch(
-                `${config.botManager.baseUrl}/api/trade-monitor/status`,
+                `${config.api.baseUrl}/api/freqtrade/trade-monitor/status`,
                 { headers: { 'Authorization': `Bearer ${token}` } }
             );
             
@@ -472,9 +472,9 @@ export default function BotConfigPage() {
                 return;
             }
 
-            // Save universal features
+            // Save universal features - using API gateway proxy
             const featuresResponse = await fetch(
-                `${config.botManager.baseUrl}/api/universal-features/${botId}`,
+                `${config.api.baseUrl}/api/freqtrade/universal-features/${botId}`,
                 {
                     method: 'PUT',
                     headers: {
@@ -490,9 +490,9 @@ export default function BotConfigPage() {
                 throw new Error(errorData.message || 'Failed to save features');
             }
 
-            // Save risk settings
+            // Save risk settings - using API gateway proxy
             const riskResponse = await fetch(
-                `${config.botManager.baseUrl}/api/universal-settings/${botId}`,
+                `${config.api.baseUrl}/api/freqtrade/universal-settings/${botId}`,
                 {
                     method: 'PUT',
                     headers: {
@@ -539,7 +539,7 @@ export default function BotConfigPage() {
             }
 
             const response = await fetch(
-                `${config.botManager.baseUrl}/api/universal-features/${botId}/reset`,
+                `${config.api.baseUrl}/api/freqtrade/universal-features/${botId}/reset`,
                 {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -576,7 +576,7 @@ export default function BotConfigPage() {
             if (!token) return;
 
             const response = await fetch(
-                `${config.botManager.baseUrl}/api/universal-features/${botId}/resume`,
+                `${config.api.baseUrl}/api/freqtrade/universal-features/${botId}/resume`,
                 {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }

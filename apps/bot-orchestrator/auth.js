@@ -215,6 +215,33 @@ const checkInstanceOwnership = (req, res, next) => {
             return res.status(500).json({ success: false, message: 'Server error checking instance' });
         }
     }
+    // Also search pool structure: {BOT_BASE_DIR}/{userId}/{poolId}/bots/{instanceId}/
+    if (!instanceDir) {
+        try {
+            if (fs.existsSync(BOT_BASE_DIR)) {
+                const users = fs.readdirSync(BOT_BASE_DIR);
+                outerLoop:
+                for (const uid of users) {
+                    const userDir = path.join(BOT_BASE_DIR, uid);
+                    if (!fs.statSync(userDir).isDirectory()) continue;
+                    
+                    // Check for pool directories (they contain 'bots' subfolder)
+                    const poolCandidates = fs.readdirSync(userDir);
+                    for (const poolDir of poolCandidates) {
+                        const botsDir = path.join(userDir, poolDir, 'bots', instanceId);
+                        if (fs.existsSync(botsDir) && fs.statSync(botsDir).isDirectory()) {
+                            instanceDir = botsDir;
+                            console.log(`[Auth] Found instance in pool structure: ${instanceDir}`);
+                            break outerLoop;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('[Auth] Error searching pool structure:', err);
+        }
+    }
+
     if (!instanceDir) {
         console.warn(`[Auth] Instance directory not found for ID: ${instanceId}`);
         return res.status(404).json({

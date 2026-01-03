@@ -10,12 +10,13 @@ const fs = require('fs-extra');
 const path = require('path');
 
 class UniversalRiskManager {
-  constructor(instanceId, userId) {
+  constructor(instanceId, userId, instanceDir = null) {
     this.instanceId = instanceId;
     this.userId = userId;
     
-    // Bot instances directory
-    this.instanceDir = path.join(__dirname, '..', 'freqtrade-instances', this.userId, instanceId);
+    // Bot instances directory (pool-aware). Prefer provided instanceDir, else env BOT_BASE_DIR, else legacy path.
+    const baseDir = process.env.BOT_BASE_DIR || path.join(__dirname, '..', 'data', 'bot-instances');
+    this.instanceDir = instanceDir || path.join(baseDir, this.userId, instanceId);
     
     // SINGLE config file - the bot's existing config.json
     this.configPath = path.join(this.instanceDir, 'config.json');

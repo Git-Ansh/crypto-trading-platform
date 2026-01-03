@@ -54,13 +54,32 @@ class BotContainerMapper {
     // Check if bot is in pool mode
     if (this.poolManager.isBotInPool(instanceId)) {
       const poolInfo = this.poolManager.getBotConnectionInfo(instanceId);
+      
+      // Get credentials from bot's config.json (pooled bots still have their own config)
+      let username, password;
+      try {
+        const instanceDir = await this._resolveInstanceDir(instanceId);
+        if (instanceDir) {
+          const configPath = path.join(instanceDir, 'config.json');
+          if (await fs.pathExists(configPath)) {
+            const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
+            username = config.api_server?.username;
+            password = config.api_server?.password;
+          }
+        }
+      } catch (err) {
+        console.warn(`[BotMapper] Failed to read credentials for pooled bot ${instanceId}: ${err.message}`);
+      }
+      
       return {
         host: poolInfo.host,
         port: poolInfo.port,
         url: poolInfo.url,
         isPooled: true,
         containerName: poolInfo.containerName,
-        poolId: poolInfo.poolId
+        poolId: poolInfo.poolId,
+        username: username || process.env.DEFAULT_BOT_API_USERNAME,
+        password: password || process.env.DEFAULT_BOT_API_PASSWORD
       };
     }
     
@@ -149,9 +168,26 @@ class BotContainerMapper {
       const userDir = path.join(this.botBaseDir, userId);
       if (!(await fs.stat(userDir)).isDirectory()) continue;
       
-      const instancePath = path.join(userDir, instanceId);
-      if (await fs.pathExists(instancePath)) {
-        return instancePath;
+      // Check for legacy structure: {botBaseDir}/{userId}/{instanceId}
+      const legacyInstancePath = path.join(userDir, instanceId);
+      if (await fs.pathExists(legacyInstancePath)) {
+        return legacyInstancePath;
+      }
+      
+      // Check for pool structure: {botBaseDir}/{userId}/{poolId}/bots/{instanceId}
+      const poolDirs = await fs.readdir(userDir);
+      for (const poolDir of poolDirs) {
+        const poolPath = path.join(userDir, poolDir);
+        if (!(await fs.stat(poolPath)).isDirectory()) continue;
+        
+        // Check if this is a pool directory with a bots subdirectory
+        const botsDir = path.join(poolPath, 'bots');
+        if (await fs.pathExists(botsDir)) {
+          const poolInstancePath = path.join(botsDir, instanceId);
+          if (await fs.pathExists(poolInstancePath)) {
+            return poolInstancePath;
+          }
+        }
       }
     }
     
@@ -173,11 +209,12 @@ class BotContainerMapper {
       
       // Allocate slot in pool
       const slot = await this.poolManager.allocateBotSlot(instanceId, userId, botConfig);
+      const host = slot.host || slot.containerName;
       
       return {
-        host: slot.containerName,
+        host,
         port: slot.port,
-        url: `http://${slot.containerName}:${slot.port}`,
+        url: `http://${host}:${slot.port}`,
         isPooled: true,
         containerName: slot.containerName,
         poolId: slot.poolId
