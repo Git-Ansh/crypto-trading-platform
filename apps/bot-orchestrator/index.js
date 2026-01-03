@@ -5125,26 +5125,60 @@ app.get('/api/universal-settings', authenticateToken, async (req, res) => {
       });
     }
 
-    const instances = await fs.readdir(userDir);
-
+    const userEntries = await fs.readdir(userDir);
     const botsWithSettings = [];
 
-    for (const instanceId of instances) {
-      // Use UniversalRiskManager to read from bot's config.json
-      const riskManager = new UniversalRiskManager(instanceId, userId);
-      await riskManager.loadSettings();
+    for (const entry of userEntries) {
+      const entryPath = path.join(userDir, entry);
+      const entryStat = await fs.stat(entryPath).catch(() => null);
+      if (!entryStat || !entryStat.isDirectory()) {
+        continue;
+      }
 
-      const hasUniversalSettings = riskManager.botConfig?.universalSettings !== undefined;
+      const poolBotsDir = path.join(entryPath, 'bots');
+      const hasPoolBots = await fs.pathExists(poolBotsDir);
 
-      botsWithSettings.push({
-        instanceId: instanceId,
-        settings: riskManager.settings,
-        botConfig: riskManager.getBotConfig(),
-        defaults: riskManager.defaultSettings,
-        isRunning: await isBotRunning(instanceId),
-        isNewBot: !hasUniversalSettings,
-        lastUpdated: riskManager.settings?.updatedAt || null
-      });
+      if (hasPoolBots) {
+        const poolBots = await fs.readdir(poolBotsDir);
+        for (const botId of poolBots) {
+          const botDir = path.join(poolBotsDir, botId);
+          const botStat = await fs.stat(botDir).catch(() => null);
+          if (!botStat || !botStat.isDirectory()) {
+            continue;
+          }
+
+          const riskManager = new UniversalRiskManager(botId, userId, botDir);
+          await riskManager.loadSettings();
+          const hasUniversalSettings = riskManager.botConfig?.universalSettings !== undefined;
+
+          botsWithSettings.push({
+            instanceId: botId,
+            poolId: entry,
+            settings: riskManager.settings,
+            botConfig: riskManager.getBotConfig(),
+            defaults: riskManager.defaultSettings,
+            isRunning: await isBotRunning(botId),
+            isNewBot: !hasUniversalSettings,
+            lastUpdated: riskManager.settings?.updatedAt || null
+          });
+        }
+      } else {
+        const botId = entry;
+        const riskManager = new UniversalRiskManager(botId, userId, entryPath);
+        await riskManager.loadSettings();
+        const hasUniversalSettings = riskManager.botConfig?.universalSettings !== undefined;
+
+        botsWithSettings.push({
+          instanceId: botId,
+          poolId: null,
+          settings: riskManager.settings,
+          botConfig: riskManager.getBotConfig(),
+          defaults: riskManager.defaultSettings,
+          isRunning: await isBotRunning(botId),
+          isNewBot: !hasUniversalSettings,
+          lastUpdated: riskManager.settings?.updatedAt || null
+        });
+      }
     }
 
     // Get default settings for frontend reference

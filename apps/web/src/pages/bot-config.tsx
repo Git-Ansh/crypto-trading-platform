@@ -394,18 +394,18 @@ export default function BotConfigPage() {
 
             // Fetch risk settings (existing universal-settings) - using API gateway proxy
             const riskResponse = await fetch(
-                `${config.api.baseUrl}/api/freqtrade/universal-settings`,
+                `${config.api.baseUrl}/api/freqtrade/universal-settings/${botId}`,
                 { headers: { 'Authorization': `Bearer ${token}` } }
             );
             
             if (riskResponse.ok) {
                 const riskData = await riskResponse.json();
-                const botSettings = riskData.bots?.find((b: any) => b.instanceId === botId);
-                if (botSettings?.settings) {
+                const settingsSource = riskData.settings || riskData.data?.settings;
+                if (settingsSource) {
                     const settings = {
-                        riskLevel: botSettings.settings.riskLevel ?? 50,
-                        autoRebalance: botSettings.settings.autoRebalance ?? true,
-                        dcaEnabled: botSettings.settings.dcaEnabled ?? true
+                        riskLevel: settingsSource.riskLevel ?? 50,
+                        autoRebalance: settingsSource.autoRebalance ?? true,
+                        dcaEnabled: settingsSource.dcaEnabled ?? true
                     };
                     setRiskSettings(settings);
                     setOriginalRiskSettings({ ...settings });

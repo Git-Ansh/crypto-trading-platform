@@ -189,56 +189,53 @@ const checkInstanceOwnership = (req, res, next) => {
 
     const BOT_BASE_DIR = botBaseDir;
 
-    // Locate instance directory: support legacy flat structure and per-user nesting
+    // Locate instance directory: prefer paths that actually contain config.json
     let instanceDir = null;
+
+    const candidates = [];
+
     // Legacy flat path
     const direct = path.join(BOT_BASE_DIR, instanceId);
     if (fs.existsSync(direct) && fs.statSync(direct).isDirectory()) {
-        instanceDir = direct;
-    } else {
-        // Per-user nested paths
-        try {
-            if (fs.existsSync(BOT_BASE_DIR)) {
-                const users = fs.readdirSync(BOT_BASE_DIR);
-                for (const uid of users) {
-                    const candidate = path.join(BOT_BASE_DIR, uid, instanceId);
-                    if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
-                        instanceDir = candidate;
-                        break;
-                    }
-                }
-            } else {
-                console.warn(`[Auth] BOT_BASE_DIR does not exist: ${BOT_BASE_DIR}`);
-            }
-        } catch (err) {
-            console.error('Error scanning instance directories:', err);
-            return res.status(500).json({ success: false, message: 'Server error checking instance' });
-        }
+        candidates.push(direct);
     }
-    // Also search pool structure: {BOT_BASE_DIR}/{userId}/{poolId}/bots/{instanceId}/
-    if (!instanceDir) {
-        try {
-            if (fs.existsSync(BOT_BASE_DIR)) {
-                const users = fs.readdirSync(BOT_BASE_DIR);
-                outerLoop:
-                for (const uid of users) {
-                    const userDir = path.join(BOT_BASE_DIR, uid);
-                    if (!fs.statSync(userDir).isDirectory()) continue;
-                    
-                    // Check for pool directories (they contain 'bots' subfolder)
-                    const poolCandidates = fs.readdirSync(userDir);
-                    for (const poolDir of poolCandidates) {
-                        const botsDir = path.join(userDir, poolDir, 'bots', instanceId);
-                        if (fs.existsSync(botsDir) && fs.statSync(botsDir).isDirectory()) {
-                            instanceDir = botsDir;
-                            console.log(`[Auth] Found instance in pool structure: ${instanceDir}`);
-                            break outerLoop;
-                        }
+
+    // Per-user nested paths
+    try {
+        if (fs.existsSync(BOT_BASE_DIR)) {
+            const users = fs.readdirSync(BOT_BASE_DIR);
+            for (const uid of users) {
+                const userDir = path.join(BOT_BASE_DIR, uid);
+                if (!fs.statSync(userDir).isDirectory()) continue;
+
+                const legacyCandidate = path.join(userDir, instanceId);
+                if (fs.existsSync(legacyCandidate) && fs.statSync(legacyCandidate).isDirectory()) {
+                    candidates.push(legacyCandidate);
+                }
+
+                // Pool structure: {BOT_BASE_DIR}/{userId}/{poolId}/bots/{instanceId}/
+                const poolCandidates = fs.readdirSync(userDir);
+                for (const poolDir of poolCandidates) {
+                    const botsDir = path.join(userDir, poolDir, 'bots', instanceId);
+                    if (fs.existsSync(botsDir) && fs.statSync(botsDir).isDirectory()) {
+                        candidates.push(botsDir);
                     }
                 }
             }
-        } catch (err) {
-            console.error('[Auth] Error searching pool structure:', err);
+        } else {
+            console.warn(`[Auth] BOT_BASE_DIR does not exist: ${BOT_BASE_DIR}`);
+        }
+    } catch (err) {
+        console.error('Error scanning instance directories:', err);
+        return res.status(500).json({ success: false, message: 'Server error checking instance' });
+    }
+
+    // Choose the first candidate that actually contains config.json
+    for (const candidate of candidates) {
+        const cfg = path.join(candidate, 'config.json');
+        if (fs.existsSync(cfg)) {
+            instanceDir = candidate;
+            break;
         }
     }
 
