@@ -105,7 +105,8 @@ const TOP_SYMBOLS = [
 
 const BATCH_THRESHOLD = 5;
 const BATCH_WINDOW = 2000;
-const MAX_CHART_POINTS = 1000;
+const MAX_CHART_POINTS = 300;
+const MAX_CURRENCIES = 120;
 const HOUR_IN_MS = 60 * 60 * 1000;
 
 
@@ -520,6 +521,14 @@ export default function Dashboard() {
 
 
   // ============== Helpers ==============
+  // Defer heavy work until the main thread is idle to improve LCP/INP
+  const deferHeavyInit = useCallback((fn: () => void) => {
+    if (typeof (window as any).requestIdleCallback === 'function') {
+      (window as any).requestIdleCallback(fn, { timeout: 1500 });
+    } else {
+      setTimeout(fn, 250);
+    }
+  }, []);
   function formatCurrency(num: number, abbreviated: boolean = false): string {
     if (abbreviated && num > 1000000) {
       return new Intl.NumberFormat("en-US", {
@@ -575,8 +584,9 @@ export default function Dashboard() {
         (a, b) => b.marketCap - a.marketCap
       );
 
-      // Store all currencies
-      setAllCurrencies(sortedCurrencies);
+      // Store a capped list to keep rendering lightweight
+      const limitedCurrencies = sortedCurrencies.slice(0, MAX_CURRENCIES);
+      setAllCurrencies(limitedCurrencies);
 
       // Set the first 10 for backward compatibility with topCurrencies
       setTopCurrencies(sortedCurrencies.slice(0, 10));
@@ -819,12 +829,10 @@ export default function Dashboard() {
           : currency;
       };
 
-      // Update allCurrencies - this will trigger the derived dependencies (displayedCurrencies, filteredCurrencies)
+      // Update a limited slice to reduce render work
       setAllCurrencies((prev) => prev.map(updateCurrency));
-
-      // Update topCurrencies separately for those components that use it directly
-      setTopCurrencies((prev) => prev.map(updateCurrency));
-    }, 1000);
+      setTopCurrencies((prev) => prev.slice(0, 20).map(updateCurrency));
+    }, 5000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -895,14 +903,16 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    // Parallelize all initial data fetching
-    Promise.all([
-      fetchLatestNews(),
-      fetchTopCurrencies().then(() => initializeDashboardForCurrency("BTC")),
-    ]).catch(err => console.error("Initialization error:", err));
+    deferHeavyInit(() => {
+      Promise.all([
+        fetchLatestNews(),
+        fetchTopCurrencies().then(() => initializeDashboardForCurrency("BTC")),
+      ]).catch(err => console.error("Initialization error:", err));
 
-    // Establish the global WebSocket connection once.
-    connectWebSocketAll();
+      // Establish the global WebSocket connection once after initial fetch kicks off
+      connectWebSocketAll();
+    });
+
     return () => {
       if (wsRef.current) {
         wsRef.current.close();
@@ -913,6 +923,7 @@ export default function Dashboard() {
       }
     };
   }, [
+    deferHeavyInit,
     fetchTopCurrencies,
     initializeDashboardForCurrency,
     fetchLatestNews,
