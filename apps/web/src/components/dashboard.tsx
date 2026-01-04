@@ -108,6 +108,7 @@ const BATCH_WINDOW = 2000;
 const MAX_CHART_POINTS = 300;
 const MAX_CURRENCIES = 120;
 const HOUR_IN_MS = 60 * 60 * 1000;
+const MARKET_DATA_DEFER_MS = 2000;
 
 
 
@@ -389,6 +390,9 @@ export default function Dashboard() {
     lastMouseY: number;
   }>({ isPanning: false, lastMouseX: 0, lastMouseY: 0 });
 
+  // Gate heavy market data loading to reduce LCP/INP pressure
+  const [marketDataReady, setMarketDataReady] = useState<boolean>(false);
+
   // Minute data
   const [minuteData, setMinuteData] = useState<KlineData[]>([]);
   const [isLoadingMinuteData, setIsLoadingMinuteData] =
@@ -556,6 +560,7 @@ export default function Dashboard() {
 
   // ============== All Currencies with Pagination ==============
   const fetchTopCurrencies = useCallback(async () => {
+    if (!marketDataReady) return false;
     try {
       setIsLoadingCurrencies(true);
 
@@ -605,7 +610,7 @@ export default function Dashboard() {
       setIsLoadingCurrencies(false);
       return false;
     }
-  }, []);
+  }, [marketDataReady, rowsPerPage]);
 
   // ============== Historical & Ticker Data ==============
   const fetchHistoricalDataForCurrency = useCallback(
@@ -830,15 +835,18 @@ export default function Dashboard() {
       };
 
       // Update a limited slice to reduce render work
-      setAllCurrencies((prev) => prev.map(updateCurrency));
-      setTopCurrencies((prev) => prev.slice(0, 20).map(updateCurrency));
+      if (marketDataReady) {
+        setAllCurrencies((prev) => prev.map(updateCurrency));
+        setTopCurrencies((prev) => prev.slice(0, 20).map(updateCurrency));
+      }
     }, 5000);
     return () => clearInterval(intervalId);
-  }, []);
+  }, [marketDataReady]);
 
   // Initialization for selected currency – note we no longer reconnect WS here
   const initializeDashboardForCurrency = useCallback(
     async (symbol: string) => {
+      if (!marketDataReady) return;
       try {
         setLoading(true);
         setError(null);
@@ -866,7 +874,7 @@ export default function Dashboard() {
         setLoading(false);
       }
     },
-    [fetchHistoricalDataForCurrency, fetchTickerDataForCurrency]
+    [fetchHistoricalDataForCurrency, fetchTickerDataForCurrency, marketDataReady]
   );
 
   // 2. Fetch news from CryptoCompare
@@ -903,17 +911,19 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
+    // Defer market data kick-off to reduce LCP/INP
+    const t = setTimeout(() => setMarketDataReady(true), MARKET_DATA_DEFER_MS);
     deferHeavyInit(() => {
       Promise.all([
         fetchLatestNews(),
         fetchTopCurrencies().then(() => initializeDashboardForCurrency("BTC")),
       ]).catch(err => console.error("Initialization error:", err));
 
-      // Establish the global WebSocket connection once after initial fetch kicks off
       connectWebSocketAll();
     });
 
     return () => {
+      clearTimeout(t);
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
@@ -928,6 +938,7 @@ export default function Dashboard() {
     initializeDashboardForCurrency,
     fetchLatestNews,
     connectWebSocketAll,
+    marketDataReady,
   ]);
 
   // Removed fetchUserData - account creation date is no longer fetched from localhost:5000
@@ -955,7 +966,7 @@ export default function Dashboard() {
       if (currencyData) {
         // Name state removed as it was unused
       }
-      initializeDashboardForCurrency(symbol);
+        initializeDashboardForCurrency(symbol);
     },
     [topCurrencies, initializeDashboardForCurrency]
   );
