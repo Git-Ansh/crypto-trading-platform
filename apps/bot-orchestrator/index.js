@@ -27,6 +27,8 @@ const { UniversalFeatures, DEFAULT_FEATURES } = require('./universal-features');
 const { ActiveTradeMonitor, getMonitor } = require('./active-trade-monitor');
 const { apiInterceptor } = require('./freqtrade-api-interceptor');
 const { universalStakeOverride } = require('./universal-stake-override');
+// Cache FreqTrade JWTs per bot to avoid re-auth on every proxied call
+const freqtradeTokenCache = new Map();
 
 // ======================================================================
 // PHASE 2: Multi-Tenant Container Pool System
@@ -674,6 +676,45 @@ function defaultInstanceIdForUser(user) {
   return `${prefix}-bot-${suffix}`;
 }
 
+// Retrieve (or fetch) a FreqTrade JWT for a bot using Basic auth credentials
+async function getInstanceApiToken(instanceId, baseUrl, username, password) {
+  const cached = freqtradeTokenCache.get(instanceId);
+  const now = Date.now();
+  if (cached && cached.expiresAt > now + 30000) {
+    console.log(`[Proxy] Using cached token for ${instanceId} (expires in ${Math.round((cached.expiresAt - now) / 1000)}s)`);
+    return cached.token;
+  }
+
+  console.log(`[Proxy] Fetching fresh token for ${instanceId} from ${baseUrl}`);
+  const basic = Buffer.from(`${username}:${password}`).toString('base64');
+  const tokenResp = await fetch(`${baseUrl}/api/v1/token/login`, {
+    method: 'POST',
+    headers: { Authorization: `Basic ${basic}` }
+  });
+
+  if (!tokenResp.ok) {
+    const errText = await tokenResp.text().catch(() => '');
+    console.error(`[Proxy] Token fetch failed for ${instanceId}: ${tokenResp.status} - ${errText.slice(0, 100)}`);
+    throw new Error(`Token fetch failed (${tokenResp.status}): ${errText.slice(0, 200)}`);
+  }
+
+  const tokenJson = await tokenResp.json();
+  const token = tokenJson?.access_token || tokenJson?.token;
+  if (!token) {
+    throw new Error('Token missing in FreqTrade response');
+  }
+
+  console.log(`[Proxy] Got fresh token for ${instanceId}: ${token.slice(0, 30)}...`);
+
+  // FreqTrade default JWT expiry is 1 day; refresh a bit early
+  freqtradeTokenCache.set(instanceId, {
+    token,
+    expiresAt: now + 55 * 60 * 1000
+  });
+
+  return token;
+}
+
 // --- Enhanced Provisioning API with Risk Management ---
 app.post('/api/provision-enhanced', authenticateToken, async (req, res) => {
   try {
@@ -691,7 +732,13 @@ app.post('/api/provision-enhanced', authenticateToken, async (req, res) => {
       customRiskConfig,
       tradingPairs,
       initialBalance,
-      exchangeConfig
+      exchangeConfig,
+      // Additional bot config options from frontend
+      stake_amount,
+      max_open_trades,
+      timeframe,
+      exchange,
+      stake_currency
     } = req.body || {};
 
     // Set defaults
@@ -702,7 +749,16 @@ app.post('/api/provision-enhanced', authenticateToken, async (req, res) => {
     if (!strategy) strategy = 'EnhancedRiskManagedStrategy'; // Default to enhanced strategy
     if (!riskTemplate) riskTemplate = 'balanced'; // Default risk template
     if (!tradingPairs) tradingPairs = ["BTC/USD", "ETH/USD", "ADA/USD", "SOL/USD"];
-    if (!initialBalance) initialBalance = 10000;
+    if (!stake_amount) stake_amount = 100;
+    if (!max_open_trades) max_open_trades = 3;
+    if (!timeframe) timeframe = '15m';
+    if (!exchange) exchange = 'kraken';
+    if (!stake_currency) stake_currency = 'USD';
+    
+    initialBalance = Number(initialBalance);
+    if (!Number.isFinite(initialBalance) || initialBalance <= 0) {
+      return res.status(400).json({ success: false, message: 'initialBalance is required and must be > 0' });
+    }
 
     // Enhanced provisioning parameters
     const enhancedParams = {
@@ -717,6 +773,11 @@ app.post('/api/provision-enhanced', authenticateToken, async (req, res) => {
       tradingPairs,
       initialBalance,
       exchangeConfig,
+      stake_amount: Number(stake_amount),
+      max_open_trades: Number(max_open_trades),
+      timeframe,
+      exchange,
+      stake_currency,
       enhanced: true
     };
 
@@ -1479,7 +1540,13 @@ async function processProvisioningQueue() {
     tradingPairs = ["BTC/USD", "ETH/USD", "ADA/USD", "SOL/USD"],
     initialBalance = 10000,
     exchangeConfig = null,
-    enhanced = false
+    enhanced = false,
+    // Additional config options from frontend
+    stake_amount = 100,
+    max_open_trades = 3,
+    timeframe = '15m',
+    exchange = 'kraken',
+    stake_currency = 'USD'
   } = task?.params || {};
 
   console.log(`[${timestamp}] [${instanceId}] PROVISIONING START - userId: ${userId}, port: ${port}, strategy: ${strategy}, enhanced: ${enhanced}`);
@@ -1506,7 +1573,12 @@ async function processProvisioningQueue() {
         apiPassword,
         enhanced,
         riskTemplate,
-        customRiskConfig
+        customRiskConfig,
+        stake_amount,
+        max_open_trades,
+        timeframe,
+        exchange,
+        stake_currency
       });
 
       console.log(`[${instanceId}] Pool provisioning result:`, JSON.stringify(poolResult, null, 2));
@@ -1704,8 +1776,11 @@ async function processProvisioningQueue() {
     // Use enhanced trading pairs if provided
     const finalTradingPairs = tradingPairs && tradingPairs.length > 0 ? tradingPairs : ["BTC/USD", "ETH/USD", "ADA/USD", "SOL/USD", "DOT/USD"];
 
-    // Use enhanced initial balance if provided
-    const finalInitialBalance = initialBalance || 10000;
+    // Use provided initial balance (validated upstream)
+    const finalInitialBalance = Number(initialBalance);
+    if (!Number.isFinite(finalInitialBalance) || finalInitialBalance <= 0) {
+      throw new Error('Invalid initial balance for provisioning');
+    }
 
     // Enhanced timeframe selection based on strategy
     let timeframe = '15m'; // default
@@ -1727,9 +1802,7 @@ async function processProvisioningQueue() {
       // CRITICAL: Set dry_run to true for safe trading that writes to local SQLite
       dry_run: true,
       dry_run_wallet: {
-        "USD": finalInitialBalance,
-        "BTC": Math.floor(finalInitialBalance * 0.0001), // Proportional BTC
-        "ETH": Math.floor(finalInitialBalance * 0.003)   // Proportional ETH
+        "USD": finalInitialBalance
       },
       cancel_open_orders_on_exit: false,
       trading_mode: "spot",
@@ -3900,7 +3973,6 @@ console.log(`=================================================`);
 app.use('/api/proxy/:instanceId', authenticateToken, checkInstanceOwnership, async (req, res) => {
   const { instanceId } = req.params;
   const apiPath = req.url; // Capture the path after /api/proxy/:instanceId including query params
-  console.log(`[Proxy] Debug: Request for ${instanceId}, Path: ${apiPath}`);
 
   try {
     // 1. Get bot configuration from request (attached by checkInstanceOwnership)
@@ -3935,7 +4007,8 @@ app.use('/api/proxy/:instanceId', authenticateToken, checkInstanceOwnership, asy
       console.log(`[Proxy] Legacy mode: ${instanceId} -> ${targetHost}:${targetPort}`);
     }
     
-    const targetUrl = `http://${targetHost}:${targetPort}${apiPath}`;
+    const baseUrl = `http://${targetHost}:${targetPort}`;
+    const targetUrl = `${baseUrl}${apiPath}`;
 
     // 2. Prepare request options
     const options = {
@@ -3945,8 +4018,22 @@ app.use('/api/proxy/:instanceId', authenticateToken, checkInstanceOwnership, asy
       }
     };
 
-    // Inject Authentication if configured in bot
-    if (config.api_server?.username && config.api_server?.password) {
+    // Inject Authentication using per-instance JWT (fetch via Basic login)
+    const requestingToken = apiPath.startsWith('/api/v1/token');
+    if (!requestingToken && config.api_server?.username && config.api_server?.password) {
+      try {
+        const bearerToken = await getInstanceApiToken(
+          instanceId,
+          baseUrl,
+          config.api_server.username,
+          config.api_server.password
+        );
+        options.headers['Authorization'] = `Bearer ${bearerToken}`;
+      } catch (tokenErr) {
+        console.error(`[Proxy] Failed to obtain token for ${instanceId}:`, tokenErr.message);
+        return res.status(401).json({ error: 'Unauthorized (bot token failed)', details: tokenErr.message });
+      }
+    } else if (requestingToken && config.api_server?.username && config.api_server?.password) {
       const auth = Buffer.from(`${config.api_server.username}:${config.api_server.password}`).toString('base64');
       options.headers['Authorization'] = `Basic ${auth}`;
     }

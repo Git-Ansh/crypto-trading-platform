@@ -337,8 +337,27 @@ router.post('/provision', auth, async (req, res) => {
   }
 
   try {
-    const { instanceId, initialBalance = 10000, strategy } = req.body;
+    const { 
+      instanceId, 
+      initialBalance, 
+      strategy,
+      tradingPairs,
+      stake_amount,
+      max_open_trades,
+      timeframe,
+      exchange,
+      stake_currency
+    } = req.body;
     const userId = req.user.id;
+    
+    // Validate initialBalance is provided and positive
+    const allocation = Number(initialBalance);
+    if (!Number.isFinite(allocation) || allocation <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'initialBalance is required and must be greater than 0',
+      });
+    }
     
     // Get user and check wallet balance
     const user = await User.findById(userId);
@@ -349,10 +368,12 @@ router.post('/provision', auth, async (req, res) => {
     const currentBalance = user.paperWallet?.balance || 0;
     
     // Check sufficient funds
-    if (initialBalance > currentBalance) {
+    if (allocation > currentBalance) {
       return res.status(400).json({
         success: false,
-        message: `Insufficient funds. Available: $${currentBalance.toFixed(2)}, Requested: $${initialBalance.toFixed(2)}`,
+        message: `Insufficient funds. Available: $${currentBalance.toFixed(2)}, Requested: $${allocation.toFixed(2)}`,
+        availableBalance: currentBalance,
+        requestedAmount: allocation,
       });
     }
 
@@ -365,11 +386,17 @@ router.post('/provision', auth, async (req, res) => {
       });
     }
 
-    // Provision the bot first
+    // Provision the bot first - pass all config options to bot-orchestrator
     const provisionResult = await proxyRequest('POST', '/api/provision-enhanced', token, {
-      ...req.body,
       instanceId: botId,
-      initialBalance,
+      initialBalance: allocation,
+      strategy,
+      tradingPairs,
+      stake_amount,
+      max_open_trades,
+      timeframe,
+      exchange,
+      stake_currency,
     });
     
     if (!provisionResult.success) {
@@ -378,7 +405,7 @@ router.post('/provision', auth, async (req, res) => {
 
     // If provisioning successful, allocate funds from wallet
     const now = new Date();
-    const newBalance = currentBalance - initialBalance;
+    const newBalance = currentBalance - allocation;
 
     // Update wallet balance
     user.paperWallet = {
@@ -393,10 +420,10 @@ router.post('/provision', auth, async (req, res) => {
     }
     const botName = strategy || 'Bot';
     user.botAllocations.set(botId, {
-      allocatedAmount: initialBalance,
-      currentValue: initialBalance,
+      allocatedAmount: allocation,
+      currentValue: allocation,
       reservedInTrades: 0,
-      availableBalance: initialBalance,
+      availableBalance: allocation,
       lifetimePnL: 0,
       allocatedAt: now,
       botName: `${botName} (${botId})`,
@@ -405,10 +432,10 @@ router.post('/provision', auth, async (req, res) => {
     // Add transaction record
     user.walletTransactions.push({
       type: 'allocate',
-      amount: initialBalance,
+      amount: allocation,
       botId,
       botName: `${botName} (${botId})`,
-      description: `Allocated $${initialBalance.toFixed(2)} to new bot: ${botId}`,
+      description: `Allocated $${allocation.toFixed(2)} to new bot: ${botId}`,
       balanceAfter: newBalance,
       timestamp: now,
     });

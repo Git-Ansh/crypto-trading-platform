@@ -134,7 +134,13 @@ const poolProvisioner = {
       apiPassword,
       enhanced = false,
       riskTemplate,
-      customRiskConfig
+      customRiskConfig,
+      // Additional config options from frontend
+      stake_amount,
+      max_open_trades,
+      timeframe,
+      exchange,
+      stake_currency
     } = params;
     
     console.log(`[PoolProvisioner] Provisioning bot ${instanceId} for user ${userId}`);
@@ -158,9 +164,17 @@ const poolProvisioner = {
     // No reference directories needed - everything is in the pool
     console.log(`[PoolProvisioner] Bot assigned to pool ${assignment.poolId} at slot ${assignment.slotIndex}`);
     
-    // Build config
+    // Build config with user-specified values or defaults
     const finalTradingPairs = tradingPairs?.length > 0 ? tradingPairs : ["BTC/USD", "ETH/USD", "ADA/USD", "SOL/USD"];
-    const finalInitialBalance = initialBalance || 10000;
+    const finalInitialBalance = Number(initialBalance);
+    if (!Number.isFinite(finalInitialBalance) || finalInitialBalance <= 0) {
+      throw new Error('Invalid initial balance for provisioning');
+    }
+    const finalStakeAmount = Number(stake_amount) || 100;
+    const finalMaxOpenTrades = Number(max_open_trades) || 3;
+    const finalTimeframe = timeframe || '15m';
+    const finalExchange = exchange || 'kraken';
+    const finalStakeCurrency = stake_currency || 'USD';
     
     // Determine strategy (use provided or default)
     let defaultStrategy = strategy || 'EmaRsiStrategy';
@@ -169,15 +183,13 @@ const poolProvisioner = {
     // Build final config with assigned port
     const configJson = {
       userId,
-      max_open_trades: enhanced ? 20 : 25,
-      stake_currency: "USD",
-      stake_amount: enhanced ? Math.floor(finalInitialBalance * 0.05) : 100,
+      max_open_trades: finalMaxOpenTrades,
+      stake_currency: finalStakeCurrency,
+      stake_amount: finalStakeAmount,
       tradable_balance_ratio: 1,
       dry_run: true,
       dry_run_wallet: {
-        "USD": finalInitialBalance,
-        "BTC": Math.floor(finalInitialBalance * 0.0001),
-        "ETH": Math.floor(finalInitialBalance * 0.003)
+        "USD": finalInitialBalance
       },
       cancel_open_orders_on_exit: false,
       trading_mode: "spot",
@@ -189,12 +201,12 @@ const poolProvisioner = {
       logfile: assignment.isPooled
         ? `/pool/bots/${instanceId}/freqtrade.log`
         : "/freqtrade/user_data/logs/freqtrade.log",
-      timeframe: '15m',
+      timeframe: finalTimeframe,
       unfilledtimeout: { entry: 10, exit: 10, exit_timeout_count: 0, unit: "minutes" },
       entry_pricing: { price_side: "same", use_order_book: true, order_book_top: 1 },
       exit_pricing: { price_side: "same", use_order_book: true, order_book_top: 1 },
       exchange: exchangeConfig || {
-        name: "kraken",
+        name: finalExchange,
         key: "",
         secret: "",
         ccxt_config: {},

@@ -39,7 +39,7 @@ const POOL_IMAGE = process.env.POOL_IMAGE || 'freqtrade-pool:latest';
 // Bot instances stored under monorepo data directory
 const BOT_BASE_DIR = process.env.BOT_BASE_DIR || path.join(__dirname, '../../../data/bot-instances');
 const SHARED_DATA_DIR = process.env.SHARED_DATA_DIR || '/root/Crypto-Pilot-Freqtrade/freqtrade_shared_data';
-const STRATEGIES_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || '/root/Crypto-Pilot-Freqtrade/Admin Strategies';
+const STRATEGIES_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || '/root/crypto-trading-platform/data/strategies';
 const POOL_HOST_MODE = (process.env.POOL_HOST_MODE || 'host').toLowerCase(); // host | container | auto
 const POOL_HOST_OVERRIDE = process.env.POOL_HOST_OVERRIDE;
 

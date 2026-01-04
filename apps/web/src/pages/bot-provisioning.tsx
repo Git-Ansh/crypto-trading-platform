@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { config } from '@/lib/config';
 import { auth } from '@/lib/firebase';
+import { useWallet } from '@/hooks/use-wallet';
 import {
     Bot,
     Loader2,
     AlertCircle,
-    CheckCircle
+    CheckCircle,
+    Wallet
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -42,11 +44,14 @@ interface ProvisionConfig {
     max_open_trades: number;
     dry_run: boolean;
     tradingPairs: string[];
+    initialBalance: number;
+    timeframe: string;
 }
 
 export default function BotProvisioningPage() {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { balance: walletBalance, loading: walletLoading } = useWallet();
     const [strategies, setStrategies] = useState<StrategyOption[]>([]);
     const [loading, setLoading] = useState(true);
     const [provisioning, setProvisioning] = useState(false);
@@ -61,7 +66,9 @@ export default function BotProvisioningPage() {
         stake_amount: 100,
         max_open_trades: 3,
         dry_run: true,
-        tradingPairs: ['BTC/USD', 'ETH/USD', 'SOL/USD']
+        tradingPairs: ['BTC/USD', 'ETH/USD', 'SOL/USD'],
+        initialBalance: 0,
+        timeframe: '15m'
     });
 
     const getAuthToken = async (): Promise<string | null> => {
@@ -76,6 +83,16 @@ export default function BotProvisioningPage() {
             return null;
         }
     };
+
+    // Update initial balance when wallet loads
+    useEffect(() => {
+        if (!walletLoading && walletBalance > 0) {
+            setProvisionConfig(prev => ({
+                ...prev,
+                initialBalance: Math.min(walletBalance, 1000)
+            }));
+        }
+    }, [walletBalance, walletLoading]);
 
     useEffect(() => {
         const loadData = async () => {
@@ -133,6 +150,17 @@ export default function BotProvisioningPage() {
             return;
         }
 
+        // Validate initial balance
+        if (provisionConfig.initialBalance <= 0) {
+            setError('Initial balance must be greater than 0');
+            return;
+        }
+
+        if (provisionConfig.initialBalance > walletBalance) {
+            setError(`Insufficient wallet balance. Available: $${walletBalance.toFixed(2)}`);
+            return;
+        }
+
         setProvisioning(true);
         setError(null);
 
@@ -140,7 +168,7 @@ export default function BotProvisioningPage() {
             const token = await getAuthToken();
             if (!token) throw new Error('Not authenticated');
 
-            const response = await fetch(`${config.botManager.baseUrl}/api/provision`, {
+            const response = await fetch(`${config.api.baseUrl}/api/freqtrade/provision`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -154,7 +182,9 @@ export default function BotProvisioningPage() {
                     stake_amount: provisionConfig.stake_amount,
                     max_open_trades: provisionConfig.max_open_trades,
                     dry_run: provisionConfig.dry_run,
-                    tradingPairs: provisionConfig.tradingPairs
+                    tradingPairs: provisionConfig.tradingPairs,
+                    initialBalance: provisionConfig.initialBalance,
+                    timeframe: provisionConfig.timeframe
                 })
             });
 
@@ -203,15 +233,62 @@ export default function BotProvisioningPage() {
 
                         <Card>
                             <CardHeader>
-                                <div className="flex items-center gap-2">
-                                    <Bot className="h-6 w-6 text-primary" />
-                                    <div>
-                                        <CardTitle>Bot Configuration</CardTitle>
-                                        <CardDescription>Configure your new trading bot instance</CardDescription>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Bot className="h-6 w-6 text-primary" />
+                                        <div>
+                                            <CardTitle>Bot Configuration</CardTitle>
+                                            <CardDescription>Configure your new trading bot instance</CardDescription>
+                                        </div>
+                                    </div>
+                                    {/* Wallet Balance Display */}
+                                    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20">
+                                        <Wallet className="h-5 w-5 text-primary" />
+                                        <div className="text-right">
+                                            <p className="text-xs text-muted-foreground">Available Balance</p>
+                                            <p className="text-lg font-semibold text-primary">
+                                                {walletLoading ? '...' : `$${walletBalance.toFixed(2)}`}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-6">
+                                {/* Initial Balance Allocation - Most Important */}
+                                <div className="p-4 rounded-lg border-2 border-primary/30 bg-primary/5">
+                                    <div className="grid gap-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label htmlFor="initialBalance" className="text-base font-semibold">
+                                                Initial Balance Allocation
+                                            </Label>
+                                            <span className="text-sm text-muted-foreground">
+                                                Max: ${walletBalance.toFixed(2)}
+                                            </span>
+                                        </div>
+                                        <Input
+                                            id="initialBalance"
+                                            type="number"
+                                            min="1"
+                                            max={walletBalance}
+                                            step="0.01"
+                                            value={provisionConfig.initialBalance}
+                                            onChange={(e) => {
+                                                const value = Number(e.target.value);
+                                                setProvisionConfig(prev => ({ ...prev, initialBalance: value }));
+                                                if (value > walletBalance) {
+                                                    setError(`Cannot allocate more than available balance ($${walletBalance.toFixed(2)})`);
+                                                } else {
+                                                    setError(null);
+                                                }
+                                            }}
+                                            className={provisionConfig.initialBalance > walletBalance ? 'border-destructive' : ''}
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                            This amount will be deducted from your wallet and allocated to this bot's paper trading pool.
+                                        </p>
+                                    </div>
+                                </div>
+
                                 {/* Bot Name */}
                                 <div className="grid gap-2">
                                     <Label htmlFor="botName">Bot Name</Label>
@@ -306,13 +383,14 @@ export default function BotProvisioningPage() {
                                 <div className="grid grid-cols-2 gap-6">
                                     {/* Stake Amount */}
                                     <div className="grid gap-2">
-                                        <Label htmlFor="stakeAmount">Stake Amount</Label>
+                                        <Label htmlFor="stakeAmount">Stake Amount (per trade)</Label>
                                         <Input
                                             id="stakeAmount"
                                             type="number"
                                             value={provisionConfig.stake_amount}
                                             onChange={(e) => setProvisionConfig(prev => ({ ...prev, stake_amount: Number(e.target.value) }))}
                                         />
+                                        <p className="text-xs text-muted-foreground">Amount to use per individual trade</p>
                                     </div>
 
                                     {/* Max Open Trades */}
@@ -329,6 +407,35 @@ export default function BotProvisioningPage() {
                                     </div>
                                 </div>
 
+                                {/* Timeframe */}
+                                <div className="grid gap-2">
+                                    <Label>Timeframe</Label>
+                                    <Select
+                                        value={provisionConfig.timeframe}
+                                        onValueChange={(value) => setProvisionConfig(prev => ({ ...prev, timeframe: value }))}
+                                    >
+                                        <SelectTrigger
+                                            className="w-44 max-w-xs"
+                                            style={{ backgroundColor: '#0b1220', borderColor: '#1f2937', color: '#e5e7eb' }}
+                                        >
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent
+                                            className="w-44 max-w-xs"
+                                            style={{ backgroundColor: '#0b1220', borderColor: '#1f2937', color: '#e5e7eb' }}
+                                        >
+                                            <SelectItem value="1m">1 minute</SelectItem>
+                                            <SelectItem value="5m">5 minutes</SelectItem>
+                                            <SelectItem value="15m">15 minutes</SelectItem>
+                                            <SelectItem value="30m">30 minutes</SelectItem>
+                                            <SelectItem value="1h">1 hour</SelectItem>
+                                            <SelectItem value="4h">4 hours</SelectItem>
+                                            <SelectItem value="1d">1 day</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <p className="text-xs text-muted-foreground">Candlestick timeframe for strategy analysis</p>
+                                </div>
+
                                 {/* Dry Run Toggle */}
                                 <div className="flex items-center justify-between rounded-lg border p-4 bg-muted/50">
                                     <div className="space-y-0.5">
@@ -343,23 +450,41 @@ export default function BotProvisioningPage() {
                                     />
                                 </div>
                             </CardContent>
-                            <CardFooter className="flex justify-end gap-4 border-t px-6 py-4">
-                                <Button variant="outline" onClick={() => navigate('/bot-console')}>
-                                    Cancel
-                                </Button>
-                                <Button onClick={handleProvision} disabled={provisioning || botCount >= MAX_BOTS}>
-                                    {provisioning ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                            Deploying...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <CheckCircle className="h-4 w-4 mr-2" />
-                                            Deploy Bot
-                                        </>
+                            <CardFooter className="flex justify-between items-center gap-4 border-t px-6 py-4">
+                                <div className="text-sm text-muted-foreground">
+                                    {provisionConfig.initialBalance > 0 && provisionConfig.initialBalance <= walletBalance && (
+                                        <span>
+                                            After allocation: <span className="font-medium text-foreground">${(walletBalance - provisionConfig.initialBalance).toFixed(2)}</span> remaining
+                                        </span>
                                     )}
-                                </Button>
+                                </div>
+                                <div className="flex gap-4">
+                                    <Button variant="outline" onClick={() => navigate('/bot-console')}>
+                                        Cancel
+                                    </Button>
+                                    <Button 
+                                        onClick={handleProvision} 
+                                        disabled={
+                                            provisioning || 
+                                            botCount >= MAX_BOTS || 
+                                            provisionConfig.initialBalance <= 0 || 
+                                            provisionConfig.initialBalance > walletBalance ||
+                                            walletLoading
+                                        }
+                                    >
+                                        {provisioning ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                Deploying...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CheckCircle className="h-4 w-4 mr-2" />
+                                                Deploy Bot (${provisionConfig.initialBalance.toFixed(2)})
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
                             </CardFooter>
                         </Card>
                     </main>
