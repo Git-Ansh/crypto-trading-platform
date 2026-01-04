@@ -31,6 +31,20 @@ export const useStrategyManagement = () => {
   const getBotStrategy = async (instanceId: string): Promise<BotStrategy | null> => {
     try {
       const botStrategy = await strategyAPI.getBotStrategy(instanceId);
+
+      // Fallback: if global strategy list failed to load, seed it from the bot's available strategies
+      if (botStrategy?.available?.length) {
+        setStrategies((prev) => {
+          if (prev.length > 0) return prev;
+          return botStrategy.available.map((name) => ({
+            name,
+            className: name,
+            description: '',
+            fileName: `${name}.py`,
+          }));
+        });
+      }
+
       return botStrategy;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to get bot strategy';
