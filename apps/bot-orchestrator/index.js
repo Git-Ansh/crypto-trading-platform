@@ -4011,7 +4011,7 @@ app.use('/api/proxy/:instanceId', authenticateToken, checkInstanceOwnership, asy
     const targetUrl = `${baseUrl}${apiPath}`;
 
     // 2. Prepare request options
-    const options = {
+    let options = {
       method: req.method,
       headers: {
         'Content-Type': 'application/json'
@@ -4020,7 +4020,8 @@ app.use('/api/proxy/:instanceId', authenticateToken, checkInstanceOwnership, asy
 
     // Inject Authentication using per-instance JWT (fetch via Basic login)
     const requestingToken = apiPath.startsWith('/api/v1/token');
-    if (!requestingToken && config.api_server?.username && config.api_server?.password) {
+    const canAuth = config.api_server?.username && config.api_server?.password;
+    if (!requestingToken && canAuth) {
       try {
         const bearerToken = await getInstanceApiToken(
           instanceId,
@@ -4033,7 +4034,7 @@ app.use('/api/proxy/:instanceId', authenticateToken, checkInstanceOwnership, asy
         console.error(`[Proxy] Failed to obtain token for ${instanceId}:`, tokenErr.message);
         return res.status(401).json({ error: 'Unauthorized (bot token failed)', details: tokenErr.message });
       }
-    } else if (requestingToken && config.api_server?.username && config.api_server?.password) {
+    } else if (requestingToken && canAuth) {
       const auth = Buffer.from(`${config.api_server.username}:${config.api_server.password}`).toString('base64');
       options.headers['Authorization'] = `Basic ${auth}`;
     }
@@ -4043,10 +4044,40 @@ app.use('/api/proxy/:instanceId', authenticateToken, checkInstanceOwnership, asy
       options.body = JSON.stringify(req.body);
     }
 
-    // 3. Make request
-    console.log(`[Proxy] Fetching: ${targetUrl}`);
-    const response = await fetch(targetUrl, options);
-    console.log(`[Proxy] Response status: ${response.status}`);
+    // Helper to execute proxy fetch (used for retries)
+    const executeProxyFetch = async () => {
+      console.log(`[Proxy] Fetching: ${targetUrl}`);
+      const resp = await fetch(targetUrl, options);
+      console.log(`[Proxy] Response status: ${resp.status}`);
+      return resp;
+    };
+
+    let response = await executeProxyFetch();
+
+    // If bot token is stale/invalid, refresh once and retry
+    if (response.status === 401 && canAuth && !requestingToken) {
+      console.warn(`[Proxy] 401 from bot ${instanceId} on ${apiPath}, refreshing token and retrying once`);
+      freqtradeTokenCache.delete(instanceId);
+      try {
+        const freshToken = await getInstanceApiToken(
+          instanceId,
+          baseUrl,
+          config.api_server.username,
+          config.api_server.password
+        );
+        options = {
+          ...options,
+          headers: {
+            ...options.headers,
+            Authorization: `Bearer ${freshToken}`
+          }
+        };
+        response = await executeProxyFetch();
+      } catch (refreshErr) {
+        console.error(`[Proxy] Token refresh failed for ${instanceId}:`, refreshErr.message);
+        return res.status(401).json({ error: 'Unauthorized (token refresh failed)', details: refreshErr.message });
+      }
+    }
 
     // 4. Handle response
     res.status(response.status);
