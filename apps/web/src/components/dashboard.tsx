@@ -392,6 +392,8 @@ export default function Dashboard() {
 
   // Gate heavy market data loading to reduce LCP/INP pressure
   const [marketDataReady, setMarketDataReady] = useState<boolean>(false);
+  // Overlay release to avoid blocking on secondary loads (charts/bots)
+  const [overlayReleased, setOverlayReleased] = useState<boolean>(false);
 
   // Minute data
   const [minuteData, setMinuteData] = useState<KlineData[]>([]);
@@ -913,6 +915,7 @@ export default function Dashboard() {
   useEffect(() => {
     // Defer market data kick-off to reduce LCP/INP
     const t = setTimeout(() => setMarketDataReady(true), MARKET_DATA_DEFER_MS);
+    const overlayTimer = setTimeout(() => setOverlayReleased(true), 1200);
     deferHeavyInit(() => {
       Promise.all([
         fetchLatestNews(),
@@ -924,6 +927,7 @@ export default function Dashboard() {
 
     return () => {
       clearTimeout(t);
+      clearTimeout(overlayTimer);
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
@@ -2249,7 +2253,7 @@ export default function Dashboard() {
             width: 100%;
           }
         `}</style>
-        {(loading || isLoadingCurrencies || authLoading || freqTradePortfolioLoading || freqTradeBotsLoading || freqTradeChartLoading || loadingNews || tradesLoading) && (
+        {(authLoading || (!overlayReleased && (loading || isLoadingCurrencies || loadingNews))) && (
           <div className="loading-overlay">
             <div className="text-center">
               <h1 className="crypto-dashboard-title text-4xl sm:text-6xl md:text-7xl">
