@@ -164,7 +164,7 @@ console.log(`CRITICAL: All new bots will use the stable image with local SQLite 
 // Shared strategies dir (used ONLY for fallback default strategy creation if main source is empty/missing)
 const STRATEGIES_DIR = process.env.STRATEGIES_DIR || path.join(__dirname, 'freqtrade-shared', 'strategies');
 // Main source directory on HOST where strategies are copied FROM during provisioning
-const MAIN_STRATEGIES_SOURCE_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || '/root/Crypto-Pilot-Freqtrade/Admin Strategies/';
+const MAIN_STRATEGIES_SOURCE_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || '/root/crypto-trading-platform/data/strategies';
 // SHARED data directory on HOST where historical data resides (must be managed separately)
 const SHARED_DATA_DIR = process.env.SHARED_DATA_DIR || '/root/freqtrade-shared'; // All bots will read data from subdirs here
 
