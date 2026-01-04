@@ -32,16 +32,22 @@ export const useStrategyManagement = () => {
     try {
       const botStrategy = await strategyAPI.getBotStrategy(instanceId);
 
-      // Fallback: if global strategy list failed to load, seed it from the bot's available strategies
+      // Fallback/merge: ensure available strategies are present even if the global fetch failed
       if (botStrategy?.available?.length) {
         setStrategies((prev) => {
-          if (prev.length > 0) return prev;
-          return botStrategy.available.map((name) => ({
-            name,
-            className: name,
-            description: '',
-            fileName: `${name}.py`,
-          }));
+          const existingNames = new Set(prev.map((s) => s.name));
+          const merged = [...prev];
+          for (const name of botStrategy.available) {
+            if (!existingNames.has(name)) {
+              merged.push({
+                name,
+                className: name,
+                description: '',
+                fileName: `${name}.py`,
+              });
+            }
+          }
+          return merged;
         });
       }
 
