@@ -23,7 +23,7 @@ const { getHealthMonitor } = require('./pool-health-monitor');
 // Configuration
 const POOL_MODE_ENABLED = process.env.POOL_MODE_ENABLED !== 'false';
 const BOT_BASE_DIR = process.env.BOT_BASE_DIR || path.join(__dirname, '../../../data/bot-instances');
-const MAIN_STRATEGIES_SOURCE_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || '/root/Admin Strategies';
+const MAIN_STRATEGIES_SOURCE_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || '/root/crypto-trading-platform/data/strategies';
 
 // Global instances
 let poolManager = null;
