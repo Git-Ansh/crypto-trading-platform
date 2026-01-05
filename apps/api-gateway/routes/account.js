@@ -767,6 +767,122 @@ router.post(
   }
 );
 
+// ============== ADD FUNDS TO EXISTING BOT ==============
+router.post(
+  "/wallet/add-to-bot",
+  auth,
+  [
+    check("botId", "Bot ID is required").notEmpty(),
+    check("amount", "Amount must be a positive number").isFloat({ min: 1 }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    try {
+      const { botId, amount } = req.body;
+      const user = await User.findById(req.user.id);
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+
+      // Check if bot has allocation
+      if (!user.botAllocations || !user.botAllocations.has(botId)) {
+        return res.status(404).json({
+          success: false,
+          message: "No wallet allocation found for this bot. This bot may have been created before the wallet system was implemented.",
+        });
+      }
+
+      const currentBalance = user.paperWallet?.balance || 0;
+
+      // Check sufficient funds
+      if (amount > currentBalance) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient funds. Available: $${currentBalance.toFixed(2)}, Requested: $${amount.toFixed(2)}`,
+        });
+      }
+
+      // Get allocation and convert to plain object to avoid Mongoose subdoc issues
+      const allocationDoc = user.botAllocations.get(botId);
+      const allocation = allocationDoc.toObject ? allocationDoc.toObject() : { ...allocationDoc };
+      console.log(`[Wallet] Adding $${amount} to bot ${botId}, current allocation:`, JSON.stringify(allocation));
+
+      const newWalletBalance = currentBalance - amount;
+      const newAllocatedAmount = allocation.allocatedAmount + amount;
+      const newCurrentValue = allocation.currentValue + amount;
+      const now = new Date();
+
+      // Update wallet balance
+      user.paperWallet = {
+        balance: newWalletBalance,
+        currency: user.paperWallet?.currency || 'USD',
+        lastUpdated: now,
+      };
+
+      // Update bot allocation
+      const updatedAllocation = {
+        ...allocation,
+        allocatedAmount: newAllocatedAmount,
+        currentValue: newCurrentValue,
+        availableBalance: newCurrentValue - (allocation.reservedInTrades || 0),
+      };
+      user.botAllocations.set(botId, updatedAllocation);
+      console.log(`[Wallet] Updated allocation for bot ${botId}:`, JSON.stringify(updatedAllocation));
+
+      // Add transaction record
+      const transaction = {
+        type: 'allocate',
+        amount,
+        botId,
+        botName: allocation.botName || botId,
+        description: `Added $${amount.toFixed(2)} to bot: ${allocation.botName || botId}`,
+        balanceAfter: newWalletBalance,
+        timestamp: now,
+      };
+      user.walletTransactions.push(transaction);
+
+      await user.save();
+
+      // Update the actual bot's dry_run_wallet in FreqTrade config
+      const authHeader = req.headers.authorization;
+      if (authHeader) {
+        const botUpdateResult = await updateBotWalletBalance(
+          botId, 
+          newCurrentValue, 
+          'USD', 
+          authHeader.replace('Bearer ', '')
+        );
+        
+        if (!botUpdateResult.success) {
+          console.warn(`[Wallet] Failed to update bot ${botId} balance: ${botUpdateResult.error}`);
+          // Don't fail the request - wallet was already updated, bot update is best-effort
+        } else {
+          console.log(`[Wallet] Bot ${botId} balance updated to ${newCurrentValue}`);
+        }
+      }
+
+      res.json({
+        success: true,
+        message: `Successfully added $${amount.toFixed(2)} to ${allocation.botName || botId}`,
+        data: {
+          walletBalance: newWalletBalance,
+          addedAmount: amount,
+          allocation: user.botAllocations.get(botId),
+          transaction,
+        },
+      });
+    } catch (error) {
+      console.error("Add to bot error:", error);
+      res.status(500).json({ success: false, message: "Server error" });
+    }
+  }
+);
+
 // ============== UPDATE BOT POOL (called by bot-orchestrator) ==============
 router.put(
   "/wallet/update-bot-pool",

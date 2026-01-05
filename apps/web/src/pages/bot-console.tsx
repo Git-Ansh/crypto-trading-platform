@@ -14,7 +14,9 @@ import {
     AlertCircle,
     CheckCircle,
     Activity,
-    DollarSign
+    DollarSign,
+    ArrowDownToLine,
+    ArrowUpFromLine
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -238,8 +240,13 @@ export default function BotConsolePage() {
 
             if (response.ok) {
                 const data = await response.json();
-                if (data.success && data.data.botAllocations) {
-                    setWalletAllocations(data.data.botAllocations);
+                if (data.success) {
+                    if (data.data.botAllocations) {
+                        setWalletAllocations(data.data.botAllocations);
+                    }
+                    if (data.data.balance !== undefined) {
+                        setWalletBalance(data.data.balance);
+                    }
                 }
             }
         } catch (error) {
@@ -271,6 +278,13 @@ export default function BotConsolePage() {
     const [selectedBotForWithdraw, setSelectedBotForWithdraw] = useState<BotInstance | null>(null);
     const [withdrawAmount, setWithdrawAmount] = useState<string>('');
     const [withdrawLoading, setWithdrawLoading] = useState(false);
+    
+    // Add Funds state
+    const [addFundsDialogOpen, setAddFundsDialogOpen] = useState(false);
+    const [selectedBotForAddFunds, setSelectedBotForAddFunds] = useState<BotInstance | null>(null);
+    const [addFundsAmount, setAddFundsAmount] = useState<string>('');
+    const [addFundsLoading, setAddFundsLoading] = useState(false);
+    const [walletBalance, setWalletBalance] = useState<number>(0);
 
     const handleBotAction = async (instanceId: string, action: 'start' | 'stop') => {
         try {
@@ -434,6 +448,74 @@ export default function BotConsolePage() {
             setWithdrawLoading(false);
         }
     };
+
+    const handleAddFundsToBot = async () => {
+        if (!selectedBotForAddFunds) return;
+
+        try {
+            setAddFundsLoading(true);
+            const token = await getAuthToken();
+            if (!token) {
+                setError('Authentication required');
+                setAddFundsLoading(false);
+                return;
+            }
+
+            const amount = parseFloat(addFundsAmount || '0');
+            if (isNaN(amount) || amount <= 0) {
+                setError('Please enter a valid amount');
+                setAddFundsLoading(false);
+                return;
+            }
+
+            if (amount > walletBalance) {
+                setError(`Insufficient wallet balance. Available: $${walletBalance.toFixed(2)}`);
+                setAddFundsLoading(false);
+                return;
+            }
+
+            // Call the add-to-bot endpoint
+            const response = await fetch(`${config.api.baseUrl}/api/account/wallet/add-to-bot`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    botId: selectedBotForAddFunds.instanceId,
+                    amount: amount
+                })
+            });
+
+            const responseText = await response.text();
+            let data: any = {};
+            if (responseText) {
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('[BotConsole] Failed to parse add-funds response', parseError, responseText);
+                }
+            }
+
+            if (response.ok && data.success) {
+                setSuccess(`Successfully added $${amount.toFixed(2)} to ${selectedBotForAddFunds.instanceId}. Balance will update shortly.`);
+                setAddFundsDialogOpen(false);
+                setSelectedBotForAddFunds(null);
+                setAddFundsAmount('');
+                // Wallet allocation updates immediately, but bot balance needs time to restart
+                await fetchWalletAllocations();
+                // Wait 3 seconds for bot to restart before refreshing bot list
+                setTimeout(() => fetchBots(), 3000);
+            } else {
+                setError(data.message || `Failed to add funds to bot (status ${response.status})`);
+            }
+        } catch (error: any) {
+            setError(error.message || 'Failed to add funds to bot');
+        } finally {
+            setAddFundsLoading(false);
+        }
+    };
+
     // Helper to get consistent status display
     const getStatusDisplay = (bot: BotInstance) => {
         const status = bot.containerStatus || 'unknown';
@@ -630,13 +712,27 @@ export default function BotConsolePage() {
                                                     variant="outline"
                                                     size="sm"
                                                     className="flex-1 sm:flex-none"
+                                                    disabled={addFundsLoading || walletBalance <= 0}
+                                                    onClick={() => {
+                                                        setSelectedBotForAddFunds(bot);
+                                                        setAddFundsDialogOpen(true);
+                                                    }}
+                                                    title={walletBalance <= 0 ? 'No funds available in wallet' : 'Add funds to this bot'}
+                                                >
+                                                    <ArrowDownToLine className="h-4 w-4 mr-1" />
+                                                    Add Funds
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="flex-1 sm:flex-none"
                                                     disabled={withdrawLoading}
                                                     onClick={() => {
                                                         setSelectedBotForWithdraw(bot);
                                                         setWithdrawDialogOpen(true);
                                                     }}
                                                 >
-                                                    <DollarSign className="h-4 w-4 mr-1" />
+                                                    <ArrowUpFromLine className="h-4 w-4 mr-1" />
                                                     Withdraw
                                                 </Button>
                                             </div>
@@ -753,6 +849,72 @@ export default function BotConsolePage() {
                                             </>
                                         ) : (
                                             'Withdraw'
+                                        )}
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+
+                        {/* Add Funds Dialog */}
+                        <Dialog open={addFundsDialogOpen} onOpenChange={setAddFundsDialogOpen}>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Add Funds to {selectedBotForAddFunds?.instanceId}</DialogTitle>
+                                    <DialogDescription>
+                                        <span>
+                                            Wallet balance: ${walletBalance.toFixed(2)}
+                                            {selectedBotForAddFunds && walletAllocations[selectedBotForAddFunds.instanceId] && (
+                                                <> • Current bot allocation: ${walletAllocations[selectedBotForAddFunds.instanceId].currentValue?.toFixed(2) || '0.00'}</>
+                                            )}
+                                        </span>
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 py-4">
+                                    <div className="space-y-2">
+                                        <label htmlFor="add-funds-amount" className="text-sm font-medium">
+                                            Amount to Add
+                                        </label>
+                                        <Input
+                                            id="add-funds-amount"
+                                            type="number"
+                                            step="0.01"
+                                            min="1"
+                                            max={walletBalance}
+                                            value={addFundsAmount}
+                                            onChange={(e) => setAddFundsAmount(e.target.value)}
+                                            placeholder="Enter amount to add"
+                                            disabled={addFundsLoading || walletBalance <= 0}
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                            Available in wallet: ${walletBalance.toFixed(2)}
+                                        </p>
+                                    </div>
+                                </div>
+                                <DialogFooter>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                            setAddFundsDialogOpen(false);
+                                            setAddFundsAmount('');
+                                        }}
+                                        disabled={addFundsLoading}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        onClick={handleAddFundsToBot}
+                                        disabled={addFundsLoading || !addFundsAmount || parseFloat(addFundsAmount) <= 0}
+                                    >
+                                        {addFundsLoading ? (
+                                            <>
+                                                <LoadingSpinner size="sm" className="mr-1" />
+                                                Adding...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <ArrowDownToLine className="h-4 w-4 mr-1" />
+                                                Add Funds
+                                            </>
                                         )}
                                     </Button>
                                 </DialogFooter>
