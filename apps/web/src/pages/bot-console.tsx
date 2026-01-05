@@ -13,7 +13,8 @@ import {
     Settings,
     AlertCircle,
     CheckCircle,
-    Activity
+    Activity,
+    DollarSign
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -38,6 +39,15 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 const MAX_BOTS = 3;
 
@@ -212,6 +222,10 @@ export default function BotConsolePage() {
     }, []);
 
     const [botToDelete, setBotToDelete] = useState<BotInstance | null>(null);
+    const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
+    const [selectedBotForWithdraw, setSelectedBotForWithdraw] = useState<BotInstance | null>(null);
+    const [withdrawAmount, setWithdrawAmount] = useState<string>('');
+    const [withdrawLoading, setWithdrawLoading] = useState(false);
 
     const handleBotAction = async (instanceId: string, action: 'start' | 'stop') => {
         try {
@@ -268,7 +282,83 @@ export default function BotConsolePage() {
             setError(error.message || 'Failed to delete bot');
         }
     };
+    const handleWithdrawFromBot = async () => {
+        if (!selectedBotForWithdraw || !withdrawAmount) return;
 
+        try {
+            setWithdrawLoading(true);
+            const token = await getAuthToken();
+            if (!token) return;
+
+            const amount = parseFloat(withdrawAmount);
+            if (isNaN(amount) || amount <= 0) {
+                setError('Please enter a valid amount');
+                return;
+            }
+
+            // Call the return-from-bot endpoint
+            const response = await fetch(`${config.baseUrl}/api/account/wallet/return-from-bot`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    botId: selectedBotForWithdraw.instanceId,
+                    returnAmount: amount
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                setSuccess(`Successfully withdrawn $${amount.toFixed(2)} from ${selectedBotForWithdraw.instanceId}`);
+                setWithdrawDialogOpen(false);
+                setSelectedBotForWithdraw(null);
+                setWithdrawAmount('');
+                await fetchBots();
+            } else {
+                setError(data.message || 'Failed to withdraw from bot');
+            }
+        } catch (error: any) {
+            setError(error.message || 'Failed to withdraw from bot');
+        } finally {
+            setWithdrawLoading(false);
+        }
+    };
+
+    const handleWithdrawAllFromBot = async (bot: BotInstance) => {
+        try {
+            setWithdrawLoading(true);
+            const token = await getAuthToken();
+            if (!token) return;
+
+            // Call the return-from-bot endpoint without specifying amount (returns all)
+            const response = await fetch(`${config.baseUrl}/api/account/wallet/return-from-bot`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    botId: bot.instanceId
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                setSuccess(`Successfully returned $${data.data.returnedAmount.toFixed(2)} from ${bot.instanceId} (P&L: ${data.data.pnl >= 0 ? '+' : ''}$${data.data.pnl.toFixed(2)})`);
+                await fetchBots();
+            } else {
+                setError(data.message || 'Failed to return funds from bot');
+            }
+        } catch (error: any) {
+            setError(error.message || 'Failed to return funds from bot');
+        } finally {
+            setWithdrawLoading(false);
+        }
+    };
     // Helper to get consistent status display
     const getStatusDisplay = (bot: BotInstance) => {
         const status = bot.containerStatus || 'unknown';
@@ -453,6 +543,19 @@ export default function BotConsolePage() {
                                                     <Settings className="h-4 w-4 mr-1" />
                                                     Config
                                                 </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="flex-1 sm:flex-none"
+                                                    disabled={withdrawLoading}
+                                                    onClick={() => {
+                                                        setSelectedBotForWithdraw(bot);
+                                                        setWithdrawDialogOpen(true);
+                                                    }}
+                                                >
+                                                    <DollarSign className="h-4 w-4 mr-1" />
+                                                    Withdraw
+                                                </Button>
                                             </div>
 
                                             <Button
@@ -498,6 +601,67 @@ export default function BotConsolePage() {
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
+
+                        <Dialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Withdraw from {selectedBotForWithdraw?.instanceId}</DialogTitle>
+                                    <DialogDescription>
+                                        Enter the amount to withdraw. Leave empty or enter 0 to withdraw all available funds.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 py-4">
+                                    <div className="space-y-2">
+                                        <label htmlFor="withdraw-amount" className="text-sm font-medium">
+                                            Withdrawal Amount (Optional)
+                                        </label>
+                                        <Input
+                                            id="withdraw-amount"
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            value={withdrawAmount}
+                                            onChange={(e) => setWithdrawAmount(parseFloat(e.target.value) || 0)}
+                                            placeholder="Leave empty to withdraw all funds"
+                                            disabled={withdrawLoading}
+                                        />
+                                    </div>
+                                </div>
+                                <DialogFooter>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                            setWithdrawDialogOpen(false);
+                                            setWithdrawAmount(0);
+                                        }}
+                                        disabled={withdrawLoading}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        onClick={() => {
+                                            if (selectedBotForWithdraw) {
+                                                if (withdrawAmount > 0) {
+                                                    handleWithdrawFromBot(selectedBotForWithdraw);
+                                                } else {
+                                                    handleWithdrawAllFromBot(selectedBotForWithdraw);
+                                                }
+                                            }
+                                        }}
+                                        disabled={withdrawLoading}
+                                    >
+                                        {withdrawLoading ? (
+                                            <>
+                                                <LoadingSpinner size="sm" className="mr-1" />
+                                                Withdrawing...
+                                            </>
+                                        ) : (
+                                            'Withdraw'
+                                        )}
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                     </main>
                 </div>
             </SidebarInset>
