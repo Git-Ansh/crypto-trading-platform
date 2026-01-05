@@ -110,8 +110,9 @@ const BotBalance = ({ bot, onBalanceUpdate }: { bot: BotInstance, onBalanceUpdat
                             onBalanceUpdate(bot.instanceId, total, currency);
                         }
                     }
-                } else if (response.status === 401 && retryCount < 5) {
-                    // Bot might not be ready yet, retry with backoff
+                } else if ((response.status === 401 || response.status >= 500) && retryCount < 5) {
+                    // Bot might not be ready yet (401) or restarting (5xx), retry with backoff
+                    console.log(`[BotBalance] ${bot.instanceId}: Got ${response.status}, retry ${retryCount + 1}/5`);
                     if (isMounted) {
                         retryTimeout = setTimeout(() => {
                             if (isMounted) {
@@ -368,11 +369,14 @@ export default function BotConsolePage() {
             }
 
             if (response.ok && data.success) {
-                setSuccess(`Successfully withdrawn $${amount.toFixed(2)} from ${selectedBotForWithdraw.instanceId}`);
+                setSuccess(`Successfully withdrawn $${amount.toFixed(2)} from ${selectedBotForWithdraw.instanceId}. Balance will update shortly.`);
                 setWithdrawDialogOpen(false);
                 setSelectedBotForWithdraw(null);
                 setWithdrawAmount('');
-                await Promise.all([fetchBots(), fetchWalletAllocations()]);
+                // Wallet allocation updates immediately, but bot balance needs time to restart
+                await fetchWalletAllocations();
+                // Wait 3 seconds for bot to restart before refreshing bot list
+                setTimeout(() => fetchBots(), 3000);
             } else {
                 setError(data.message || `Failed to withdraw from bot (status ${response.status})`);
             }
