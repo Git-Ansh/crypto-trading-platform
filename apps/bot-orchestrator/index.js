@@ -3188,9 +3188,9 @@ async function getBotAggregates(instanceId) {
       statusRes.json(), balanceRes.json(), profitRes.json()
     ]);
 
-    // Bot-managed balance and starting capital
-    // Using || fallback instead of ?? for cases where total_bot/starting_capital might be 0 (but shouldn't be for aggregation)
-    const totalBalance = Number(balance?.total_bot || balance?.total || 0);
+    // Bot total balance (including open positions) and starting capital
+    // Use 'total' for total equity including open positions, not 'total_bot' which is available balance
+    const totalBalance = Number(balance?.total || balance?.total_bot || 0);
     const startingCapital = Number(balance?.starting_capital || 10000);
 
     // Calculate P&L as current balance - starting capital
