@@ -67,6 +67,10 @@ export const useFreqTradeSSE = (): FreqTradeSSEState => {
   const [chartData, setChartData] = useState<{ [interval: string]: ChartResponse }>({});
   const [chartLoading, setChartLoading] = useState(false);
   const [chartError, setChartError] = useState<string | null>(null);
+  
+  // Throttle chart updates to avoid expensive recalculations on every SSE update
+  const lastChartUpdateRef = useRef<number>(0);
+  const CHART_UPDATE_THROTTLE_MS = 60000; // Only update chart every 60 seconds
 
   const { user } = useAuth();
   const unsubscribersRef = useRef<Array<() => void>>([]);
@@ -81,29 +85,31 @@ export const useFreqTradeSSE = (): FreqTradeSSEState => {
     }
     initializedRef.current = true;
 
-    const initializeSSE = async () => {
-      try {
-        setConnectionError(null);
-
-        await freqTradeSSEService.connect();
-      } catch (error) {
+    // Defer SSE connection to after initial render for better LCP
+    const initializeSSE = () => {
+      freqTradeSSEService.connect().catch(error => {
         console.error('❌ [HOOK] Failed to initialize SSE connection:', error);
         setConnectionError(error instanceof Error ? error.message : 'Connection failed');
         setPortfolioLoading(false);
         setBotsLoading(false);
-      }
+      });
     };
 
-    initializeSSE();
+    // Use requestIdleCallback or setTimeout to defer connection
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(initializeSSE, { timeout: 1000 });
+    } else {
+      setTimeout(initializeSSE, 300);
+    }
 
-    // Safety timeout to clear loading states if data doesn't arrive within 10 seconds
+    // Safety timeout to clear loading states if data doesn't arrive within 3 seconds
     setTimeout(() => {
       if (portfolioLoading || botsLoading || tradesLoading) {
         setPortfolioLoading(false);
         setBotsLoading(false);
         setTradesLoading(false);
       }
-    }, 10000);
+    }, 3000);
 
     // Add a timeout to check connection status (but don't force reconnect to avoid rate limits)
     setTimeout(() => {
@@ -112,12 +118,7 @@ export const useFreqTradeSSE = (): FreqTradeSSEState => {
         setIsConnected(true);
         setConnectionError(null);
       }
-
-      // Only log status, don't force reconnect to avoid rate limits
-      if (!freqTradeSSEService.getConnectionStatus() && !isConnected) {
-        // SSE not connected - will retry automatically with backoff
-      }
-    }, 5000);
+    }, 2000);
 
     // Setup event listeners
     const unsubscribeConnected = freqTradeSSEService.on('connected', (connected: boolean) => {
@@ -132,11 +133,29 @@ export const useFreqTradeSSE = (): FreqTradeSSEState => {
     });
 
     const unsubscribePortfolio = freqTradeSSEService.on('portfolio_update', (data: PortfolioData) => {
+      // Batch these state updates - React 18 will auto-batch them
       setPortfolioData(data);
       setPortfolioLoading(false);
       setPortfolioError(null);
       setLastUpdate(new Date(data.timestamp));
 
+      // Throttle chart updates to avoid expensive recalculations
+      const now = Date.now();
+      if (now - lastChartUpdateRef.current < CHART_UPDATE_THROTTLE_MS) {
+        return; // Skip chart update if throttled
+      }
+      lastChartUpdateRef.current = now;
+
+      // Defer heavy chart processing to idle time
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(() => updateChartData(data), { timeout: 5000 });
+      } else {
+        setTimeout(() => updateChartData(data), 100);
+      }
+    });
+
+    // Extracted chart update function to defer heavy processing
+    const updateChartData = (data: PortfolioData) => {
       // Create chart data point for time bucketing
       const liveChartPoint = {
         timestamp: data.timestamp,
@@ -241,9 +260,10 @@ export const useFreqTradeSSE = (): FreqTradeSSEState => {
             },
             aggregationWindow: `${config.bucketMinutes}m`
           };
-        }); return updated;
+        });
+        return updated;
       });
-    });
+    };
 
     const unsubscribeBots = freqTradeSSEService.on('bot_update', (botData: BotData[]) => {
       setBots(botData);
@@ -291,9 +311,62 @@ export const useFreqTradeSSE = (): FreqTradeSSEState => {
     };
   }, [user]);
 
+  const seedFromSnapshot = useCallback((snapshot: PortfolioData) => {
+    if (!snapshot) return;
+
+    const timestamp = snapshot.timestamp
+      ? new Date(snapshot.timestamp)
+      : new Date();
+
+    setPortfolioData(snapshot);
+    setPortfolioLoading(false);
+    setPortfolioError(null);
+    setLastUpdate(timestamp);
+
+    if (Array.isArray(snapshot.bots)) {
+      setBots(snapshot.bots);
+      setBotsLoading(false);
+    }
+
+    const livePoint = {
+      timestamp: timestamp.toISOString(),
+      portfolioValue: snapshot.portfolioValue || 0,
+      totalPnL: snapshot.totalPnL || 0,
+      activeBots: snapshot.activeBots || snapshot.botCount || 0,
+      botCount: snapshot.botCount || (Array.isArray(snapshot.bots) ? snapshot.bots.length : 0),
+      isLive: true
+    };
+
+    setChartData(prev => {
+      const next = { ...prev };
+      (['1h', '24h', '7d', '30d'] as const).forEach(interval => {
+        if (next[interval]?.data?.length) {
+          return;
+        }
+
+        next[interval] = {
+          success: true,
+          interval,
+          data: [livePoint],
+          metadata: {
+            totalPoints: 1,
+            timeRange: { start: livePoint.timestamp, end: livePoint.timestamp },
+            aggregationWindow: 'live'
+          }
+        };
+      });
+      return next;
+    });
+  }, []);
+
   // Load initial data (chart data since portfolio comes via SSE)
   const loadInitialData = async () => {
     try {
+
+      const snapshot = await freqTradeSSEService.fetchPortfolioSnapshot().catch(() => null);
+      if (snapshot) {
+        seedFromSnapshot(snapshot);
+      }
 
       // Parallelize all initial data fetching to improve speed
       await Promise.allSettled([

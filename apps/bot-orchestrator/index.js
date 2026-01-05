@@ -1400,6 +1400,24 @@ app.put('/api/bots/:instanceId/strategy', authenticateToken, checkInstanceOwners
   }
 });
 
+// --- Get current portfolio snapshot (aggregated) ---
+app.get('/api/portfolio', authenticateToken, async (req, res) => {
+  try {
+    const user = req.user || {};
+    const userId = user.uid || user.id;
+    if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    const portfolioData = await aggregateUserPortfolio(userId);
+    res.json({
+      success: true,
+      ...portfolioData
+    });
+  } catch (e) {
+    console.error('[API] /api/portfolio error:', e.message);
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 // --- Get historical portfolio data ---
 app.get('/api/portfolio/history', authenticateToken, async (req, res) => {
   try {

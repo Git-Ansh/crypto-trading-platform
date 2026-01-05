@@ -46,7 +46,9 @@ export const strategyAPI = {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch strategies: ${response.statusText}`);
+        const body = await response.json().catch(() => ({}));
+        console.error('❌ Failed to fetch strategies:', response.status, response.statusText, body);
+        return [];
       }
 
       const data = await response.json();
@@ -54,7 +56,7 @@ export const strategyAPI = {
       return data.strategies || [];
     } catch (error) {
       console.error('❌ Error fetching strategies:', error);
-      throw error;
+      return [];
     }
   },
 

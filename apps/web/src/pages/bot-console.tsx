@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 // import { useAuth } from '@/contexts/AuthContext';
 import { config } from '@/lib/config';
 import { auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import {
     Bot,
     Plus,
@@ -161,28 +162,53 @@ export default function BotConsolePage() {
     const fetchBots = async () => {
         try {
             const token = await getAuthToken();
-            if (!token) return;
+            if (!token) {
+                console.warn('[BotConsole] No auth token available, skipping fetch');
+                return;
+            }
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
             const response = await fetch(`${config.botManager.baseUrl}/api/bots`, {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: { Authorization: `Bearer ${token}` },
+                signal: controller.signal
             });
+
+            clearTimeout(timeoutId);
 
             if (response.ok) {
                 const data = await response.json();
                 setBots(data.bots || []);
+            } else {
+                console.error('[BotConsole] Failed to fetch bots:', response.status, response.statusText);
             }
-        } catch (error) {
-            console.error('Error fetching bots:', error);
+        } catch (error: any) {
+            if (error.name === 'AbortError') {
+                console.error('[BotConsole] Fetch bots timed out');
+            } else {
+                console.error('[BotConsole] Error fetching bots:', error);
+            }
         }
     };
 
     useEffect(() => {
-        const loadData = async () => {
-            setLoading(true);
-            await fetchBots();
-            setLoading(false);
-        };
-        loadData();
+        // Wait for Firebase auth to be ready before fetching
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                setLoading(true);
+                try {
+                    await fetchBots();
+                } finally {
+                    setLoading(false);
+                }
+            } else {
+                // No user logged in, stop loading
+                setLoading(false);
+            }
+        });
+        
+        return () => unsubscribe();
     }, []);
 
     const [botToDelete, setBotToDelete] = useState<BotInstance | null>(null);

@@ -171,20 +171,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Initialize by checking stored user data
+  // Initialize by checking stored user data - set user immediately for fast render
   useEffect(() => {
     const storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
         setUserState(parsedUser);
+        // Set loading false immediately if we have cached user data
+        // Firebase will verify/update in background
+        setLoading(false);
       } catch (err) {
         console.error("Failed to parse stored user:", err);
         localStorage.removeItem(AUTH_STORAGE_KEY);
       }
     }
-    
-    // Don't set loading to false here, let Firebase auth state handle it
   }, []);
 
   const setUser = (newUser: User | null) => {
@@ -201,7 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
-      setLoading(true);
+      // Don't set loading to true - allow UI to render while checking
       setError(null);
       console.log("Checking authentication status...");
 
@@ -210,18 +211,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!token) {
         console.log("No auth token found");
         setUser(null);
+        setLoading(false);
         return;
       }
 
       console.log("Found auth token, verifying with server...");
 
-      // For Firebase tokens, try to refresh if needed
+      // For Firebase tokens, try to refresh if needed (don't await - fire and forget)
       if (firebaseUserRef.current || auth.currentUser) {
-        try {
-          await refreshFirebaseToken();
-        } catch (error) {
+        refreshFirebaseToken().catch(error => {
           console.warn("Could not refresh Firebase token:", error);
-        }
+        });
       }
 
       // Verify token with server

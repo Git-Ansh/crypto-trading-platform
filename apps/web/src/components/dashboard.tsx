@@ -12,7 +12,7 @@ import {
   Plus,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, memo, useMemo, lazy, Suspense } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -24,6 +24,7 @@ import {
 } from "recharts";
 import { isAuthenticated } from "@/lib/api";
 import axios from "axios";
+import "./dashboard.css"; // Extracted CSS for performance
 import {
   Card,
   CardContent,
@@ -68,11 +69,13 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { PortfolioChart } from "@/components/portfolio-chart";
+// Lazy load heavy chart components
+const PortfolioChart = lazy(() => import("@/components/portfolio-chart").then(m => ({ default: m.PortfolioChart })));
 import { InlineLoading, LoadingSpinner } from "@/components/ui/loading";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { PositionsTable } from "@/components/positions-table";
-import { StrategySelector } from "@/components/strategy-selector";
+// Lazy load heavy table and selector components
+const PositionsTable = lazy(() => import("@/components/positions-table").then(m => ({ default: m.PositionsTable })));
+const StrategySelector = lazy(() => import("@/components/strategy-selector").then(m => ({ default: m.StrategySelector })));
 import { config } from "@/lib/config";
 import { auth } from "@/lib/firebase";
 
@@ -83,7 +86,7 @@ const MINUTE_DATA_ENDPOINT = "https://api.binance.com/api/v3/klines"; // for 1m 
 
 const WS_ENDPOINT = "wss://stream.binance.com:9443/ws";
 const COIN_GECKO_ENDPOINT =
-  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false";
+  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=120&page=1&sparkline=false";
 
 // Bot Manager API handled by SSE service
 
@@ -106,9 +109,9 @@ const TOP_SYMBOLS = [
 const BATCH_THRESHOLD = 5;
 const BATCH_WINDOW = 2000;
 const MAX_CHART_POINTS = 300;
-const MAX_CURRENCIES = 120;
+const MAX_CURRENCIES = 50; // Reduced from 120 for faster initial render
 const HOUR_IN_MS = 60 * 60 * 1000;
-const MARKET_DATA_DEFER_MS = 2000;
+const MARKET_DATA_DEFER_MS = 100; // Reduced from 600ms
 
 
 
@@ -140,6 +143,9 @@ interface CurrencyData {
   lastUpdated: number;
 }
 
+type InitStep = "market" | "portfolio" | "bots" | "chart";
+const REQUIRED_INIT_STEPS: InitStep[] = ["market", "portfolio", "bots", "chart"];
+
 
 
 
@@ -163,7 +169,6 @@ export default function Dashboard() {
     "connected" | "disconnected" | "connecting"
   >("disconnected");
   const [lastUpdated, setLastUpdated] = useState<string>("");
-  const [forceUpdate, setForceUpdate] = useState<number>(0);
 
   // Separate state for each timeframe to prevent cross-contamination and race conditions
   const [portfolioDataByTimeframe, setPortfolioDataByTimeframe] = useState<{
@@ -344,13 +349,27 @@ export default function Dashboard() {
   }, [getCurrentTimeframeData, freqTradeConnected, freqTradePortfolio]);
 
   // Determine if user is new based on portfolio data availability
-  const isNewUser =
+  const isNewUser = useMemo(() => 
     !freqTradeConnected ||
     !freqTradePortfolio ||
-    getChartDataWithFallback().length === 0;
+    getChartDataWithFallback().length === 0,
+    [freqTradeConnected, freqTradePortfolio, getChartDataWithFallback]
+  );
 
   // Check if user has no FreqTrade bots provisioned
-  const hasNoBots = !freqTradeBotsLoading && freqTradeBots.length === 0;
+  const hasNoBots = useMemo(() => 
+    !freqTradeBotsLoading && freqTradeBots.length === 0,
+    [freqTradeBotsLoading, freqTradeBots.length]
+  );
+
+  // Memoize portfolio display values to avoid recalculations on every render
+  const portfolioDisplayData = useMemo(() => ({
+    totalBalance: freqTradePortfolio?.totalBalance || 0,
+    botCount: freqTradePortfolio?.bots?.length || 0,
+    portfolioValue: freqTradePortfolio?.portfolioValue || 0,
+    totalPnL: freqTradePortfolio?.totalPnL || 0,
+    pnlPercentage: freqTradePortfolio?.pnlPercentage || 0,
+  }), [freqTradePortfolio]);
 
   // Use a ref for the currently selected currency so that the WS handler always sees the latest value
   const selectedCurrencyRef = useRef<string>("BTC");
@@ -390,15 +409,70 @@ export default function Dashboard() {
     lastMouseY: number;
   }>({ isPanning: false, lastMouseX: 0, lastMouseY: 0 });
 
+  // Memoize expensive chart bounds calculation - used by multiple handlers
+  const chartBounds = useMemo(() => {
+    if (chartData.length === 0) return { minClose: 0, maxClose: 0, fullXDomain: [0, 0] as [number, number], fullYDomain: [0, 0] as [number, number] };
+    const closes = chartData.map((d) => d.close);
+    const minClose = Math.min(...closes);
+    const maxClose = Math.max(...closes);
+    return {
+      minClose,
+      maxClose,
+      fullXDomain: [0, chartData.length - 1] as [number, number],
+      fullYDomain: [minClose * 0.99, maxClose * 1.01] as [number, number],
+    };
+  }, [chartData]);
+
+  // Ref for RAF throttling of mouse/touch move handlers
+  const rafIdRef = useRef<number | null>(null);
+
   // Gate heavy market data loading to reduce LCP/INP pressure
   const [marketDataReady, setMarketDataReady] = useState<boolean>(false);
   // Overlay release to avoid blocking on secondary loads (charts/bots)
   const [overlayReleased, setOverlayReleased] = useState<boolean>(false);
+  const [initStatus, setInitStatus] = useState<Record<InitStep, boolean>>({
+    market: false,
+    portfolio: false,
+    bots: false,
+    chart: false,
+  });
+  const [initFailSafeReached, setInitFailSafeReached] = useState<boolean>(false);
+
+  const markInitStep = useCallback((step: InitStep) => {
+    setInitStatus((prev) => (prev[step] ? prev : { ...prev, [step]: true }));
+  }, []);
+
+  // Memoize init step calculations to avoid recalculating on every render
+  const { completedInitSteps, initProgress, pendingInitStep, initStatusText, initComplete } = useMemo(() => {
+    const initStepLabels: Record<InitStep, string> = {
+      market: "Market Data",
+      portfolio: "Portfolio",
+      bots: "Bots",
+      chart: "Charts",
+    };
+    const completed = REQUIRED_INIT_STEPS.filter((step) => initStatus[step]).length;
+    const progress = Math.max(10, Math.round((completed / REQUIRED_INIT_STEPS.length) * 100));
+    const pending = REQUIRED_INIT_STEPS.find((step) => !initStatus[step]);
+    const statusText = pending ? `Initializing ${initStepLabels[pending]}...` : "Systems Ready";
+    return {
+      completedInitSteps: completed,
+      initProgress: progress,
+      pendingInitStep: pending,
+      initStatusText: statusText,
+      initComplete: completed === REQUIRED_INIT_STEPS.length,
+    };
+  }, [initStatus]);
 
   // Minute data
   const [minuteData, setMinuteData] = useState<KlineData[]>([]);
   const [isLoadingMinuteData, setIsLoadingMinuteData] =
     useState<boolean>(false);
+
+  // Memoize chart data source for tooltip calculations - must be after minuteData declared
+  const activeChartData = useMemo(() => 
+    zoomState.isZoomed && minuteData.length > 0 ? minuteData : chartData,
+    [zoomState.isZoomed, minuteData, chartData]
+  );
 
   // Top currencies
   const [topCurrencies, setTopCurrencies] = useState<CurrencyData[]>([]);
@@ -423,16 +497,11 @@ export default function Dashboard() {
   // Selected currency
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BTC");
 
-  // --- Portfolio & Bot State (now handled by FreqTrade integration) ---
-  // Removed local portfolio state - using FreqTrade integration instead
-  const [botActive, setBotActive] = useState<boolean>(true);
-
-  // Bot names state
-  const [selectedBot, setSelectedBot] = useState<string>("Trading Bot Alpha");
+  // Bot state - only keep selectedBotForStrategy which is actually used
   const [selectedBotForStrategy, setSelectedBotForStrategy] = useState<string | null>(null);
 
   // Helper function to safely get bot status as string
-  const getBotStatus = (bot: any): string => {
+  const getBotStatus = useCallback((bot: any): string => {
     if (typeof bot.status === 'string') {
       return bot.status;
     } else if (Array.isArray(bot.status)) {
@@ -440,19 +509,30 @@ export default function Dashboard() {
     } else {
       return 'unknown';
     }
-  };
+  }, []);
 
   // Helper function to check if bot is running
-  const isBotRunning = (bot: any): boolean => {
+  const isBotRunning = useCallback((bot: any): boolean => {
     const status = getBotStatus(bot);
     return status === 'running' || Array.isArray(bot.status);
-  };
+  }, [getBotStatus]);
+
+  // Memoize bot status computations to avoid recalculating on every render
+  const { anyBotRunning, runningBotCount } = useMemo(() => {
+    if (!freqTradeBots || freqTradeBots.length === 0) {
+      return { anyBotRunning: false, runningBotCount: 0 };
+    }
+    const running = freqTradeBots.filter((bot) => {
+      const status = typeof bot.status === 'string' ? bot.status : (Array.isArray(bot.status) ? 'running' : 'unknown');
+      return status === 'running' || Array.isArray(bot.status);
+    });
+    return { anyBotRunning: running.length > 0, runningBotCount: running.length };
+  }, [freqTradeBots]);
 
   // Update selectedBotForStrategy when FreqTrade bots are loaded
   useEffect(() => {
     if (freqTradeBots.length > 0 && !selectedBotForStrategy) {
       setSelectedBotForStrategy(freqTradeBots[0].instanceId);
-      setSelectedBot(freqTradeBots[0].instanceId);
     }
   }, [freqTradeBots, selectedBotForStrategy]);
 
@@ -460,46 +540,42 @@ export default function Dashboard() {
   useEffect(() => {
     selectedCurrencyRef.current = selectedCurrency;
   }, [selectedCurrency]);
-  const [botNames] = useState<string[]>([
-    "Trading Bot Alpha",
-    "DCA Bot Beta",
-    "Scalping Bot Gamma",
-    "Hodl Bot Delta",
-    "Momentum Bot Echo",
-  ]);
 
-
-
-  // Bot Roadmap / Upcoming Actions (placeholder)
-  const [botRoadmap] = useState<any[]>([
-    {
-      id: 1,
-      date: "3/11/2025",
-      plan: "Buy 0.01 BTC if price dips below $77,000",
-    },
-    {
-      id: 2,
-      date: "3/12/2025",
-      plan: "Rebalance portfolio to maintain 60% BTC, 40% ETH ratio",
-    },
-  ]);
-
-  // Timer to update the live time display every second
+  // Current time for mobile header - updated every second (only when mobile)
+  const [currentTime, setCurrentTime] = useState<string>("");
   useEffect(() => {
-    const timer = setInterval(() => {
-      setForceUpdate((prev) => prev + 1);
-    }, 1000);
+    if (!isMobile) return;
+    const updateTime = () => {
+      setCurrentTime(new Date().toLocaleTimeString("en-US", {
+        hour12: false,
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+      }));
+    };
+    updateTime();
+    const intervalId = setInterval(updateTime, 1000);
+    return () => clearInterval(intervalId);
+  }, [isMobile]);
 
-    return () => clearInterval(timer);
-  }, []);
-
-  // Recent trades now handled by FreqTrade integration
-  // Removed local trades state - all trade data comes from FreqTrade WebSocket
+  // Force update counter for strategy changes
+  const [, setForceUpdate] = useState(0);
 
   // On mount, set initial lastUpdated
   useEffect(() => {
     setLastUpdated(new Date().toLocaleTimeString());
   }, []);
+
+  useEffect(() => {
+    const failSafe = setTimeout(() => setInitFailSafeReached(true), 5000); // Reduced from 8s
+    return () => clearTimeout(failSafe);
+  }, []);
+
+  useEffect(() => {
+    if (initComplete || initFailSafeReached) {
+      setOverlayReleased(true);
+    }
+  }, [initComplete, initFailSafeReached]);
 
   // News data state
   const [newsItems, setNewsItems] = useState<any[]>([]);
@@ -523,6 +599,33 @@ export default function Dashboard() {
     authLoading,
     // Removed dependency on fetch handlers since they no longer make API calls
   ]);
+
+  useEffect(() => {
+    // Mark market as complete as soon as we have BTC data - don't wait for currencies
+    if (!loading && cryptoData && chartData.length > 0) {
+      markInitStep("market");
+    }
+  }, [loading, cryptoData, chartData, markInitStep]);
+
+  useEffect(() => {
+    if (!freqTradePortfolioLoading && (freqTradePortfolio || isNewUser)) {
+      markInitStep("portfolio");
+    }
+  }, [freqTradePortfolioLoading, freqTradePortfolio, isNewUser, markInitStep]);
+
+  useEffect(() => {
+    if (!freqTradeBotsLoading) {
+      markInitStep("bots");
+    }
+  }, [freqTradeBotsLoading, markInitStep]);
+
+  useEffect(() => {
+    const currentData = getChartDataWithFallback();
+    // Mark chart complete even without data for faster perceived loading
+    if (!portfolioChartLoading || currentData.length > 0 || isNewUser) {
+      markInitStep("chart");
+    }
+  }, [portfolioChartLoading, getChartDataWithFallback, isNewUser, markInitStep]);
 
 
 
@@ -562,7 +665,6 @@ export default function Dashboard() {
 
   // ============== All Currencies with Pagination ==============
   const fetchTopCurrencies = useCallback(async () => {
-    if (!marketDataReady) return false;
     try {
       setIsLoadingCurrencies(true);
 
@@ -612,7 +714,7 @@ export default function Dashboard() {
       setIsLoadingCurrencies(false);
       return false;
     }
-  }, [marketDataReady, rowsPerPage]);
+  }, [rowsPerPage]);
 
   // ============== Historical & Ticker Data ==============
   const fetchHistoricalDataForCurrency = useCallback(
@@ -841,14 +943,13 @@ export default function Dashboard() {
         setAllCurrencies((prev) => prev.map(updateCurrency));
         setTopCurrencies((prev) => prev.slice(0, 20).map(updateCurrency));
       }
-    }, 5000);
+    }, 30000); // Reduced from 5s to 30s to improve performance
     return () => clearInterval(intervalId);
   }, [marketDataReady]);
 
   // Initialization for selected currency – note we no longer reconnect WS here
   const initializeDashboardForCurrency = useCallback(
     async (symbol: string) => {
-      if (!marketDataReady) return;
       try {
         setLoading(true);
         setError(null);
@@ -863,12 +964,6 @@ export default function Dashboard() {
         setCryptoData(ticker);
         setLastUpdated(new Date().toLocaleTimeString());
 
-        // Add a small delay and then set a test value for seconds display
-        setTimeout(() => {
-          const tenSecondsAgo = new Date(Date.now() - 10000);
-          setLastUpdated(tenSecondsAgo.toLocaleTimeString());
-        }, 1000);
-
         setLoading(false);
       } catch (err: any) {
         console.error(`Error initializing for ${symbol}:`, err);
@@ -876,11 +971,12 @@ export default function Dashboard() {
         setLoading(false);
       }
     },
-    [fetchHistoricalDataForCurrency, fetchTickerDataForCurrency, marketDataReady]
+    [fetchHistoricalDataForCurrency, fetchTickerDataForCurrency]
   );
 
   // 2. Fetch news from CryptoCompare
   const fetchLatestNews = useCallback(async () => {
+    if (!marketDataReady) return false;
     try {
       setLoadingNews(true);
       const resp = await axios.get(
@@ -910,24 +1006,44 @@ export default function Dashboard() {
       setLoadingNews(false);
       return false;
     }
-  }, []);
+  }, [marketDataReady]);
 
   useEffect(() => {
-    // Defer market data kick-off to reduce LCP/INP
-    const t = setTimeout(() => setMarketDataReady(true), MARKET_DATA_DEFER_MS);
-    const overlayTimer = setTimeout(() => setOverlayReleased(true), 1200);
-    deferHeavyInit(() => {
-      Promise.all([
-        fetchLatestNews(),
-        fetchTopCurrencies().then(() => initializeDashboardForCurrency("BTC")),
-      ]).catch(err => console.error("Initialization error:", err));
+    // Use requestIdleCallback to defer non-critical initialization
+    const scheduleInit = (fn: () => void, fallbackMs: number) => {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(fn, { timeout: fallbackMs });
+      } else {
+        setTimeout(fn, fallbackMs);
+      }
+    };
 
+    // Defer BTC ticker to allow initial render to complete first
+    scheduleInit(() => {
+      initializeDashboardForCurrency("BTC").catch(err => console.error("BTC init error:", err));
+    }, 100);
+    
+    // Set market data ready after initial render
+    scheduleInit(() => setMarketDataReady(true), 200);
+    
+    // Defer WebSocket connection further
+    scheduleInit(() => {
       connectWebSocketAll();
-    });
+    }, 800);
+    
+    // Defer heavy CoinGecko currency fetch even more
+    const currencyTimeout = setTimeout(() => {
+      fetchTopCurrencies().catch(err => console.error("Currency init error:", err));
+    }, 2000);
+    
+    // Defer news to much later - it's not critical
+    const newsTimeout = setTimeout(() => {
+      fetchLatestNews().catch(err => console.error("News init error:", err));
+    }, 3000);
 
     return () => {
-      clearTimeout(t);
-      clearTimeout(overlayTimer);
+      clearTimeout(currencyTimeout);
+      clearTimeout(newsTimeout);
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
@@ -937,12 +1053,10 @@ export default function Dashboard() {
       }
     };
   }, [
-    deferHeavyInit,
     fetchTopCurrencies,
     initializeDashboardForCurrency,
     fetchLatestNews,
     connectWebSocketAll,
-    marketDataReady,
   ]);
 
   // Removed fetchUserData - account creation date is no longer fetched from localhost:5000
@@ -995,11 +1109,8 @@ export default function Dashboard() {
         setTouchState({
           initialDistance: distance,
           initialDomains: {
-            x: zoomState.xDomain || [0, chartData.length - 1],
-            y: zoomState.yDomain || [
-              Math.min(...chartData.map((d) => d.close)) * 0.99,
-              Math.max(...chartData.map((d) => d.close)) * 1.01,
-            ],
+            x: zoomState.xDomain || chartBounds.fullXDomain,
+            y: zoomState.yDomain || chartBounds.fullYDomain,
             centerX: xPercent,
             centerY: yPercent,
           },
@@ -1013,104 +1124,102 @@ export default function Dashboard() {
         });
       }
     },
-    [chartData, zoomState]
+    [chartBounds, zoomState]
   );
 
   const handleTouchMove = useCallback(
     (event: React.TouchEvent<HTMLDivElement>) => {
-      if (event.touches.length === 2) {
-        const t1 = event.touches[0];
-        const t2 = event.touches[1];
-        const distance = Math.hypot(
-          t2.clientX - t1.clientX,
-          t2.clientY - t1.clientY
-        );
-        const zoomFactor = touchState.initialDistance / distance;
-        const xPercent = touchState.initialDomains.centerX;
-        const yPercent = touchState.initialDomains.centerY;
-        const xRange =
-          touchState.initialDomains.x[1] - touchState.initialDomains.x[0];
-        const yRange =
-          touchState.initialDomains.y[1] - touchState.initialDomains.y[0];
-        const newXDomain: [number, number] = [
-          touchState.initialDomains.x[0] - xRange * (1 - zoomFactor) * xPercent,
-          touchState.initialDomains.x[1] +
-          xRange * (1 - zoomFactor) * (1 - xPercent),
-        ];
-        const newYDomain: [number, number] = [
-          touchState.initialDomains.y[0] -
-          yRange * (1 - zoomFactor) * (1 - yPercent),
-          touchState.initialDomains.y[1] + yRange * (1 - zoomFactor) * yPercent,
-        ];
-        if (zoomFactor > 1) {
-          const fullXDomain = [0, chartData.length - 1];
-          const fullYDomain = [
-            Math.min(...chartData.map((d) => d.close)) * 0.99,
-            Math.max(...chartData.map((d) => d.close)) * 1.01,
+      // Throttle with RAF to prevent INP issues
+      if (rafIdRef.current) return;
+      rafIdRef.current = requestAnimationFrame(() => {
+        rafIdRef.current = null;
+        
+        if (event.touches.length === 2) {
+          const t1 = event.touches[0];
+          const t2 = event.touches[1];
+          const distance = Math.hypot(
+            t2.clientX - t1.clientX,
+            t2.clientY - t1.clientY
+          );
+          const zoomFactor = touchState.initialDistance / distance;
+          const xPercent = touchState.initialDomains.centerX;
+          const yPercent = touchState.initialDomains.centerY;
+          const xRange =
+            touchState.initialDomains.x[1] - touchState.initialDomains.x[0];
+          const yRange =
+            touchState.initialDomains.y[1] - touchState.initialDomains.y[0];
+          const newXDomain: [number, number] = [
+            touchState.initialDomains.x[0] - xRange * (1 - zoomFactor) * xPercent,
+            touchState.initialDomains.x[1] +
+            xRange * (1 - zoomFactor) * (1 - xPercent),
           ];
-          if (
-            newXDomain[0] < fullXDomain[0] &&
-            newXDomain[1] > fullXDomain[1] &&
-            newYDomain[0] < fullYDomain[0] &&
-            newYDomain[1] > fullYDomain[1]
-          ) {
-            return handleResetZoom();
+          const newYDomain: [number, number] = [
+            touchState.initialDomains.y[0] -
+            yRange * (1 - zoomFactor) * (1 - yPercent),
+            touchState.initialDomains.y[1] + yRange * (1 - zoomFactor) * yPercent,
+          ];
+          if (zoomFactor > 1) {
+            if (
+              newXDomain[0] < chartBounds.fullXDomain[0] &&
+              newXDomain[1] > chartBounds.fullXDomain[1] &&
+              newYDomain[0] < chartBounds.fullYDomain[0] &&
+              newYDomain[1] > chartBounds.fullYDomain[1]
+            ) {
+              handleResetZoom();
+              return;
+            }
           }
+          setZoomState({
+            xDomain: newXDomain,
+            yDomain: newYDomain,
+            isZoomed: true,
+          });
+        } else if (
+          event.touches.length === 1 &&
+          panState.isPanning &&
+          zoomState.isZoomed
+        ) {
+          const touch = event.touches[0];
+          const deltaX = touch.clientX - panState.lastMouseX;
+          const deltaY = touch.clientY - panState.lastMouseY;
+          const currentXDomain = zoomState.xDomain || chartBounds.fullXDomain;
+          const currentYDomain = zoomState.yDomain || chartBounds.fullYDomain;
+          const xRange = currentXDomain[1] - currentXDomain[0];
+          const yRange = currentYDomain[1] - currentYDomain[0];
+          const chartRect = chartContainerRef.current?.getBoundingClientRect();
+          if (!chartRect) return;
+          const xShift = (deltaX / chartRect.width) * xRange * -2;
+          const yShift = (deltaY / chartRect.height) * yRange;
+          let newXDomain: [number, number] = [
+            currentXDomain[0] + xShift,
+            currentXDomain[1] + xShift,
+          ];
+          const newYDomain: [number, number] = [
+            currentYDomain[0] + yShift,
+            currentYDomain[1] + yShift,
+          ];
+          if (newXDomain[0] < chartBounds.fullXDomain[0]) {
+            const overflow = chartBounds.fullXDomain[0] - newXDomain[0];
+            newXDomain = [chartBounds.fullXDomain[0], newXDomain[1] - overflow];
+          }
+          if (newXDomain[1] > chartBounds.fullXDomain[1]) {
+            const overflow = newXDomain[1] - chartBounds.fullXDomain[1];
+            newXDomain = [newXDomain[0] + overflow, chartBounds.fullXDomain[1]];
+          }
+          setZoomState({
+            xDomain: newXDomain,
+            yDomain: newYDomain,
+            isZoomed: true,
+          });
+          setPanState({
+            isPanning: true,
+            lastMouseX: touch.clientX,
+            lastMouseY: touch.clientY,
+          });
         }
-        setZoomState({
-          xDomain: newXDomain,
-          yDomain: newYDomain,
-          isZoomed: true,
-        });
-      } else if (
-        event.touches.length === 1 &&
-        panState.isPanning &&
-        zoomState.isZoomed
-      ) {
-        const touch = event.touches[0];
-        const deltaX = touch.clientX - panState.lastMouseX;
-        const deltaY = touch.clientY - panState.lastMouseY;
-        const currentXDomain = zoomState.xDomain || [0, chartData.length - 1];
-        const currentYDomain = zoomState.yDomain || [
-          Math.min(...chartData.map((d) => d.close)) * 0.99,
-          Math.max(...chartData.map((d) => d.close)) * 1.01,
-        ];
-        const xRange = currentXDomain[1] - currentXDomain[0];
-        const yRange = currentYDomain[1] - currentYDomain[0];
-        const chartRect = event.currentTarget.getBoundingClientRect();
-        const xShift = (deltaX / chartRect.width) * xRange * -2;
-        const yShift = (deltaY / chartRect.height) * yRange;
-        let newXDomain: [number, number] = [
-          currentXDomain[0] + xShift,
-          currentXDomain[1] + xShift,
-        ];
-        const newYDomain: [number, number] = [
-          currentYDomain[0] + yShift,
-          currentYDomain[1] + yShift,
-        ];
-        const fullXDomain = [0, chartData.length - 1];
-        if (newXDomain[0] < fullXDomain[0]) {
-          const overflow = fullXDomain[0] - newXDomain[0];
-          newXDomain = [fullXDomain[0], newXDomain[1] - overflow];
-        }
-        if (newXDomain[1] > fullXDomain[1]) {
-          const overflow = newXDomain[1] - fullXDomain[1];
-          newXDomain = [newXDomain[0] + overflow, fullXDomain[1]];
-        }
-        setZoomState({
-          xDomain: newXDomain,
-          yDomain: newYDomain,
-          isZoomed: true,
-        });
-        setPanState({
-          isPanning: true,
-          lastMouseX: touch.clientX,
-          lastMouseY: touch.clientY,
-        });
-        event.preventDefault();
-      }
+      });
     },
-    [touchState, panState, zoomState, chartData, handleResetZoom]
+    [touchState, panState, zoomState, chartBounds, handleResetZoom]
   );
 
   const handleTouchEnd = useCallback(() => {
@@ -1134,48 +1243,49 @@ export default function Dashboard() {
   const handleMouseMove = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
       if (!panState.isPanning || !zoomState.isZoomed) return;
-      const deltaX = event.clientX - panState.lastMouseX;
-      const deltaY = event.clientY - panState.lastMouseY;
-      const currentXDomain = zoomState.xDomain || [0, chartData.length - 1];
-      const currentYDomain = zoomState.yDomain || [
-        Math.min(...chartData.map((d) => d.close)) * 0.99,
-        Math.max(...chartData.map((d) => d.close)) * 1.01,
-      ];
-      const xRange = currentXDomain[1] - currentXDomain[0];
-      const yRange = currentYDomain[1] - currentYDomain[0];
-      const chartRect = chartContainerRef.current?.getBoundingClientRect();
-      if (!chartRect) return;
-      const xShift = (deltaX / chartRect.width) * xRange * -1.5;
-      const yShift = (deltaY / chartRect.height) * yRange;
-      let newXDomain: [number, number] = [
-        currentXDomain[0] + xShift,
-        currentXDomain[1] + xShift,
-      ];
-      const newYDomain: [number, number] = [
-        currentYDomain[0] + yShift,
-        currentYDomain[1] + yShift,
-      ];
-      const fullXDomain = [0, chartData.length - 1];
-      if (newXDomain[0] < fullXDomain[0]) {
-        const overflow = fullXDomain[0] - newXDomain[0];
-        newXDomain = [fullXDomain[0], newXDomain[1] - overflow];
-      }
-      if (newXDomain[1] > fullXDomain[1]) {
-        const overflow = newXDomain[1] - fullXDomain[1];
-        newXDomain = [newXDomain[0] + overflow, fullXDomain[1]];
-      }
-      setZoomState({
-        xDomain: newXDomain,
-        yDomain: newYDomain,
-        isZoomed: true,
-      });
-      setPanState({
-        isPanning: true,
-        lastMouseX: event.clientX,
-        lastMouseY: event.clientY,
+      // Throttle with RAF to prevent INP issues
+      if (rafIdRef.current) return;
+      rafIdRef.current = requestAnimationFrame(() => {
+        rafIdRef.current = null;
+        const deltaX = event.clientX - panState.lastMouseX;
+        const deltaY = event.clientY - panState.lastMouseY;
+        const currentXDomain = zoomState.xDomain || chartBounds.fullXDomain;
+        const currentYDomain = zoomState.yDomain || chartBounds.fullYDomain;
+        const xRange = currentXDomain[1] - currentXDomain[0];
+        const yRange = currentYDomain[1] - currentYDomain[0];
+        const chartRect = chartContainerRef.current?.getBoundingClientRect();
+        if (!chartRect) return;
+        const xShift = (deltaX / chartRect.width) * xRange * -1.5;
+        const yShift = (deltaY / chartRect.height) * yRange;
+        let newXDomain: [number, number] = [
+          currentXDomain[0] + xShift,
+          currentXDomain[1] + xShift,
+        ];
+        const newYDomain: [number, number] = [
+          currentYDomain[0] + yShift,
+          currentYDomain[1] + yShift,
+        ];
+        if (newXDomain[0] < chartBounds.fullXDomain[0]) {
+          const overflow = chartBounds.fullXDomain[0] - newXDomain[0];
+          newXDomain = [chartBounds.fullXDomain[0], newXDomain[1] - overflow];
+        }
+        if (newXDomain[1] > chartBounds.fullXDomain[1]) {
+          const overflow = newXDomain[1] - chartBounds.fullXDomain[1];
+          newXDomain = [newXDomain[0] + overflow, chartBounds.fullXDomain[1]];
+        }
+        setZoomState({
+          xDomain: newXDomain,
+          yDomain: newYDomain,
+          isZoomed: true,
+        });
+        setPanState({
+          isPanning: true,
+          lastMouseX: event.clientX,
+          lastMouseY: event.clientY,
+        });
       });
     },
-    [panState, zoomState, chartData]
+    [panState, zoomState, chartBounds]
   );
 
   const handleMouseUp = useCallback(() => {
@@ -1220,13 +1330,12 @@ export default function Dashboard() {
       
       try {
         setSettingsLoading(true);
-        // Use the proxy endpoint to avoid CORS issues
-        const { config } = await import('@/lib/config');
+        const token = await auth.currentUser?.getIdToken();
         const response = await fetch(
           `${config.api.baseUrl}/api/freqtrade/universal-settings`,
           {
             headers: {
-              'Authorization': `Bearer ${await import('@/lib/firebase').then(m => m.auth.currentUser?.getIdToken())}`,
+              'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
             },
           }
@@ -1257,9 +1366,7 @@ export default function Dashboard() {
       if (!selectedBotForStrategy || hasNoBots) return;
       
       try {
-        const token = await import('@/lib/firebase').then(m => m.auth.currentUser?.getIdToken());
-        // Use the proxy endpoint to avoid CORS issues
-        const { config } = await import('@/lib/config');
+        const token = await auth.currentUser?.getIdToken();
         const response = await fetch(
           `${config.api.baseUrl}/api/freqtrade/proxy/${selectedBotForStrategy}/api/v1/profit`,
           {
@@ -1312,9 +1419,7 @@ export default function Dashboard() {
     if (!selectedBotForStrategy || hasNoBots) return;
     
     try {
-      const token = await import('@/lib/firebase').then(m => m.auth.currentUser?.getIdToken());
-      // Use the proxy endpoint to avoid CORS issues
-      const { config } = await import('@/lib/config');
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch(
         `${config.api.baseUrl}/api/freqtrade/universal-settings/${selectedBotForStrategy}`,
         {
@@ -1618,36 +1723,39 @@ export default function Dashboard() {
 
   // ============== Pagination and Search Utilities ==============
   const filterAndPaginateCurrencies = useCallback(() => {
-    let filtered = allCurrencies;
+    // Use requestAnimationFrame to avoid blocking user interactions
+    requestAnimationFrame(() => {
+      let filtered = allCurrencies;
 
-    // Apply search filter
-    if (searchTerm.trim()) {
-      filtered = allCurrencies.filter(
-        (currency) =>
-          currency.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          currency.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+      // Apply search filter
+      if (searchTerm.trim()) {
+        const term = searchTerm.toLowerCase();
+        filtered = allCurrencies.filter(
+          (currency) =>
+            currency.symbol.toLowerCase().includes(term) ||
+            currency.name.toLowerCase().includes(term)
+        );
+      }
 
-    // Calculate total pages for filtered results
-    const totalPagesCount = Math.ceil(filtered.length / rowsPerPage);
-    setTotalPages(totalPagesCount);
+      // Calculate total pages for filtered results
+      const totalPagesCount = Math.ceil(filtered.length / rowsPerPage);
+      const validPage = currentPage > totalPagesCount ? 1 : currentPage;
 
-    // Reset to page 1 if current page exceeds total pages
-    const validPage = currentPage > totalPagesCount ? 1 : currentPage;
-    if (validPage !== currentPage) {
-      setCurrentPage(validPage);
-    }
+      // Paginate
+      const start = (validPage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const paginatedCurrencies = filtered.slice(start, end);
 
-    // Paginate
-    const startIndex = (validPage - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-    const paginatedCurrencies = filtered.slice(startIndex, endIndex);
-
-    setDisplayedCurrencies(paginatedCurrencies);
-    setFilteredCurrencies(filtered);
-    setStartIndex(startIndex);
-    setEndIndex(endIndex);
+      // Batch all state updates together (React 18 auto-batches these)
+      setTotalPages(totalPagesCount);
+      if (validPage !== currentPage) {
+        setCurrentPage(validPage);
+      }
+      setDisplayedCurrencies(paginatedCurrencies);
+      setFilteredCurrencies(filtered);
+      setStartIndex(start);
+      setEndIndex(end);
+    });
   }, [allCurrencies, searchTerm, currentPage, rowsPerPage]);
 
   // Handle rows per page change
@@ -1680,580 +1788,8 @@ export default function Dashboard() {
       <AppSidebar />
       <SidebarInset>
         {!isMobile && <SidebarRail className="absolute top-4.5 left-4" />}
-        {/* Hide any default sidebar triggers on mobile except our custom one */}
-        <style>{`
-          @media (max-width: 640px) {
-            [data-sidebar="trigger"]:not(.mobile-tray-icon-button) {
-              display: none !important;
-            }
-            .sidebar-trigger:not(.mobile-tray-icon-button) {
-              display: none !important;
-            }
-            button[data-sidebar="trigger"]:not(.mobile-tray-icon-button) {
-              display: none !important;
-            }
-            [data-testid="sidebar-trigger"]:not(.mobile-tray-icon-button) {
-              display: none !important;
-            }
-            .sr-only:has([data-sidebar="trigger"]):not(.mobile-tray-icon-button) {
-              display: none !important;
-            }
-            /* Hide any button that might be positioned absolutely in top-left */
-            button[style*="position: absolute"][style*="top"][style*="left"]:not(.mobile-tray-icon-button) {
-              display: none !important;
-            }
-            /* Hide any element with fixed positioning that might be a sidebar trigger */
-            [style*="position: fixed"][style*="top: 0"][style*="left: 0"]:not(.mobile-tray-icon-button) {
-              display: none !important;
-            }
-          }
-        `}</style>
-        <style>{`
-          html, body {
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            overflow-x: hidden;
-          }
-          html::-webkit-scrollbar, 
-          body::-webkit-scrollbar {
-            display: none;
-          }
-          @keyframes glow {
-            0%, 100% { text-shadow: 0 0 10px rgba(129, 161, 255, 0.7), 0 0 20px rgba(129, 161, 255, 0.5), 0 0 30px rgba(129, 161, 255, 0.3); }
-            50% { text-shadow: 0 0 15px rgba(129, 161, 255, 0.9), 0 0 25px rgba(129, 161, 255, 0.7), 0 0 35px rgba(129, 161, 255, 0.5); }
-          }
-          @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.3; }
-          }
-          .animate-blink {
-            animation: blink 1.5s infinite;
-          }
-          .price-change {
-            animation: highlightGreen 2s ease-in-out;
-          }
-          .pnl-change {
-            animation: highlightBlue 2s ease-in-out;
-          }
-          @keyframes highlightGreen {
-            0% { background-color: rgba(40,167,69,0.4); }
-            100% { background-color: transparent; }
-          }
-          @keyframes highlightBlue {
-            0% { background-color: rgba(0,123,255,0.4); }
-            100% { background-color: transparent; }
-          }
-          .alien-text {
-            font-family: "Space Mono", monospace;
-            letter-spacing: 0.4em;
-            font-weight: 800;
-            text-transform: uppercase;
-            animation: glow 2s ease-in-out infinite;
-            background-clip: text;
-          }
-          .dark .alien-text {
-            color: rgba(200, 220, 255, 0.9);
-          }
-          .alien-text {
-            color: rgba(60, 90, 150, 0.9);
-          }
-          .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            backdrop-filter: blur(5px);
-            transition: opacity 0.3s ease;
-          }
-          .dark .loading-overlay {
-            background-color: rgba(13, 17, 23, 0.8);
-          }
-          .light .loading-overlay {
-            background-color: rgba(255, 255, 255, 0.8);
-          }
-          
-          /* Mobile-specific overrides for Bot Status & Strategy card */
-          @media (max-width: 767px) {
-            .bot-status-indicator {
-              width: 12px !important;
-              height: 12px !important;
-              min-width: 12px !important;
-              min-height: 12px !important;
-              flex-shrink: 0 !important;
-            }
-            
-            /* Aggressive progress bar targeting - make them slim and clean */
-            .bot-progress-bar,
-            .bot-progress-bar *,
-            .bot-progress-bar > *,
-            .bot-progress-bar div {
-              height: 6px !important;
-              min-height: 6px !important;
-              max-height: 6px !important;
-            }
-            
-            /* Ensure progress indicator fits perfectly */
-            .bot-progress-bar > div {
-              top: 0 !important;
-              bottom: 0 !important;
-              border-radius: 9999px !important;
-            }
-            
-            .bot-section-spacing {
-              margin-bottom: 16px !important;
-            }
-            .bot-performance-spacing {
-              margin-bottom: 12px !important;
-            }
-            
-            /* Fix mobile dropdown touch issues */
-            .mobile-dropdown-fix,
-            .mobile-dropdown-fix * {
-              -webkit-touch-callout: none !important;
-              -webkit-user-select: none !important;
-              -khtml-user-select: none !important;
-              -moz-user-select: none !important;
-              -ms-user-select: none !important;
-              user-select: none !important;
-              touch-action: manipulation !important;
-            }
-            
-            /* Ensure dropdown buttons work properly on mobile */
-            .mobile-dropdown-trigger {
-              touch-action: manipulation !important;
-              -webkit-tap-highlight-color: transparent !important;
-              cursor: pointer !important;
-            }
-            
-            /* Dropdown content positioning fixes for mobile */
-            .mobile-dropdown-content {
-              position: absolute !important;
-              z-index: 1000 !important;
-              touch-action: manipulation !important;
-            }
-            
-            /* Prevent iOS zoom on dropdown interaction */
-            .mobile-dropdown-trigger:focus {
-              outline: none !important;
-              -webkit-tap-highlight-color: transparent !important;
-            }
-            
-            /* Floating header tray styles for mobile - macOS dock style */
-            .mobile-floating-header {
-              position: fixed !important;
-              top: 8px !important;
-              left: 8px !important;
-              right: 8px !important;
-              z-index: 50 !important;
-              background: rgba(15, 23, 43, 0.85) !important;
-              backdrop-filter: blur(12px) !important;
-              -webkit-backdrop-filter: blur(12px) !important;
-              border: 1px solid rgba(255, 255, 255, 0.1) !important;
-              border-radius: 16px !important;
-              padding: 6px 8px !important;
-              margin: 0 !important;
-              width: calc(100% - 16px) !important;
-              max-width: calc(100vw - 16px) !important;
-              box-sizing: border-box !important;
-              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-            }
-            
-            /* Light mode support for mobile floating header */
-            .light .mobile-floating-header {
-              background: rgba(255, 255, 255, 0.85) !important;
-              border: 1px solid rgba(0, 0, 0, 0.1) !important;
-              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
-            }
-            
-            .mobile-header-content {
-              display: flex !important;
-              align-items: center !important;
-              width: 100% !important;
-              max-width: 100% !important;
-              min-height: 40px !important;
-              height: 40px !important;
-              overflow: hidden !important;
-              gap: 4px !important;
-              justify-content: space-between !important;
-              padding: 0 !important;
-            }
-            
-            /* Compact button styles for mobile tray - equal distribution */
-            .mobile-tray-icon-button {
-              height: 36px !important;
-              width: 36px !important;
-              min-height: 36px !important;
-              min-width: 36px !important;
-              max-height: 36px !important;
-              max-width: 36px !important;
-              padding: 0 !important;
-              border-radius: 10px !important;
-              flex-shrink: 0 !important;
-              display: flex !important;
-              align-items: center !important;
-              justify-content: center !important;
-            }
-            
-            /* Icon sizes within buttons - fixed size */
-            .mobile-tray-icon-button .lucide-icon,
-            .mobile-tray-icon-button svg {
-              width: 16px !important;
-              height: 16px !important;
-              flex-shrink: 0 !important;
-            }
-            
-            .mobile-connection-indicator {
-              width: 12px !important;
-              height: 12px !important;
-              flex-shrink: 0 !important;
-            }
-            
-            .mobile-last-updated-section {
-              display: flex !important;
-              align-items: center !important;
-              gap: 0 !important;
-              flex: 1 !important;
-              min-width: 0 !important;
-              overflow: hidden !important;
-              height: 36px !important;
-              margin: 0 !important;
-            }
-            
-            .mobile-last-updated-combined {
-              height: 36px !important;
-              min-height: 36px !important;
-              max-height: 36px !important;
-              padding: 0 12px !important;
-              font-size: 10px !important;
-              line-height: 1.1 !important;
-              border-radius: 10px !important;
-              white-space: nowrap !important;
-              overflow: hidden !important;
-              text-overflow: ellipsis !important;
-              flex: 1 !important;
-              display: flex !important;
-              flex-direction: column !important;
-              align-items: center !important;
-              justify-content: center !important;
-              width: 100% !important;
-              color: white !important;
-              background-color: rgba(0, 0, 0, 0.9) !important;
-              border-color: rgba(0, 0, 0, 0.3) !important;
-            }
-            
-            /* Dark mode support for mobile floating header */
-            .dark .mobile-last-updated-combined {
-              background-color: rgba(255, 255, 255, 0.9) !important;
-              border-color: rgba(255, 255, 255, 0.3) !important;
-              color: black !important;
-            }
-            
-            .mobile-last-updated-combined * {
-              color: white !important;
-              overflow: visible !important;
-            }
-            
-            /* Dark mode text colors */
-            .dark .mobile-last-updated-combined * {
-              color: black !important;
-            }
-            
-            /* Extra specificity for time element */
-            .mobile-last-updated-section .mobile-last-updated-combined .mobile-last-updated-time {
-              color: white !important;
-              font-weight: 600 !important;
-            }
-            
-            /* Dark mode specificity */
-            .dark .mobile-last-updated-section .mobile-last-updated-combined .mobile-last-updated-time {
-              color: black !important;
-            }
-            
-            /* Force text color on all mobile tray text elements */
-            .mobile-floating-header .mobile-last-updated-time,
-            .mobile-floating-header .mobile-last-updated-combined .mobile-last-updated-time {
-              color: rgb(255, 255, 255) !important;
-              text-shadow: none !important;
-              opacity: 1 !important;
-              filter: none !important;
-            }
-            
-            /* Dark mode overrides */
-            .dark .mobile-floating-header .mobile-last-updated-time,
-            .dark .mobile-floating-header .mobile-last-updated-combined .mobile-last-updated-time {
-              color: rgb(0, 0, 0) !important;
-            }
-            
-            /* Override any disabled or muted styles */
-            .mobile-last-updated-combined:disabled,
-            .mobile-last-updated-combined[disabled],
-            .mobile-last-updated-combined .mobile-last-updated-time {
-              color: rgb(255, 255, 255) !important;
-              opacity: 1 !important;
-            }
-            
-            /* Dark mode disabled styles */
-            .dark .mobile-last-updated-combined:disabled,
-            .dark .mobile-last-updated-combined[disabled],
-            .dark .mobile-last-updated-combined .mobile-last-updated-time {
-              color: rgb(0, 0, 0) !important;
-            }
-            
-            .mobile-last-updated-text {
-              font-size: 7px !important;
-              line-height: 1 !important;
-              opacity: 0.8 !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              color: rgb(255, 255, 255) !important;
-              text-transform: uppercase !important;
-              text-align: center !important;
-            }
-            
-            /* Dark mode text color */
-            .dark .mobile-last-updated-text {
-              color: rgb(0, 0, 0) !important;
-            }
-            
-            .mobile-last-updated-time {
-              font-size: 9px !important;
-              line-height: 1 !important;
-              font-weight: 600 !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              color: white !important;
-              text-align: center !important;
-            }
-            
-            /* Dark mode time color */
-            .dark .mobile-last-updated-time {
-              color: black !important;
-            }
-            
-            .mobile-connection-wrapper {
-              display: flex !important;
-              align-items: center !important;
-              justify-content: center !important;
-              flex-shrink: 0 !important;
-              min-width: 12px !important;
-              width: 12px !important;
-              height: 12px !important;
-              margin: 0 !important;
-            }
-            
-            /* Remove unused right buttons wrapper since we're using individual flex items */
-            
-            /* Adjust main content padding for mobile floating header - match tray width */
-            .mobile-content-wrapper {
-              padding-top: 56px !important;
-              padding-left: 0 !important;
-              padding-right: 0 !important;
-              padding-bottom: 16px !important;
-              margin: 0 !important;
-              width: 100vw !important;
-              max-width: 100vw !important;
-              box-sizing: border-box !important;
-            }
-            
-            /* Mobile title section - match tray width exactly */
-            .mobile-title-section {
-              position: relative !important;
-              left: 8px !important;
-              right: 8px !important;
-              padding: 12px 0 8px 0 !important;
-              margin-bottom: 16px !important;
-              margin-left: 0 !important;
-              margin-right: 0 !important;
-              width: calc(100% - 16px) !important;
-              max-width: calc(100vw - 16px) !important;
-              box-sizing: border-box !important;
-            }
-            
-            .mobile-title-section h1 {
-              font-size: 24px !important;
-              font-weight: 700 !important;
-              text-align: left !important;
-              padding-left: 0 !important;
-              margin: 0 !important;
-            }
-            
-            /* Ensure all mobile content respects boundaries */
-            .mobile-content-container {
-              width: 100% !important;
-              max-width: 100% !important;
-              overflow-x: hidden !important;
-              box-sizing: border-box !important;
-            }
-            
-            /* Mobile footer specific styling */
-            .mobile-footer {
-              position: relative !important;
-              left: 8px !important;
-              right: 8px !important;
-              margin-left: 0 !important;
-              margin-right: 0 !important;
-              width: calc(100% - 16px) !important;
-              max-width: calc(100vw - 16px) !important;
-              box-sizing: border-box !important;
-              padding-left: 0 !important;
-              padding-right: 0 !important;
-            }
-            
-            /* Mobile section padding to match header tray */
-            .mobile-section-padding {
-              position: relative !important;
-              left: 8px !important;
-              right: 8px !important;
-              margin-left: 0 !important;
-              margin-right: 0 !important;
-              width: calc(100% - 10px) !important;
-              max-width: calc(100vw - 10px) !important;
-              box-sizing: border-box !important;
-              padding-left: 0 !important;
-              padding-right: 0 !important;
-            }
-            
-            /* Remove problematic responsive overrides */
-            .mobile-grid-responsive {
-              /* Use default gap spacing */
-            }
-            
-            .mobile-card-responsive {
-              /* Use default card styling */
-            }
-            
-            .mobile-text-responsive {
-              /* Use default text sizing */
-            }
-            
-            .mobile-title-responsive {
-              /* Use default title sizing */
-            }            /* Mobile pagination improvements for narrow screens */
-            .mobile-pagination-fix {
-              position: relative !important;
-              z-index: 1000 !important;
-            }
-            
-            /* Ensure select dropdowns work properly on mobile */
-            .mobile-select-dropdown {
-              position: fixed !important;
-              z-index: 9999 !important;
-              background: white !important;
-              border: 1px solid #e2e8f0 !important;
-              border-radius: 8px !important;
-              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-              max-height: 200px !important;
-              overflow-y: auto !important;
-              touch-action: manipulation !important;
-            }
-            
-            /* Dark mode select dropdown */
-            .dark .mobile-select-dropdown {
-              background: #1f2937 !important;
-              border-color: #374151 !important;
-            }
-            
-            /* Basic mobile table improvements */
-            @media (max-width: 640px) {
-              /* Ensure proper table display on mobile */
-              .crypto-table-mobile {
-                table-layout: fixed !important;
-                width: 100% !important;
-              }
-              
-              .crypto-table-mobile th,
-              .crypto-table-mobile td {
-                word-wrap: break-word !important;
-                overflow-wrap: break-word !important;
-              }
-              
-              /* Better search input on mobile */
-              .crypto-search-mobile {
-                font-size: 16px !important; /* Prevents zoom on iOS */
-                -webkit-appearance: none !important;
-              }
-              
-              /* Touch-friendly interactions */
-              .crypto-pagination-mobile button {
-                touch-action: manipulation !important;
-                -webkit-tap-highlight-color: transparent !important;
-              }
-              
-              .crypto-pagination-mobile [role="combobox"] {
-                touch-action: manipulation !important;
-              }
-            }
-          }
-          
-          /* Mobile-specific toggle switch fixes */
-            .toggle-switch-mobile {
-              width: 32px !important;
-              height: 16px !important;
-              min-width: 32px !important;
-              min-height: 16px !important;
-              display: flex !important;
-              align-items: center !important;
-              padding: 1px !important;
-            }
-            
-            .toggle-thumb-mobile {
-              width: 12px !important;
-              height: 12px !important;
-              min-width: 12px !important;
-              min-height: 12px !important;
-              margin: 0 !important;
-              position: absolute !important;
-              top: 50% !important;
-              left: 2px !important;
-              transform: translateY(-50%) !important;
-              transition: transform 200ms ease-in-out, left 200ms ease-in-out !important;
-            }
-            
-            .toggle-switch-mobile[data-state="checked"] .toggle-thumb-mobile {
-              left: 18px !important;
-              transform: translateY(-50%) !important;
-            }
-            
-            .toggle-switch-mobile[data-state="unchecked"] .toggle-thumb-mobile {
-              left: 2px !important;
-              transform: translateY(-50%) !important;
-            }
-
-          
-          /* Desktop progress bar styles */
-          @media (min-width: 768px) {
-            .bot-progress-bar,
-            .bot-progress-bar *,
-            .bot-progress-bar > *,
-            .bot-progress-bar div {
-              height: 4px !important;
-              min-height: 4px !important;
-              max-height: 4px !important;
-            }
-            
-            .bot-progress-bar > div {
-              top: 0 !important;
-              bottom: 0 !important;
-              border-radius: 9999px !important;
-            }
-          }
-
-          @keyframes progress-loading {
-            0% { transform: translateX(-100%); }
-            50% { transform: translateX(0); }
-            100% { transform: translateX(100%); }
-          }
-          .animate-progress-loading {
-            animation: progress-loading 2s infinite ease-in-out;
-            width: 100%;
-          }
-        `}</style>
-        {(authLoading || (!overlayReleased && (loading || isLoadingCurrencies || loadingNews))) && (
+        {/* CSS moved to dashboard.css for performance */}
+        {(authLoading || !overlayReleased) && (
           <div className="loading-overlay">
             <div className="text-center">
               <h1 className="crypto-dashboard-title text-4xl sm:text-6xl md:text-7xl">
@@ -2261,10 +1797,13 @@ export default function Dashboard() {
               </h1>
               <div className="mt-4 flex flex-col items-center gap-2">
                 <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-primary animate-progress-loading" />
+                  <div
+                    className="h-full bg-primary animate-progress-loading"
+                    style={{ width: `${initProgress}%` }}
+                  />
                 </div>
                 <p className="text-xs text-white/50 uppercase tracking-widest font-medium">
-                  Initializing Systems...
+                  {initStatusText} ({initProgress}%)
                 </p>
               </div>
             </div>
@@ -2340,18 +1879,7 @@ export default function Dashboard() {
                         filter: "none !important",
                       }}
                     >
-                      {(() => {
-                        // Show current live time (e.g., 6:17:23)
-                        const now = new Date();
-                        // Include forceUpdate to trigger re-render every second
-                        forceUpdate;
-                        return now.toLocaleTimeString("en-US", {
-                          hour12: false,
-                          hour: "numeric",
-                          minute: "2-digit",
-                          second: "2-digit",
-                        });
-                      })()}
+                      {currentTime}
                     </div>
                   </div>
                   {/* Tooltip for Last Updated */}
@@ -2854,13 +2382,15 @@ export default function Dashboard() {
                           />
                         ) : (
                           <div className="w-full h-full overflow-visible">
-                            <PortfolioChart
-                              key={`portfolio-chart-${portfolioDateRange}-${getChartDataWithFallback().length
-                                }`}
-                              data={getChartDataWithFallback()}
-                              timeframe={portfolioDateRange}
-                              isMobile={isMobile}
-                            />
+                            <Suspense fallback={<InlineLoading message="Loading chart..." size="md" className="h-full" />}>
+                              <PortfolioChart
+                                key={`portfolio-chart-${portfolioDateRange}-${getChartDataWithFallback().length
+                                  }`}
+                                data={getChartDataWithFallback()}
+                                timeframe={portfolioDateRange}
+                                isMobile={isMobile}
+                              />
+                            </Suspense>
                           </div>
                         )}
                       </div>
@@ -2919,7 +2449,11 @@ export default function Dashboard() {
                             variant="outline"
                             className="mt-1 w-full flex justify-between items-center h-9 sm:h-auto mobile-dropdown-trigger"
                           >
-                            {selectedBot || "Select bot"}
+                            {selectedBotForStrategy ? (
+                              freqTradeBots.find(b => b.instanceId === selectedBotForStrategy)?.instanceId || "Select bot"
+                            ) : (
+                              "Select bot"
+                            )}
                             <ChevronDown className="h-4 w-4 opacity-50" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -2932,7 +2466,6 @@ export default function Dashboard() {
                               <DropdownMenuItem
                                 key={bot.instanceId}
                                 onClick={() => {
-                                  setSelectedBot(bot.instanceId);
                                   setSelectedBotForStrategy(bot.instanceId);
                                 }}
                               >
@@ -2945,18 +2478,10 @@ export default function Dashboard() {
                               </DropdownMenuItem>
                             ))
                           ) : (
-                            botNames.map((botName) => (
-                              <DropdownMenuItem
-                                key={botName}
-                                onClick={() => {
-                                  setSelectedBot(botName);
-                                  setSelectedBotForStrategy(null);
-                                }}
-                              >
-                                {botName}
+                            <DropdownMenuItem disabled>
+                              No bots available
                             </DropdownMenuItem>
-                          ))
-                        )}
+                          )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -2964,34 +2489,23 @@ export default function Dashboard() {
                     <div
                       className={cn(
                         "bot-status-indicator w-3 h-3 sm:w-4 sm:h-4 rounded-full shrink-0 flex-shrink-0",
-                        (
-                          isFreqTradeAvailable && freqTradeBots.length > 0
-                            ? freqTradeBots.some((bot) => isBotRunning(bot))
-                            : botActive
-                        )
-                          ? "bg-green-500"
-                          : "bg-red-500"
+                        (isFreqTradeAvailable && freqTradeBots.length > 0)
+                          ? (anyBotRunning ? "bg-green-500" : "bg-red-500")
+                          : "bg-gray-500"
                       )}
                     />
                     <p className="text-sm font-medium">
                       Status:{" "}
                       <span
                         className={
-                          (
-                            isFreqTradeAvailable && freqTradeBots.length > 0
-                              ? freqTradeBots.some((bot) => isBotRunning(bot))
-                              : botActive
-                          )
-                            ? "text-green-600"
-                            : "text-red-600"
+                          (isFreqTradeAvailable && freqTradeBots.length > 0)
+                            ? (anyBotRunning ? "text-green-600" : "text-red-600")
+                            : "text-muted-foreground"
                         }
                       >
                         {isFreqTradeAvailable && freqTradeBots.length > 0
-                          ? `${freqTradeBots.filter((bot) => isBotRunning(bot)).length
-                          } Active`
-                          : botActive
-                            ? "Active"
-                            : "Paused"}
+                          ? `${runningBotCount} Active`
+                          : "No Bots"}
                       </span>
                     </p>
                     {freqTradeConnected && (
@@ -3001,16 +2515,18 @@ export default function Dashboard() {
                     )}
                   </div>
                   <div className="bot-section-spacing mobile-dropdown-fix">
-                    <StrategySelector
-                      botInstanceId={selectedBotForStrategy || (freqTradeBots.length > 0 ? freqTradeBots[0]?.instanceId || null : null)}
-                      onStrategyChange={(newStrategy, success) => {
-                        if (success) {
-                          // Strategy changed successfully - trigger bot data refresh
-                          setForceUpdate(prev => prev + 1);
-                        }
-                      }}
-                      className="w-full"
-                    />
+                    <Suspense fallback={<div className="h-10 bg-muted/50 animate-pulse rounded" />}>
+                      <StrategySelector
+                        botInstanceId={selectedBotForStrategy || (freqTradeBots.length > 0 ? freqTradeBots[0]?.instanceId || null : null)}
+                        onStrategyChange={(newStrategy, success) => {
+                          if (success) {
+                            // Strategy changed successfully - trigger bot data refresh
+                            setForceUpdate(prev => prev + 1);
+                          }
+                        }}
+                        className="w-full"
+                      />
+                    </Suspense>
                   </div>
                   <div className="bot-section-spacing">
                     <p className="text-sm font-medium bot-performance-spacing sm:mb-2">
@@ -3056,7 +2572,7 @@ export default function Dashboard() {
                     {(() => {
                       const currentBotId = selectedBotForStrategy || (freqTradeBots.length > 0 ? freqTradeBots[0]?.instanceId : null);
                       const currentBot = freqTradeBots.find(b => b.instanceId === currentBotId);
-                      const isRunning = currentBot ? isBotRunning(currentBot) : botActive;
+                      const isRunning = currentBot ? isBotRunning(currentBot) : false;
                       const isLoading = currentBotId ? botActionLoading[currentBotId] : null;
                       
                       return (
@@ -3172,11 +2688,7 @@ export default function Dashboard() {
                     >
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart
-                          data={
-                            zoomState.isZoomed && minuteData.length > 0
-                              ? minuteData
-                              : chartData
-                          }
+                          data={activeChartData}
                           margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
                         >
                           <CartesianGrid
@@ -3233,19 +2745,15 @@ export default function Dashboard() {
                                   }
                                 );
                                 let priceChangePercent = null;
-                                const currentChartData =
-                                  zoomState.isZoomed && minuteData.length > 0
-                                    ? minuteData
-                                    : chartData;
-                                const dataIndex = currentChartData.findIndex(
+                                const dataIndex = activeChartData.findIndex(
                                   (item) => item.timestamp === data.timestamp
                                 );
                                 if (
                                   dataIndex > 0 &&
-                                  currentChartData[dataIndex - 1]
+                                  activeChartData[dataIndex - 1]
                                 ) {
                                   const prevClose =
-                                    currentChartData[dataIndex - 1].close;
+                                    activeChartData[dataIndex - 1].close;
                                   const currentClose = data.close;
                                   priceChangePercent =
                                     ((currentClose - prevClose) / prevClose) *
@@ -3820,9 +3328,11 @@ export default function Dashboard() {
                     <div className="max-h-[200px] overflow-y-auto">
                       <Table className="w-full">
                         <TableBody>
-                          <PositionsTable
-                            isConnected={freqTradeConnected}
-                          />
+                          <Suspense fallback={<TableRow><TableCell colSpan={8}><InlineLoading message="Loading positions..." size="sm" /></TableCell></TableRow>}>
+                            <PositionsTable
+                              isConnected={freqTradeConnected}
+                            />
+                          </Suspense>
                         </TableBody>
                       </Table>
                     </div>

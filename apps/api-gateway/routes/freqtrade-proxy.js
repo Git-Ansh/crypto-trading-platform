@@ -3,6 +3,8 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const http = require('http');
 const https = require('https');
+const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 20, keepAliveMsecs: 15000 });
+const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 20, keepAliveMsecs: 15000 });
 
 // Detect environment and set bot manager URL accordingly
 // In production (Vercel), we need to use the external URL since we can't reach localhost
@@ -36,6 +38,7 @@ function getTokenFromRequest(req) {
 
 // Helper to make proxied requests to bot manager using fetch
 async function proxyRequest(method, endpoint, token, data = null, queryParams = {}) {
+  let timeoutId;
   try {
     const url = new URL(`${BOT_MANAGER_URL}${endpoint}`);
     
@@ -44,12 +47,18 @@ async function proxyRequest(method, endpoint, token, data = null, queryParams = 
       url.searchParams.append(key, value);
     });
 
+    const agent = url.protocol === 'https:' ? httpsAgent : httpAgent;
+    const controller = new AbortController();
+    timeoutId = setTimeout(() => controller.abort(), 15000);
+
     const options = {
       method,
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
-      }
+      },
+      agent,
+      signal: controller.signal,
     };
 
     if (data) {
@@ -57,6 +66,7 @@ async function proxyRequest(method, endpoint, token, data = null, queryParams = 
     }
 
     const response = await fetch(url.toString(), options);
+    clearTimeout(timeoutId);
     const responseData = await response.json();
     
     return { 
@@ -71,6 +81,11 @@ async function proxyRequest(method, endpoint, token, data = null, queryParams = 
       status: 500,
       error: error.message
     };
+  } finally {
+    // Ensure timers are cleared even if fetch throws
+    if (typeof timeoutId !== 'undefined') {
+      clearTimeout(timeoutId);
+    }
   }
 }
 

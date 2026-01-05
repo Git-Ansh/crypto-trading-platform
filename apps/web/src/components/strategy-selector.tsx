@@ -1,5 +1,5 @@
 // Strategy selector component for bot strategy management
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -13,7 +13,7 @@ interface StrategySelectorProps {
   className?: string;
 }
 
-export const StrategySelector: React.FC<StrategySelectorProps> = ({ 
+const StrategySelectorBase: React.FC<StrategySelectorProps> = ({ 
   botInstanceId, 
   onStrategyChange,
   className 
@@ -245,4 +245,6 @@ export const StrategySelector: React.FC<StrategySelectorProps> = ({
   );
 };
 
+// Memoize to prevent parent re-renders from causing strategy reloads
+export const StrategySelector = memo(StrategySelectorBase);
 export default StrategySelector;

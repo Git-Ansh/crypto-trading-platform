@@ -110,7 +110,7 @@ export class FreqTradeSSEService {
   private reconnectDelay = 1000;
   private isConnected = false;
   private lastConnectionAttempt = 0;
-  private connectionCooldown = 3000; // Minimum 3 seconds between connection attempts
+  private connectionCooldown = 1500; // Reduced from 3s for faster initial connection
 
   constructor() {
   }
@@ -463,6 +463,50 @@ export class FreqTradeSSEService {
     } catch (error) {
       console.error('❌ Failed to fetch all chart data:', error);
       throw error;
+    }
+  }
+
+  async fetchPortfolioSnapshot(): Promise<PortfolioData | null> {
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No authentication token available');
+    }
+
+    try {
+      const response = await fetch(
+        `${FREQTRADE_API_BASE}${FREQTRADE_PROXY_ENDPOINT}/portfolio`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Portfolio snapshot request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (!data) return null;
+
+      return {
+        timestamp: typeof data.timestamp === 'number'
+          ? new Date(data.timestamp).toISOString()
+          : data.timestamp || new Date().toISOString(),
+        portfolioValue: data.portfolioValue ?? data.totalBalance ?? 0,
+        totalPnL: data.totalPnL ?? data.profitLoss ?? 0,
+        profitLossPercentage: data.profitLossPercentage ?? data.pnlPercentage ?? 0,
+        pnlPercentage: data.profitLossPercentage ?? data.pnlPercentage ?? 0,
+        activeBots: data.activeBots ?? data.botCount ?? 0,
+        botCount: data.botCount ?? (Array.isArray(data.bots) ? data.bots.length : 0),
+        totalBalance: data.totalBalance ?? data.portfolioValue ?? 0,
+        startingBalance: data.startingBalance ?? data.starting_balance ?? 0,
+        bots: data.bots ?? [],
+      };
+    } catch (error) {
+      console.error('❌ Failed to fetch portfolio snapshot:', error);
+      return null;
     }
   }
 
