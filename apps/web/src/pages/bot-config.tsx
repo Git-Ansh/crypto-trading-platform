@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { config } from '@/lib/config';
 import { auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import {
     ArrowLeft,
     Bot,
@@ -316,6 +317,7 @@ export default function BotConfigPage() {
     const [success, setSuccess] = useState<string | null>(null);
     const [hasChanges, setHasChanges] = useState(false);
     const [showResetDialog, setShowResetDialog] = useState(false);
+    const [authReady, setAuthReady] = useState(false);
     
     const [botInfo, setBotInfo] = useState<BotInfo | null>(null);
     const [features, setFeatures] = useState<UniversalFeatures>(DEFAULT_FEATURES);
@@ -436,8 +438,18 @@ export default function BotConfigPage() {
         }
     }, [botId]);
 
+    // Wait for Firebase auth to be ready before fetching data
     useEffect(() => {
-        fetchBotData();
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setAuthReady(true);
+            if (user) {
+                fetchBotData();
+            } else {
+                setError('Authentication required');
+                setLoading(false);
+            }
+        });
+        return () => unsubscribe();
     }, [fetchBotData]);
 
     // Check for changes

@@ -1331,6 +1331,10 @@ export default function Dashboard() {
       try {
         setSettingsLoading(true);
         const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+          console.warn('[Dashboard] No auth token available for bot settings fetch');
+          return;
+        }
         const response = await fetch(
           `${config.api.baseUrl}/api/freqtrade/universal-settings`,
           {
@@ -1367,6 +1371,10 @@ export default function Dashboard() {
       
       try {
         const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+          console.warn('[Dashboard] No auth token available for performance fetch');
+          return;
+        }
         const response = await fetch(
           `${config.api.baseUrl}/api/freqtrade/proxy/${selectedBotForStrategy}/api/v1/profit`,
           {
