@@ -684,7 +684,7 @@ router.post(
         botName: allocation.botName || botId,
         description: isFullReturn 
           ? `Returned all funds $${amountToReturn.toFixed(2)} from bot (P&L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)})`
-          : `Partial return $${amountToReturn.toFixed(2)} from bot`,
+          : `Withdrew $${amountToReturn.toFixed(2)} from bot to wallet`,
         balanceAfter: newBalance,
         timestamp: now,
       };

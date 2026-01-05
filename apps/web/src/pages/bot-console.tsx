@@ -64,9 +64,11 @@ interface BotInstance {
 const BotBalance = ({ bot, onBalanceUpdate }: { bot: BotInstance, onBalanceUpdate?: (id: string, balance: number, currency: string) => void }) => {
     const [balance, setBalance] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
 
     useEffect(() => {
         let isMounted = true;
+        let retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
         const fetchBalance = async () => {
             if (bot.containerStatus !== 'running') {
@@ -79,7 +81,17 @@ const BotBalance = ({ bot, onBalanceUpdate }: { bot: BotInstance, onBalanceUpdat
 
             try {
                 const token = await auth.currentUser?.getIdToken();
-                if (!token) return;
+                if (!token) {
+                    // Auth not ready yet, retry after a short delay
+                    if (isMounted && retryCount < 3) {
+                        retryTimeout = setTimeout(() => {
+                            if (isMounted) {
+                                setRetryCount(prev => prev + 1);
+                            }
+                        }, 2000);
+                    }
+                    return;
+                }
 
                 const response = await fetch(`${config.botManager.baseUrl}/api/proxy/${bot.instanceId}/api/v1/balance`, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -92,10 +104,20 @@ const BotBalance = ({ bot, onBalanceUpdate }: { bot: BotInstance, onBalanceUpdat
                         const currency = data.symbol || bot.stake_currency || 'USD';
 
                         setBalance(`${total.toFixed(2)} ${currency}`);
+                        setRetryCount(0); // Reset retry count on success
 
                         if (onBalanceUpdate) {
                             onBalanceUpdate(bot.instanceId, total, currency);
                         }
+                    }
+                } else if (response.status === 401 && retryCount < 5) {
+                    // Bot might not be ready yet, retry with backoff
+                    if (isMounted) {
+                        retryTimeout = setTimeout(() => {
+                            if (isMounted) {
+                                setRetryCount(prev => prev + 1);
+                            }
+                        }, 3000 * (retryCount + 1)); // Exponential backoff: 3s, 6s, 9s...
                     }
                 } else {
                     if (isMounted) setBalance("Error");
@@ -113,8 +135,9 @@ const BotBalance = ({ bot, onBalanceUpdate }: { bot: BotInstance, onBalanceUpdat
         return () => {
             isMounted = false;
             clearInterval(interval);
+            if (retryTimeout) clearTimeout(retryTimeout);
         };
-    }, [bot.instanceId, bot.containerStatus, onBalanceUpdate]);
+    }, [bot.instanceId, bot.containerStatus, onBalanceUpdate, retryCount]);
 
     if (bot.containerStatus !== 'running') {
         return <span className="font-medium text-muted-foreground">--</span>;
@@ -140,6 +163,7 @@ export default function BotConsolePage() {
     const [success, setSuccess] = useState<string | null>(null);
     const [botActionLoading, setBotActionLoading] = useState<{ [id: string]: 'start' | 'stop' | null }>({});
     const [balances, setBalances] = useState<Record<string, { value: number, currency: string }>>({});
+    const [walletAllocations, setWalletAllocations] = useState<Record<string, { allocatedAmount: number; currentValue: number; availableBalance?: number }>>({});
 
     const handleBalanceUpdate = useCallback((id: string, value: number, currency: string) => {
         setBalances(prev => {
@@ -202,13 +226,33 @@ export default function BotConsolePage() {
         }
     };
 
+    const fetchWalletAllocations = async () => {
+        try {
+            const token = await getAuthToken();
+            if (!token) return;
+
+            const response = await fetch(`${config.api.baseUrl}/api/account/wallet`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.data.botAllocations) {
+                    setWalletAllocations(data.data.botAllocations);
+                }
+            }
+        } catch (error) {
+            console.error('[BotConsole] Error fetching wallet allocations:', error);
+        }
+    };
+
     useEffect(() => {
         // Wait for Firebase auth to be ready before fetching
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
                 setLoading(true);
                 try {
-                    await fetchBots();
+                    await Promise.all([fetchBots(), fetchWalletAllocations()]);
                 } finally {
                     setLoading(false);
                 }
@@ -328,7 +372,7 @@ export default function BotConsolePage() {
                 setWithdrawDialogOpen(false);
                 setSelectedBotForWithdraw(null);
                 setWithdrawAmount('');
-                await fetchBots();
+                await Promise.all([fetchBots(), fetchWalletAllocations()]);
             } else {
                 setError(data.message || `Failed to withdraw from bot (status ${response.status})`);
             }
@@ -373,7 +417,10 @@ export default function BotConsolePage() {
 
             if (response.ok && data.success) {
                 setSuccess(`Successfully returned $${data.data.returnedAmount.toFixed(2)} from ${bot.instanceId} (P&L: ${data.data.pnl >= 0 ? '+' : ''}$${data.data.pnl.toFixed(2)})`);
-                await fetchBots();
+                setWithdrawDialogOpen(false);
+                setSelectedBotForWithdraw(null);
+                setWithdrawAmount('');
+                await Promise.all([fetchBots(), fetchWalletAllocations()]);
             } else {
                 setError(data.message || `Failed to return funds from bot (status ${response.status})`);
             }
@@ -504,9 +551,17 @@ export default function BotConsolePage() {
                                                 <span className="font-medium">{bot.stake_currency}</span>
                                             </div>
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-muted-foreground">Balance</span>
+                                                <span className="text-muted-foreground">Bot Balance</span>
                                                 <BotBalance bot={bot} onBalanceUpdate={handleBalanceUpdate} />
                                             </div>
+                                            {walletAllocations[bot.instanceId] && (
+                                                <div className="flex items-center justify-between text-sm">
+                                                    <span className="text-muted-foreground">Wallet Allocation</span>
+                                                    <span className="font-medium text-blue-500">
+                                                        ${walletAllocations[bot.instanceId].currentValue?.toFixed(2) || '0.00'}
+                                                    </span>
+                                                </div>
+                                            )}
                                             <div className="flex items-center justify-between text-sm">
                                                 <span className="text-muted-foreground">Status</span>
                                                 <Badge variant={getStatusBadgeVariant(bot)}>
@@ -631,24 +686,37 @@ export default function BotConsolePage() {
                                 <DialogHeader>
                                     <DialogTitle>Withdraw from {selectedBotForWithdraw?.instanceId}</DialogTitle>
                                     <DialogDescription>
-                                        Enter the amount to withdraw. Leave empty or enter 0 to withdraw all available funds.
+                                        {selectedBotForWithdraw && walletAllocations[selectedBotForWithdraw.instanceId] ? (
+                                            <span>
+                                                Wallet allocation: ${walletAllocations[selectedBotForWithdraw.instanceId].currentValue?.toFixed(2) || '0.00'} 
+                                                {' '}(originally allocated: ${walletAllocations[selectedBotForWithdraw.instanceId].allocatedAmount?.toFixed(2) || '0.00'})
+                                            </span>
+                                        ) : (
+                                            <span>No wallet allocation found for this bot.</span>
+                                        )}
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div className="space-y-4 py-4">
                                     <div className="space-y-2">
                                         <label htmlFor="withdraw-amount" className="text-sm font-medium">
-                                            Withdrawal Amount (Optional)
+                                            Withdrawal Amount
                                         </label>
                                         <Input
                                             id="withdraw-amount"
                                             type="number"
                                             step="0.01"
                                             min="0"
+                                            max={selectedBotForWithdraw ? walletAllocations[selectedBotForWithdraw.instanceId]?.currentValue : undefined}
                                             value={withdrawAmount}
-                                            onChange={(e) => setWithdrawAmount(parseFloat(e.target.value) || 0)}
-                                            placeholder="Leave empty to withdraw all funds"
-                                            disabled={withdrawLoading}
+                                            onChange={(e) => setWithdrawAmount(e.target.value)}
+                                            placeholder="Enter amount or leave empty for full withdrawal"
+                                            disabled={withdrawLoading || (selectedBotForWithdraw && !walletAllocations[selectedBotForWithdraw.instanceId])}
                                         />
+                                        {selectedBotForWithdraw && walletAllocations[selectedBotForWithdraw.instanceId] && (
+                                            <p className="text-xs text-muted-foreground">
+                                                Max: ${walletAllocations[selectedBotForWithdraw.instanceId].currentValue?.toFixed(2)}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                                 <DialogFooter>
