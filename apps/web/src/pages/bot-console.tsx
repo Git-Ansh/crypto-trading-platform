@@ -283,14 +283,18 @@ export default function BotConsolePage() {
         }
     };
     const handleWithdrawFromBot = async () => {
-        if (!selectedBotForWithdraw || !withdrawAmount) return;
+        if (!selectedBotForWithdraw) return;
 
         try {
             setWithdrawLoading(true);
             const token = await getAuthToken();
-            if (!token) return;
+            if (!token) {
+                setError('Authentication required');
+                setWithdrawLoading(false);
+                return;
+            }
 
-            const amount = parseFloat(withdrawAmount);
+            const amount = parseFloat(withdrawAmount || '0');
             if (isNaN(amount) || amount <= 0) {
                 setError('Please enter a valid amount');
                 return;
@@ -309,7 +313,15 @@ export default function BotConsolePage() {
                 })
             });
 
-            const data = await response.json();
+            const responseText = await response.text();
+            let data: any = {};
+            if (responseText) {
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('[BotConsole] Failed to parse withdraw response', parseError, responseText);
+                }
+            }
 
             if (response.ok && data.success) {
                 setSuccess(`Successfully withdrawn $${amount.toFixed(2)} from ${selectedBotForWithdraw.instanceId}`);
@@ -318,7 +330,7 @@ export default function BotConsolePage() {
                 setWithdrawAmount('');
                 await fetchBots();
             } else {
-                setError(data.message || 'Failed to withdraw from bot');
+                setError(data.message || `Failed to withdraw from bot (status ${response.status})`);
             }
         } catch (error: any) {
             setError(error.message || 'Failed to withdraw from bot');
@@ -331,7 +343,11 @@ export default function BotConsolePage() {
         try {
             setWithdrawLoading(true);
             const token = await getAuthToken();
-            if (!token) return;
+            if (!token) {
+                setError('Authentication required');
+                setWithdrawLoading(false);
+                return;
+            }
 
             // Call the return-from-bot endpoint without specifying amount (returns all)
             const response = await fetch(`${config.baseUrl}/api/account/wallet/return-from-bot`, {
@@ -345,13 +361,21 @@ export default function BotConsolePage() {
                 })
             });
 
-            const data = await response.json();
+            const responseText = await response.text();
+            let data: any = {};
+            if (responseText) {
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('[BotConsole] Failed to parse withdraw-all response', parseError, responseText);
+                }
+            }
 
             if (response.ok && data.success) {
                 setSuccess(`Successfully returned $${data.data.returnedAmount.toFixed(2)} from ${bot.instanceId} (P&L: ${data.data.pnl >= 0 ? '+' : ''}$${data.data.pnl.toFixed(2)})`);
                 await fetchBots();
             } else {
-                setError(data.message || 'Failed to return funds from bot');
+                setError(data.message || `Failed to return funds from bot (status ${response.status})`);
             }
         } catch (error: any) {
             setError(error.message || 'Failed to return funds from bot');
