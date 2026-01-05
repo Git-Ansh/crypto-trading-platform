@@ -606,7 +606,7 @@ router.post(
       if (!user.botAllocations || !user.botAllocations.has(botId)) {
         return res.status(404).json({
           success: false,
-          message: "No allocation found for this bot",
+          message: "No wallet allocation found for this bot. This bot may have been created before the wallet system was implemented, or funds were never allocated to it.",
         });
       }
 
