@@ -638,7 +638,10 @@ router.post(
         });
       }
 
-      const allocation = user.botAllocations.get(botId);
+      // Get allocation and convert to plain object to avoid Mongoose subdoc issues
+      const allocationDoc = user.botAllocations.get(botId);
+      const allocation = allocationDoc.toObject ? allocationDoc.toObject() : { ...allocationDoc };
+      console.log(`[Wallet] Withdrawing from bot ${botId}, current allocation:`, JSON.stringify(allocation));
       
       // If returnAmount not specified, return currentValue (includes P&L)
       const amountToReturn = returnAmount !== undefined ? returnAmount : allocation.currentValue;
@@ -696,12 +699,14 @@ router.post(
         const returnRatio = amountToReturn / allocation.currentValue;
         const newAllocatedAmount = allocation.allocatedAmount * (1 - returnRatio);
         
-        user.botAllocations.set(botId, {
+        const updatedAllocation = {
           ...allocation,
           allocatedAmount: newAllocatedAmount,
           currentValue: newCurrentValue,
           availableBalance: newCurrentValue - (allocation.reservedInTrades || 0),
-        });
+        };
+        user.botAllocations.set(botId, updatedAllocation);
+        console.log(`[Wallet] Updated allocation for bot ${botId}:`, JSON.stringify(updatedAllocation));
       }
 
       // Add transaction record
