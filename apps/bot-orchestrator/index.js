@@ -1400,6 +1400,121 @@ app.put('/api/bots/:instanceId/strategy', authenticateToken, checkInstanceOwners
   }
 });
 
+// --- Update bot wallet balance (dry_run_wallet) ---
+app.put('/api/bots/:instanceId/wallet-balance', authenticateToken, checkInstanceOwnership, async (req, res) => {
+  try {
+    const { instanceId } = req.params;
+    const { newBalance, currency = 'USD' } = req.body;
+    const user = req.user || {};
+    const userId = user.uid || user.id;
+
+    if (newBalance === undefined || newBalance < 0) {
+      return res.status(400).json({ success: false, message: 'Valid newBalance is required (must be >= 0)' });
+    }
+
+    console.log(`[API] Updating wallet balance for bot ${instanceId} to ${newBalance} ${currency}`);
+
+    // Use req.instanceDir for pool structure support
+    const instanceDir = req.instanceDir || path.join(BOT_BASE_DIR, userId, instanceId);
+    const configPath = path.join(instanceDir, 'config.json');
+
+    if (!await fs.pathExists(configPath)) {
+      return res.status(404).json({ success: false, message: 'Bot configuration not found' });
+    }
+
+    // Update the config file
+    const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
+    const oldBalance = config.dry_run_wallet?.[currency] || 0;
+    
+    if (!config.dry_run_wallet) {
+      config.dry_run_wallet = {};
+    }
+    config.dry_run_wallet[currency] = newBalance;
+
+    await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+    console.log(`[API] ✓ Updated dry_run_wallet.${currency} from ${oldBalance} to ${newBalance}`);
+
+    // Use the pool system to determine if bot is pooled and get connection info
+    let containerName;
+    let isPooled = false;
+    
+    // Use the proper pool system to check if bot is pooled
+    if (poolSystemInitialized && isInstancePooled(instanceId)) {
+      isPooled = true;
+      const { poolManager } = getPoolComponents();
+      const connectionInfo = poolManager.getBotConnectionInfo(instanceId);
+      if (connectionInfo) {
+        containerName = connectionInfo.containerName;
+        console.log(`[API] Bot ${instanceId} is pooled in container ${containerName}`);
+      } else {
+        // Fallback: construct container name from user ID
+        containerName = `freqtrade-pool-${userId}-pool-1`;
+        console.log(`[API] Bot ${instanceId} is pooled, using fallback container ${containerName}`);
+      }
+    } else {
+      containerName = `freqtrade-${instanceId}`;
+      console.log(`[API] Bot ${instanceId} is legacy (non-pooled), container ${containerName}`);
+    }
+
+    // For FreqTrade to pick up balance changes, we need to restart the bot
+    // The balance is read from config on startup
+    
+    // Check if bot is running and restart it
+    let wasRestarted = false;
+    try {
+      const statusOutput = await runDockerCommand(['ps', '--filter', `name=${containerName}`, '--format', '{{.Names}}']);
+      const isRunning = statusOutput.includes(containerName);
+      console.log(`[API] Container ${containerName} running: ${isRunning}`);
+
+      if (isRunning && !isPooled) {
+        // For non-pooled bots, restart the container
+        console.log(`[API] Restarting bot ${instanceId} to apply new balance...`);
+        await runDockerCommand(['restart', containerName]);
+        wasRestarted = true;
+        console.log(`[API] ✓ Container ${containerName} restarted successfully`);
+      } else if (isRunning && isPooled) {
+        // For pooled bots, restart just this bot via supervisorctl
+        const supervisorBotName = `bot-${instanceId}`;
+        console.log(`[API] Restarting pooled bot ${instanceId} via supervisorctl (${supervisorBotName})...`);
+        try {
+          await runDockerCommand(['exec', containerName, 'supervisorctl', 'restart', supervisorBotName]);
+          wasRestarted = true;
+          console.log(`[API] ✓ Pooled bot ${instanceId} restarted successfully`);
+        } catch (supervisorErr) {
+          console.warn(`[API] Could not restart via supervisorctl restart: ${supervisorErr.message}`);
+          // Try alternative: stop and start
+          try {
+            console.log(`[API] Trying stop/start for ${supervisorBotName}...`);
+            await runDockerCommand(['exec', containerName, 'supervisorctl', 'stop', supervisorBotName]);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+            await runDockerCommand(['exec', containerName, 'supervisorctl', 'start', supervisorBotName]);
+            wasRestarted = true;
+            console.log(`[API] ✓ Pooled bot ${instanceId} restarted via stop/start`);
+          } catch (altErr) {
+            console.warn(`[API] Could not restart pooled bot via stop/start: ${altErr.message}`);
+          }
+        }
+      }
+    } catch (restartErr) {
+      console.warn(`[API] Could not check/restart container: ${restartErr.message}`);
+    }
+
+    res.json({
+      success: true,
+      message: `Bot wallet balance updated to ${newBalance} ${currency}${wasRestarted ? ' and bot restarted' : ''}`,
+      wallet: {
+        currency,
+        previousBalance: oldBalance,
+        newBalance,
+        restarted: wasRestarted
+      }
+    });
+  } catch (e) {
+    console.error(`[API] Error updating bot wallet balance ${req.params.instanceId}:`, e.message);
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 // --- Get current portfolio snapshot (aggregated) ---
 app.get('/api/portfolio', authenticateToken, async (req, res) => {
   try {

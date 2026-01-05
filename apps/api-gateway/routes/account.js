@@ -6,6 +6,34 @@ const { check, validationResult } = require("express-validator");
 const User = require("../models/user");
 const auth = require("../middleware/auth");
 
+// Bot orchestrator URL for updating bot configs
+const BOT_ORCHESTRATOR_URL = process.env.BOT_MANAGER_URL || 'http://localhost:5000';
+
+// Helper to call bot orchestrator
+async function updateBotWalletBalance(botId, newBalance, currency, token) {
+  try {
+    const response = await fetch(`${BOT_ORCHESTRATOR_URL}/api/bots/${botId}/wallet-balance`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ newBalance, currency })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return { success: true, data };
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      return { success: false, error: errorData.message || 'Failed to update bot balance' };
+    }
+  } catch (error) {
+    console.error('Error updating bot wallet balance:', error.message);
+    return { success: false, error: error.message };
+  }
+}
+
 // ============== GET ACCOUNT PROFILE ==============
 router.get("/profile", auth, async (req, res) => {
   try {
@@ -691,6 +719,27 @@ router.post(
       user.walletTransactions.push(transaction);
 
       await user.save();
+
+      // Update the actual bot's dry_run_wallet in FreqTrade config
+      // Get auth token from request header for bot-orchestrator call
+      const authHeader = req.headers.authorization;
+      if (authHeader && !isFullReturn) {
+        // For partial returns, update the bot's balance
+        const newBotBalance = allocation.currentValue - amountToReturn;
+        const botUpdateResult = await updateBotWalletBalance(
+          botId, 
+          newBotBalance, 
+          'USD', 
+          authHeader.replace('Bearer ', '')
+        );
+        
+        if (!botUpdateResult.success) {
+          console.warn(`[Wallet] Failed to update bot ${botId} balance: ${botUpdateResult.error}`);
+          // Don't fail the request - wallet was already updated, bot update is best-effort
+        } else {
+          console.log(`[Wallet] Bot ${botId} balance updated to ${newBotBalance}`);
+        }
+      }
 
       res.json({
         success: true,
