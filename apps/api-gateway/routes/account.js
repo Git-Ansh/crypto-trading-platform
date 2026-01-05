@@ -635,9 +635,21 @@ router.post(
       const newBalance = currentBalance + amountToReturn;
       const now = new Date();
 
-      // Calculate P&L for this return
-      const pnl = amountToReturn - allocation.allocatedAmount;
-      const transactionType = pnl >= 0 ? 'deallocate' : 'deallocate';
+      // Determine if this is a full or partial return
+      const isFullReturn = amountToReturn >= allocation.currentValue;
+      
+      // Calculate P&L proportionally for partial returns
+      // For full return: pnl = currentValue - allocatedAmount (total P&L)
+      // For partial return: pnl is proportional to the amount being returned
+      let pnl;
+      if (isFullReturn) {
+        pnl = allocation.currentValue - allocation.allocatedAmount;
+      } else {
+        // Proportional P&L: what fraction of currentValue are we returning?
+        const returnRatio = amountToReturn / allocation.currentValue;
+        const totalPnL = allocation.currentValue - allocation.allocatedAmount;
+        pnl = totalPnL * returnRatio;
+      }
 
       // Update wallet balance
       user.paperWallet = {
@@ -646,16 +658,33 @@ router.post(
         lastUpdated: now,
       };
 
-      // Remove bot allocation
-      user.botAllocations.delete(botId);
+      if (isFullReturn) {
+        // Remove bot allocation entirely for full return
+        user.botAllocations.delete(botId);
+      } else {
+        // Update allocation for partial return
+        const newCurrentValue = allocation.currentValue - amountToReturn;
+        // Reduce allocated amount proportionally
+        const returnRatio = amountToReturn / allocation.currentValue;
+        const newAllocatedAmount = allocation.allocatedAmount * (1 - returnRatio);
+        
+        user.botAllocations.set(botId, {
+          ...allocation,
+          allocatedAmount: newAllocatedAmount,
+          currentValue: newCurrentValue,
+          availableBalance: newCurrentValue - (allocation.reservedInTrades || 0),
+        });
+      }
 
       // Add transaction record
       const transaction = {
-        type: transactionType,
+        type: 'deallocate',
         amount: amountToReturn,
         botId,
         botName: allocation.botName || botId,
-        description: `Returned $${amountToReturn.toFixed(2)} from bot (P&L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)})`,
+        description: isFullReturn 
+          ? `Returned all funds $${amountToReturn.toFixed(2)} from bot (P&L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)})`
+          : `Partial return $${amountToReturn.toFixed(2)} from bot`,
         balanceAfter: newBalance,
         timestamp: now,
       };
@@ -665,11 +694,15 @@ router.post(
 
       res.json({
         success: true,
-        message: `Successfully returned $${amountToReturn.toFixed(2)} to wallet`,
+        message: isFullReturn 
+          ? `Successfully returned all funds ($${amountToReturn.toFixed(2)}) to wallet`
+          : `Successfully returned $${amountToReturn.toFixed(2)} to wallet`,
         data: {
           walletBalance: newBalance,
           returnedAmount: amountToReturn,
           pnl,
+          isFullReturn,
+          remainingAllocation: isFullReturn ? null : user.botAllocations.get(botId),
           transaction,
         },
       });
