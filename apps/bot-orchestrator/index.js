@@ -1039,7 +1039,6 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
     const { instanceId } = req.params;
     const user = req.user || {};
     const userId = user.uid || user.id;
-    const containerName = `freqtrade-${instanceId}`;
 
     console.log(`[API] Deleting bot ${instanceId} for user ${userId}`);
 
@@ -1061,10 +1060,6 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
         try {
           if (!config.dry_run) {
             console.log(`[API] Live trading bot ${instanceId} deletion requested.`);
-            // SPACE FOR FUTURE LOGIC: Live Trading Graceful Exit
-            // 1. await proxyFreqtradeApiRequest(instanceId, '/api/v1/forceexit', 'POST');
-            // 2. Poll for 0 open trades
-            // 3. Withdraw funds (if exchange API supported)
             gracefulExitMessage = ' (Live bot stopped - funds remain on exchange)';
           }
 
@@ -1073,33 +1068,91 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
           if (balanceData && balanceData.total) {
             cashedOutAmount = balanceData.total;
             console.log(`[API] Bot ${instanceId} cash out value: ${cashedOutAmount} ${currency}`);
-
-            // HERE: Update user's global portfolio value in your database
-            // await db.users.update(userId, { $inc: { portfolioValue: cashedOutAmount } });
           }
         } catch (apiErr) {
           console.log(`[API] Could not fetch final balance (bot might be stopped): ${apiErr.message}`);
-          // If bot is stopped, we might want to read the last state from DB/logs, 
-          // but for now we assume 0 if we can't reach it.
         }
       }
     } catch (cashOutErr) {
       console.warn(`[API] Error during cash out phase: ${cashOutErr.message}`);
     }
 
-    // 1. Stop and remove the Docker container
-    try {
-      await runDockerCommand(['stop', containerName]);
-      console.log(`[API] ✓ Container ${containerName} stopped`);
-    } catch (stopErr) {
-      console.log(`[API] Container ${containerName} was not running: ${stopErr.message}`);
+    // 1. Check if bot is pooled and handle appropriately
+    let isPooled = false;
+    if (poolSystemInitialized) {
+      try {
+        isPooled = isInstancePooled(instanceId);
+      } catch (poolCheckErr) {
+        console.log(`[API] Could not check pool status: ${poolCheckErr.message}`);
+      }
     }
 
-    try {
-      await runDockerCommand(['rm', '-f', containerName]);
-      console.log(`[API] ✓ Container ${containerName} removed`);
-    } catch (rmErr) {
-      console.log(`[API] Container ${containerName} removal failed: ${rmErr.message}`);
+    if (isPooled) {
+      // POOLED BOT: Stop and remove from supervisor in the pool container
+      console.log(`[API] Bot ${instanceId} is pooled - removing from pool container`);
+      try {
+        const { poolManager } = getPoolComponents();
+        const connection = await poolManager.getBotConnectionInfo(instanceId);
+        
+        if (connection) {
+          const containerName = connection.host;
+          const supervisorName = `bot-${instanceId}`;
+          
+          console.log(`[API] Stopping bot in pool container ${containerName} (supervisor: ${supervisorName})`);
+          
+          // Stop the bot process in supervisor
+          try {
+            await runDockerCommand(['exec', containerName, 'supervisorctl', 'stop', supervisorName]);
+            console.log(`[API] ✓ Bot process ${supervisorName} stopped`);
+          } catch (stopErr) {
+            console.log(`[API] Bot process stop failed (may already be stopped): ${stopErr.message}`);
+          }
+          
+          // Remove the bot from supervisor
+          try {
+            await runDockerCommand(['exec', containerName, 'supervisorctl', 'remove', supervisorName]);
+            console.log(`[API] ✓ Bot process ${supervisorName} removed from supervisor`);
+          } catch (removeErr) {
+            console.log(`[API] Bot process removal failed: ${removeErr.message}`);
+          }
+          
+          // Remove the supervisor config file
+          try {
+            await runDockerCommand(['exec', containerName, 'rm', '-f', `/etc/supervisor/conf.d/${supervisorName}.conf`]);
+            console.log(`[API] ✓ Supervisor config file removed`);
+          } catch (rmConfErr) {
+            console.log(`[API] Supervisor config removal failed: ${rmConfErr.message}`);
+          }
+          
+          // Update supervisor to pick up changes
+          try {
+            await runDockerCommand(['exec', containerName, 'supervisorctl', 'reread']);
+            await runDockerCommand(['exec', containerName, 'supervisorctl', 'update']);
+          } catch (updateErr) {
+            console.log(`[API] Supervisor update failed: ${updateErr.message}`);
+          }
+        }
+      } catch (poolErr) {
+        console.warn(`[API] Error removing bot from pool: ${poolErr.message}`);
+      }
+    } else {
+      // LEGACY BOT: Stop and remove standalone Docker container
+      const containerName = `freqtrade-${instanceId}`;
+      console.log(`[API] Bot ${instanceId} is legacy - removing standalone container ${containerName}`);
+      
+      try {
+        await runDockerCommand(['stop', containerName]);
+        console.log(`[API] ✓ Container ${containerName} stopped`);
+      } catch (stopErr) {
+        console.log(`[API] Container ${containerName} was not running: ${stopErr.message}`);
+      }
+
+      try {
+        await runDockerCommand(['rm', '-f', containerName]);
+        console.log(`[API] ✓ Container ${containerName} removed`);
+      } catch (rmErr) {
+        console.log(`[API] Container ${containerName} removal failed: ${rmErr.message}`);
+      }
     }
 
     // 2. Remove the instance directory (use req.instanceDir for pool support)
@@ -1107,6 +1160,8 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
     if (await fs.pathExists(instanceDirToRemove)) {
       await fs.remove(instanceDirToRemove);
       console.log(`[API] ✓ Instance directory removed: ${instanceDirToRemove}`);
+    } else {
+      console.log(`[API] Instance directory not found: ${instanceDirToRemove}`);
     }
 
     // 3. Optional: Clean up Turso database if it exists
@@ -1134,6 +1189,7 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
       }
     }
 
+    console.log(`[API] ✓ Bot ${instanceId} deleted successfully`);
     res.json({
       success: true,
       message: `Bot ${instanceId} deleted successfully.${gracefulExitMessage}`,
