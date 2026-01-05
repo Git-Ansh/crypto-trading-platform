@@ -301,7 +301,7 @@ export default function BotConsolePage() {
             }
 
             // Call the return-from-bot endpoint
-            const response = await fetch(`${config.baseUrl}/api/account/wallet/return-from-bot`, {
+            const response = await fetch(`${config.api.baseUrl}/api/account/wallet/return-from-bot`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -350,7 +350,7 @@ export default function BotConsolePage() {
             }
 
             // Call the return-from-bot endpoint without specifying amount (returns all)
-            const response = await fetch(`${config.baseUrl}/api/account/wallet/return-from-bot`, {
+            const response = await fetch(`${config.api.baseUrl}/api/account/wallet/return-from-bot`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
