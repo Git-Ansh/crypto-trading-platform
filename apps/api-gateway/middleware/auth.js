@@ -118,8 +118,28 @@ module.exports = async function (req, res, next) {
       console.log("JWT verification successful:", decoded);
 
       if (decoded.user && decoded.user.id) {
-        req.user = decoded.user;
-        console.log("Set req.user from JWT:", req.user);
+        const userId = decoded.user.id;
+        
+        // Check if the ID is a MongoDB ObjectId (24 hex chars) or Firebase UID
+        const isMongoId = /^[a-fA-F0-9]{24}$/.test(userId);
+        
+        if (isMongoId) {
+          // Use the MongoDB ID directly
+          req.user = decoded.user;
+          console.log("Set req.user from JWT (MongoDB ID):", req.user);
+        } else {
+          // Assume it's a Firebase UID, look up the MongoDB user
+          console.log("JWT contains Firebase UID, looking up MongoDB user...");
+          const user = await User.findOne({ firebaseUid: userId });
+          
+          if (!user) {
+            console.log("User not found for Firebase UID:", userId);
+            return res.status(401).json({ message: "User not found" });
+          }
+          
+          req.user = { id: user._id.toString() };
+          console.log("Set req.user.id to MongoDB ID:", req.user.id);
+        }
 
         // Add additional debug info
         req.authMethod = "jwt";

@@ -6,6 +6,34 @@ const { check, validationResult } = require("express-validator");
 const User = require("../models/user");
 const auth = require("../middleware/auth");
 
+// Bot orchestrator URL for updating bot configs
+const BOT_ORCHESTRATOR_URL = process.env.BOT_MANAGER_URL || 'http://localhost:5000';
+
+// Helper to call bot orchestrator
+async function updateBotWalletBalance(botId, newBalance, currency, token) {
+  try {
+    const response = await fetch(`${BOT_ORCHESTRATOR_URL}/api/bots/${botId}/wallet-balance`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ newBalance, currency })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return { success: true, data };
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      return { success: false, error: errorData.message || 'Failed to update bot balance' };
+    }
+  } catch (error) {
+    console.error('Error updating bot wallet balance:', error.message);
+    return { success: false, error: error.message };
+  }
+}
+
 // ============== GET ACCOUNT PROFILE ==============
 router.get("/profile", auth, async (req, res) => {
   try {
@@ -606,11 +634,14 @@ router.post(
       if (!user.botAllocations || !user.botAllocations.has(botId)) {
         return res.status(404).json({
           success: false,
-          message: "No allocation found for this bot",
+          message: "No wallet allocation found for this bot. This bot may have been created before the wallet system was implemented, or funds were never allocated to it.",
         });
       }
 
-      const allocation = user.botAllocations.get(botId);
+      // Get allocation and convert to plain object to avoid Mongoose subdoc issues
+      const allocationDoc = user.botAllocations.get(botId);
+      const allocation = allocationDoc.toObject ? allocationDoc.toObject() : { ...allocationDoc };
+      console.log(`[Wallet] Withdrawing from bot ${botId}, current allocation:`, JSON.stringify(allocation));
       
       // If returnAmount not specified, return currentValue (includes P&L)
       const amountToReturn = returnAmount !== undefined ? returnAmount : allocation.currentValue;
@@ -635,9 +666,21 @@ router.post(
       const newBalance = currentBalance + amountToReturn;
       const now = new Date();
 
-      // Calculate P&L for this return
-      const pnl = amountToReturn - allocation.allocatedAmount;
-      const transactionType = pnl >= 0 ? 'deallocate' : 'deallocate';
+      // Determine if this is a full or partial return
+      const isFullReturn = amountToReturn >= allocation.currentValue;
+      
+      // Calculate P&L proportionally for partial returns
+      // For full return: pnl = currentValue - allocatedAmount (total P&L)
+      // For partial return: pnl is proportional to the amount being returned
+      let pnl;
+      if (isFullReturn) {
+        pnl = allocation.currentValue - allocation.allocatedAmount;
+      } else {
+        // Proportional P&L: what fraction of currentValue are we returning?
+        const returnRatio = amountToReturn / allocation.currentValue;
+        const totalPnL = allocation.currentValue - allocation.allocatedAmount;
+        pnl = totalPnL * returnRatio;
+      }
 
       // Update wallet balance
       user.paperWallet = {
@@ -646,16 +689,35 @@ router.post(
         lastUpdated: now,
       };
 
-      // Remove bot allocation
-      user.botAllocations.delete(botId);
+      if (isFullReturn) {
+        // Remove bot allocation entirely for full return
+        user.botAllocations.delete(botId);
+      } else {
+        // Update allocation for partial return
+        const newCurrentValue = allocation.currentValue - amountToReturn;
+        // Reduce allocated amount proportionally
+        const returnRatio = amountToReturn / allocation.currentValue;
+        const newAllocatedAmount = allocation.allocatedAmount * (1 - returnRatio);
+        
+        const updatedAllocation = {
+          ...allocation,
+          allocatedAmount: newAllocatedAmount,
+          currentValue: newCurrentValue,
+          availableBalance: newCurrentValue - (allocation.reservedInTrades || 0),
+        };
+        user.botAllocations.set(botId, updatedAllocation);
+        console.log(`[Wallet] Updated allocation for bot ${botId}:`, JSON.stringify(updatedAllocation));
+      }
 
       // Add transaction record
       const transaction = {
-        type: transactionType,
+        type: 'deallocate',
         amount: amountToReturn,
         botId,
         botName: allocation.botName || botId,
-        description: `Returned $${amountToReturn.toFixed(2)} from bot (P&L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)})`,
+        description: isFullReturn 
+          ? `Returned all funds $${amountToReturn.toFixed(2)} from bot (P&L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)})`
+          : `Withdrew $${amountToReturn.toFixed(2)} from bot to wallet`,
         balanceAfter: newBalance,
         timestamp: now,
       };
@@ -663,18 +725,159 @@ router.post(
 
       await user.save();
 
+      // Update the actual bot's dry_run_wallet in FreqTrade config
+      // Get auth token from request header for bot-orchestrator call
+      const authHeader = req.headers.authorization;
+      if (authHeader && !isFullReturn) {
+        // For partial returns, update the bot's balance
+        const newBotBalance = allocation.currentValue - amountToReturn;
+        const botUpdateResult = await updateBotWalletBalance(
+          botId, 
+          newBotBalance, 
+          'USD', 
+          authHeader.replace('Bearer ', '')
+        );
+        
+        if (!botUpdateResult.success) {
+          console.warn(`[Wallet] Failed to update bot ${botId} balance: ${botUpdateResult.error}`);
+          // Don't fail the request - wallet was already updated, bot update is best-effort
+        } else {
+          console.log(`[Wallet] Bot ${botId} balance updated to ${newBotBalance}`);
+        }
+      }
+
       res.json({
         success: true,
-        message: `Successfully returned $${amountToReturn.toFixed(2)} to wallet`,
+        message: isFullReturn 
+          ? `Successfully returned all funds ($${amountToReturn.toFixed(2)}) to wallet`
+          : `Successfully returned $${amountToReturn.toFixed(2)} to wallet`,
         data: {
           walletBalance: newBalance,
           returnedAmount: amountToReturn,
           pnl,
+          isFullReturn,
+          remainingAllocation: isFullReturn ? null : user.botAllocations.get(botId),
           transaction,
         },
       });
     } catch (error) {
       console.error("Return from bot error:", error);
+      res.status(500).json({ success: false, message: "Server error" });
+    }
+  }
+);
+
+// ============== ADD FUNDS TO EXISTING BOT ==============
+router.post(
+  "/wallet/add-to-bot",
+  auth,
+  [
+    check("botId", "Bot ID is required").notEmpty(),
+    check("amount", "Amount must be a positive number").isFloat({ min: 1 }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    try {
+      const { botId, amount } = req.body;
+      const user = await User.findById(req.user.id);
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+
+      // Check if bot has allocation
+      if (!user.botAllocations || !user.botAllocations.has(botId)) {
+        return res.status(404).json({
+          success: false,
+          message: "No wallet allocation found for this bot. This bot may have been created before the wallet system was implemented.",
+        });
+      }
+
+      const currentBalance = user.paperWallet?.balance || 0;
+
+      // Check sufficient funds
+      if (amount > currentBalance) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient funds. Available: $${currentBalance.toFixed(2)}, Requested: $${amount.toFixed(2)}`,
+        });
+      }
+
+      // Get allocation and convert to plain object to avoid Mongoose subdoc issues
+      const allocationDoc = user.botAllocations.get(botId);
+      const allocation = allocationDoc.toObject ? allocationDoc.toObject() : { ...allocationDoc };
+      console.log(`[Wallet] Adding $${amount} to bot ${botId}, current allocation:`, JSON.stringify(allocation));
+
+      const newWalletBalance = currentBalance - amount;
+      const newAllocatedAmount = allocation.allocatedAmount + amount;
+      const newCurrentValue = allocation.currentValue + amount;
+      const now = new Date();
+
+      // Update wallet balance
+      user.paperWallet = {
+        balance: newWalletBalance,
+        currency: user.paperWallet?.currency || 'USD',
+        lastUpdated: now,
+      };
+
+      // Update bot allocation
+      const updatedAllocation = {
+        ...allocation,
+        allocatedAmount: newAllocatedAmount,
+        currentValue: newCurrentValue,
+        availableBalance: newCurrentValue - (allocation.reservedInTrades || 0),
+      };
+      user.botAllocations.set(botId, updatedAllocation);
+      console.log(`[Wallet] Updated allocation for bot ${botId}:`, JSON.stringify(updatedAllocation));
+
+      // Add transaction record
+      const transaction = {
+        type: 'allocate',
+        amount,
+        botId,
+        botName: allocation.botName || botId,
+        description: `Added $${amount.toFixed(2)} to bot: ${allocation.botName || botId}`,
+        balanceAfter: newWalletBalance,
+        timestamp: now,
+      };
+      user.walletTransactions.push(transaction);
+
+      await user.save();
+
+      // Update the actual bot's dry_run_wallet in FreqTrade config
+      const authHeader = req.headers.authorization;
+      if (authHeader) {
+        const botUpdateResult = await updateBotWalletBalance(
+          botId, 
+          newCurrentValue, 
+          'USD', 
+          authHeader.replace('Bearer ', '')
+        );
+        
+        if (!botUpdateResult.success) {
+          console.warn(`[Wallet] Failed to update bot ${botId} balance: ${botUpdateResult.error}`);
+          // Don't fail the request - wallet was already updated, bot update is best-effort
+        } else {
+          console.log(`[Wallet] Bot ${botId} balance updated to ${newCurrentValue}`);
+        }
+      }
+
+      res.json({
+        success: true,
+        message: `Successfully added $${amount.toFixed(2)} to ${allocation.botName || botId}`,
+        data: {
+          walletBalance: newWalletBalance,
+          addedAmount: amount,
+          allocation: user.botAllocations.get(botId),
+          transaction,
+        },
+      });
+    } catch (error) {
+      console.error("Add to bot error:", error);
       res.status(500).json({ success: false, message: "Server error" });
     }
   }

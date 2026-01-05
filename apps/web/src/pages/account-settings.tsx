@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { config } from '@/lib/config';
 import { auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import {
     User,
     Mail,
@@ -284,12 +285,19 @@ export default function AccountSettingsPage() {
     }, []);
 
     useEffect(() => {
-        const loadData = async () => {
-            setLoading(true);
-            await Promise.all([fetchProfile(), fetchWallet(), fetchSessions()]);
-            setLoading(false);
-        };
-        loadData();
+        // Wait for Firebase auth to be ready before fetching data
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                setLoading(true);
+                await Promise.all([fetchProfile(), fetchWallet(), fetchSessions()]);
+                setLoading(false);
+            } else {
+                // No user logged in, stop loading
+                setLoading(false);
+            }
+        });
+        
+        return () => unsubscribe();
     }, [fetchProfile, fetchWallet, fetchSessions]);
 
     const handleSaveProfile = async () => {

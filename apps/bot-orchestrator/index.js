@@ -1039,7 +1039,6 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
     const { instanceId } = req.params;
     const user = req.user || {};
     const userId = user.uid || user.id;
-    const containerName = `freqtrade-${instanceId}`;
 
     console.log(`[API] Deleting bot ${instanceId} for user ${userId}`);
 
@@ -1061,10 +1060,6 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
         try {
           if (!config.dry_run) {
             console.log(`[API] Live trading bot ${instanceId} deletion requested.`);
-            // SPACE FOR FUTURE LOGIC: Live Trading Graceful Exit
-            // 1. await proxyFreqtradeApiRequest(instanceId, '/api/v1/forceexit', 'POST');
-            // 2. Poll for 0 open trades
-            // 3. Withdraw funds (if exchange API supported)
             gracefulExitMessage = ' (Live bot stopped - funds remain on exchange)';
           }
 
@@ -1073,33 +1068,91 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
           if (balanceData && balanceData.total) {
             cashedOutAmount = balanceData.total;
             console.log(`[API] Bot ${instanceId} cash out value: ${cashedOutAmount} ${currency}`);
-
-            // HERE: Update user's global portfolio value in your database
-            // await db.users.update(userId, { $inc: { portfolioValue: cashedOutAmount } });
           }
         } catch (apiErr) {
           console.log(`[API] Could not fetch final balance (bot might be stopped): ${apiErr.message}`);
-          // If bot is stopped, we might want to read the last state from DB/logs, 
-          // but for now we assume 0 if we can't reach it.
         }
       }
     } catch (cashOutErr) {
       console.warn(`[API] Error during cash out phase: ${cashOutErr.message}`);
     }
 
-    // 1. Stop and remove the Docker container
-    try {
-      await runDockerCommand(['stop', containerName]);
-      console.log(`[API] ✓ Container ${containerName} stopped`);
-    } catch (stopErr) {
-      console.log(`[API] Container ${containerName} was not running: ${stopErr.message}`);
+    // 1. Check if bot is pooled and handle appropriately
+    let isPooled = false;
+    if (poolSystemInitialized) {
+      try {
+        isPooled = isInstancePooled(instanceId);
+      } catch (poolCheckErr) {
+        console.log(`[API] Could not check pool status: ${poolCheckErr.message}`);
+      }
     }
 
-    try {
-      await runDockerCommand(['rm', '-f', containerName]);
-      console.log(`[API] ✓ Container ${containerName} removed`);
-    } catch (rmErr) {
-      console.log(`[API] Container ${containerName} removal failed: ${rmErr.message}`);
+    if (isPooled) {
+      // POOLED BOT: Stop and remove from supervisor in the pool container
+      console.log(`[API] Bot ${instanceId} is pooled - removing from pool container`);
+      try {
+        const { poolManager } = getPoolComponents();
+        const connection = await poolManager.getBotConnectionInfo(instanceId);
+        
+        if (connection) {
+          const containerName = connection.host;
+          const supervisorName = `bot-${instanceId}`;
+          
+          console.log(`[API] Stopping bot in pool container ${containerName} (supervisor: ${supervisorName})`);
+          
+          // Stop the bot process in supervisor
+          try {
+            await runDockerCommand(['exec', containerName, 'supervisorctl', 'stop', supervisorName]);
+            console.log(`[API] ✓ Bot process ${supervisorName} stopped`);
+          } catch (stopErr) {
+            console.log(`[API] Bot process stop failed (may already be stopped): ${stopErr.message}`);
+          }
+          
+          // Remove the bot from supervisor
+          try {
+            await runDockerCommand(['exec', containerName, 'supervisorctl', 'remove', supervisorName]);
+            console.log(`[API] ✓ Bot process ${supervisorName} removed from supervisor`);
+          } catch (removeErr) {
+            console.log(`[API] Bot process removal failed: ${removeErr.message}`);
+          }
+          
+          // Remove the supervisor config file
+          try {
+            await runDockerCommand(['exec', containerName, 'rm', '-f', `/etc/supervisor/conf.d/${supervisorName}.conf`]);
+            console.log(`[API] ✓ Supervisor config file removed`);
+          } catch (rmConfErr) {
+            console.log(`[API] Supervisor config removal failed: ${rmConfErr.message}`);
+          }
+          
+          // Update supervisor to pick up changes
+          try {
+            await runDockerCommand(['exec', containerName, 'supervisorctl', 'reread']);
+            await runDockerCommand(['exec', containerName, 'supervisorctl', 'update']);
+          } catch (updateErr) {
+            console.log(`[API] Supervisor update failed: ${updateErr.message}`);
+          }
+        }
+      } catch (poolErr) {
+        console.warn(`[API] Error removing bot from pool: ${poolErr.message}`);
+      }
+    } else {
+      // LEGACY BOT: Stop and remove standalone Docker container
+      const containerName = `freqtrade-${instanceId}`;
+      console.log(`[API] Bot ${instanceId} is legacy - removing standalone container ${containerName}`);
+      
+      try {
+        await runDockerCommand(['stop', containerName]);
+        console.log(`[API] ✓ Container ${containerName} stopped`);
+      } catch (stopErr) {
+        console.log(`[API] Container ${containerName} was not running: ${stopErr.message}`);
+      }
+
+      try {
+        await runDockerCommand(['rm', '-f', containerName]);
+        console.log(`[API] ✓ Container ${containerName} removed`);
+      } catch (rmErr) {
+        console.log(`[API] Container ${containerName} removal failed: ${rmErr.message}`);
+      }
     }
 
     // 2. Remove the instance directory (use req.instanceDir for pool support)
@@ -1107,6 +1160,8 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
     if (await fs.pathExists(instanceDirToRemove)) {
       await fs.remove(instanceDirToRemove);
       console.log(`[API] ✓ Instance directory removed: ${instanceDirToRemove}`);
+    } else {
+      console.log(`[API] Instance directory not found: ${instanceDirToRemove}`);
     }
 
     // 3. Optional: Clean up Turso database if it exists
@@ -1134,6 +1189,7 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
       }
     }
 
+    console.log(`[API] ✓ Bot ${instanceId} deleted successfully`);
     res.json({
       success: true,
       message: `Bot ${instanceId} deleted successfully.${gracefulExitMessage}`,
@@ -1396,6 +1452,121 @@ app.put('/api/bots/:instanceId/strategy', authenticateToken, checkInstanceOwners
     }
   } catch (e) {
     console.error(`[API] Error updating bot strategy ${req.params.instanceId}:`, e.message);
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// --- Update bot wallet balance (dry_run_wallet) ---
+app.put('/api/bots/:instanceId/wallet-balance', authenticateToken, checkInstanceOwnership, async (req, res) => {
+  try {
+    const { instanceId } = req.params;
+    const { newBalance, currency = 'USD' } = req.body;
+    const user = req.user || {};
+    const userId = user.uid || user.id;
+
+    if (newBalance === undefined || newBalance < 0) {
+      return res.status(400).json({ success: false, message: 'Valid newBalance is required (must be >= 0)' });
+    }
+
+    console.log(`[API] Updating wallet balance for bot ${instanceId} to ${newBalance} ${currency}`);
+
+    // Use req.instanceDir for pool structure support
+    const instanceDir = req.instanceDir || path.join(BOT_BASE_DIR, userId, instanceId);
+    const configPath = path.join(instanceDir, 'config.json');
+
+    if (!await fs.pathExists(configPath)) {
+      return res.status(404).json({ success: false, message: 'Bot configuration not found' });
+    }
+
+    // Update the config file
+    const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
+    const oldBalance = config.dry_run_wallet?.[currency] || 0;
+    
+    if (!config.dry_run_wallet) {
+      config.dry_run_wallet = {};
+    }
+    config.dry_run_wallet[currency] = newBalance;
+
+    await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+    console.log(`[API] ✓ Updated dry_run_wallet.${currency} from ${oldBalance} to ${newBalance}`);
+
+    // Use the pool system to determine if bot is pooled and get connection info
+    let containerName;
+    let isPooled = false;
+    
+    // Use the proper pool system to check if bot is pooled
+    if (poolSystemInitialized && isInstancePooled(instanceId)) {
+      isPooled = true;
+      const { poolManager } = getPoolComponents();
+      const connectionInfo = poolManager.getBotConnectionInfo(instanceId);
+      if (connectionInfo) {
+        containerName = connectionInfo.containerName;
+        console.log(`[API] Bot ${instanceId} is pooled in container ${containerName}`);
+      } else {
+        // Fallback: construct container name from user ID
+        containerName = `freqtrade-pool-${userId}-pool-1`;
+        console.log(`[API] Bot ${instanceId} is pooled, using fallback container ${containerName}`);
+      }
+    } else {
+      containerName = `freqtrade-${instanceId}`;
+      console.log(`[API] Bot ${instanceId} is legacy (non-pooled), container ${containerName}`);
+    }
+
+    // For FreqTrade to pick up balance changes, we need to restart the bot
+    // The balance is read from config on startup
+    
+    // Check if bot is running and restart it
+    let wasRestarted = false;
+    try {
+      const statusOutput = await runDockerCommand(['ps', '--filter', `name=${containerName}`, '--format', '{{.Names}}']);
+      const isRunning = statusOutput.includes(containerName);
+      console.log(`[API] Container ${containerName} running: ${isRunning}`);
+
+      if (isRunning && !isPooled) {
+        // For non-pooled bots, restart the container
+        console.log(`[API] Restarting bot ${instanceId} to apply new balance...`);
+        await runDockerCommand(['restart', containerName]);
+        wasRestarted = true;
+        console.log(`[API] ✓ Container ${containerName} restarted successfully`);
+      } else if (isRunning && isPooled) {
+        // For pooled bots, restart just this bot via supervisorctl
+        const supervisorBotName = `bot-${instanceId}`;
+        console.log(`[API] Restarting pooled bot ${instanceId} via supervisorctl (${supervisorBotName})...`);
+        try {
+          await runDockerCommand(['exec', containerName, 'supervisorctl', 'restart', supervisorBotName]);
+          wasRestarted = true;
+          console.log(`[API] ✓ Pooled bot ${instanceId} restarted successfully`);
+        } catch (supervisorErr) {
+          console.warn(`[API] Could not restart via supervisorctl restart: ${supervisorErr.message}`);
+          // Try alternative: stop and start
+          try {
+            console.log(`[API] Trying stop/start for ${supervisorBotName}...`);
+            await runDockerCommand(['exec', containerName, 'supervisorctl', 'stop', supervisorBotName]);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+            await runDockerCommand(['exec', containerName, 'supervisorctl', 'start', supervisorBotName]);
+            wasRestarted = true;
+            console.log(`[API] ✓ Pooled bot ${instanceId} restarted via stop/start`);
+          } catch (altErr) {
+            console.warn(`[API] Could not restart pooled bot via stop/start: ${altErr.message}`);
+          }
+        }
+      }
+    } catch (restartErr) {
+      console.warn(`[API] Could not check/restart container: ${restartErr.message}`);
+    }
+
+    res.json({
+      success: true,
+      message: `Bot wallet balance updated to ${newBalance} ${currency}${wasRestarted ? ' and bot restarted' : ''}`,
+      wallet: {
+        currency,
+        previousBalance: oldBalance,
+        newBalance,
+        restarted: wasRestarted
+      }
+    });
+  } catch (e) {
+    console.error(`[API] Error updating bot wallet balance ${req.params.instanceId}:`, e.message);
     res.status(500).json({ success: false, message: e.message });
   }
 });
@@ -3073,9 +3244,9 @@ async function getBotAggregates(instanceId) {
       statusRes.json(), balanceRes.json(), profitRes.json()
     ]);
 
-    // Bot-managed balance and starting capital
-    // Using || fallback instead of ?? for cases where total_bot/starting_capital might be 0 (but shouldn't be for aggregation)
-    const totalBalance = Number(balance?.total_bot || balance?.total || 0);
+    // Bot total balance (including open positions) and starting capital
+    // Use 'total' for total equity including open positions, not 'total_bot' which is available balance
+    const totalBalance = Number(balance?.total || balance?.total_bot || 0);
     const startingCapital = Number(balance?.starting_capital || 10000);
 
     // Calculate P&L as current balance - starting capital
