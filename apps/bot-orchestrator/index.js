@@ -343,7 +343,29 @@ app.get('/api/pool/status', authenticateToken, authorize(['admin']), async (req,
   }
 });
 
-// Manually trigger health check
+// User-specific health check (checks only user's pools)
+app.post('/api/pool/my-health-check', authenticateToken, async (req, res) => {
+  try {
+    if (!poolSystemInitialized) {
+      return res.status(400).json({
+        success: false,
+        error: 'Pool system not initialized'
+      });
+    }
+
+    const userId = req.user.uid;
+    const results = await poolProvisioner.runHealthCheck(userId);
+    res.json({
+      success: true,
+      ...results
+    });
+  } catch (err) {
+    console.error('[Pool API] Error running health check:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Manually trigger health check (admin only - all pools)
 app.post('/api/pool/health-check', authenticateToken, authorize(['admin']), async (req, res) => {
   try {
     if (!poolSystemInitialized) {
@@ -352,7 +374,7 @@ app.post('/api/pool/health-check', authenticateToken, authorize(['admin']), asyn
         error: 'Pool system not initialized'
       });
     }
-    
+
     const results = await poolProvisioner.runHealthCheck();
     res.json({
       success: true,
@@ -373,7 +395,7 @@ app.post('/api/pool/cleanup', authenticateToken, authorize(['admin']), async (re
         error: 'Pool system not initialized'
       });
     }
-    
+
     const removedCount = await poolProvisioner.cleanupEmptyPools();
     res.json({
       success: true,

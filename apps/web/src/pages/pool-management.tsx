@@ -163,9 +163,10 @@ export default function PoolManagement() {
   const runHealthCheck = async () => {
     try {
       setHealthCheckLoading(true);
+      setError(null);
       const token = await auth.currentUser?.getIdToken();
-      
-      const response = await fetch(`${config.botManager.baseUrl}/api/pool/health-check`, {
+
+      const response = await fetch(`${config.botManager.baseUrl}/api/pool/my-health-check`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -174,9 +175,25 @@ export default function PoolManagement() {
       });
 
       const data = await response.json();
-      setHealthCheckResult(data);
+
+      if (!response.ok || !data.success) {
+        setError(data.message || data.error || 'Health check failed');
+        setHealthCheckResult(null);
+        return;
+      }
+
+      // Ensure all required fields exist
+      setHealthCheckResult({
+        ...data,
+        issues: data.issues || [],
+        recoveryActions: data.recoveryActions || [],
+        pools: data.pools || [],
+        bots: data.bots || []
+      });
     } catch (err) {
       console.error('Health check failed:', err);
+      setError(err instanceof Error ? err.message : 'Health check failed');
+      setHealthCheckResult(null);
     } finally {
       setHealthCheckLoading(false);
     }
@@ -185,6 +202,7 @@ export default function PoolManagement() {
   const cleanupEmptyPools = async () => {
     try {
       setCleanupLoading(true);
+      setError(null);
       const token = await auth.currentUser?.getIdToken();
 
       const response = await fetch(`${config.botManager.baseUrl}/api/pool/cleanup`, {
@@ -196,11 +214,18 @@ export default function PoolManagement() {
       });
 
       const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setError(data.message || data.error || 'Cleanup failed');
+        return;
+      }
+
       if (data.success) {
         fetchPoolStats(true);
       }
     } catch (err) {
       console.error('Cleanup failed:', err);
+      setError(err instanceof Error ? err.message : 'Cleanup failed');
     } finally {
       setCleanupLoading(false);
     }
@@ -542,7 +567,7 @@ export default function PoolManagement() {
                             {' • '}Duration: {healthCheckResult.durationMs}ms
                           </CardDescription>
                         </div>
-                        {healthCheckResult.issues.length === 0 ? (
+                        {(healthCheckResult.issues?.length || 0) === 0 ? (
                           <Badge className="bg-green-600">
                             <CheckCircle className="h-4 w-4 mr-1" />
                             All Healthy
@@ -550,19 +575,19 @@ export default function PoolManagement() {
                         ) : (
                           <Badge variant="destructive">
                             <XCircle className="h-4 w-4 mr-1" />
-                            {healthCheckResult.issues.length} Issues
+                            {healthCheckResult.issues?.length || 0} Issues
                           </Badge>
                         )}
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {healthCheckResult.issues.length > 0 && (
+                      {(healthCheckResult.issues?.length || 0) > 0 && (
                         <Alert variant="destructive">
                           <AlertCircle className="h-4 w-4" />
                           <AlertTitle>Issues Detected</AlertTitle>
                           <AlertDescription>
                             <ul className="list-disc list-inside mt-2">
-                              {healthCheckResult.issues.map((issue, i) => (
+                              {healthCheckResult.issues?.map((issue, i) => (
                                 <li key={i}>
                                   {issue.type}: {issue.id} - {issue.message}
                                 </li>
@@ -572,13 +597,13 @@ export default function PoolManagement() {
                         </Alert>
                       )}
 
-                      {healthCheckResult.recoveryActions.length > 0 && (
+                      {(healthCheckResult.recoveryActions?.length || 0) > 0 && (
                         <Alert>
                           <Activity className="h-4 w-4" />
                           <AlertTitle>Recovery Actions Taken</AlertTitle>
                           <AlertDescription>
                             <ul className="list-disc list-inside mt-2">
-                              {healthCheckResult.recoveryActions.map((action, i) => (
+                              {healthCheckResult.recoveryActions?.map((action, i) => (
                                 <li key={i}>
                                   {action.type}: {action.id} - {action.action}
                                 </li>
@@ -591,7 +616,7 @@ export default function PoolManagement() {
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
                           <h4 className="font-medium mb-2">Pool Health</h4>
-                          {healthCheckResult.pools.map((pool) => (
+                          {healthCheckResult.pools?.map((pool) => (
                             <div key={pool.id} className="flex items-center justify-between py-2 border-b">
                               <span className="font-mono text-sm">{pool.id.split('-').slice(-2).join('-')}</span>
                               <span className={getStatusColor(pool.status)}>{pool.status}</span>
@@ -600,7 +625,7 @@ export default function PoolManagement() {
                         </div>
                         <div>
                           <h4 className="font-medium mb-2">Bot Health</h4>
-                          {healthCheckResult.bots.map((bot) => (
+                          {healthCheckResult.bots?.map((bot) => (
                             <div key={bot.id} className="flex items-center justify-between py-2 border-b">
                               <span className="font-mono text-sm">{bot.id}</span>
                               <span className={getStatusColor(bot.status)}>{bot.status}</span>
