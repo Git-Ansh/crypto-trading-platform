@@ -11,6 +11,7 @@ import BotConsolePage from "./pages/bot-console";
 import BotProvisioningPage from "./pages/bot-provisioning";
 import BotConfigPage from "./pages/bot-config";
 import AccountSettingsPage from "./pages/account-settings";
+import PoolManagementPage from "./pages/pool-management";
 
 // Protected route component that uses our existing AuthContext
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -148,6 +149,16 @@ export const AppRoutes: React.FC<{ authDebugPage: React.ComponentType }> = ({
         element={
           <ProtectedRoute>
             <AccountSettingsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Protected Pool Management route */}
+      <Route
+        path="/pool-management"
+        element={
+          <ProtectedRoute>
+            <PoolManagementPage />
           </ProtectedRoute>
         }
       />
