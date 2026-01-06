@@ -386,11 +386,32 @@ app.post('/api/pool/cleanup', authenticateToken, authorize(['admin']), async (re
   }
 });
 
+// Sync pool state with reality (admin only)
+app.post('/api/pool/sync', authenticateToken, authorize(['admin']), async (req, res) => {
+  try {
+    if (!poolSystemInitialized) {
+      return res.status(400).json({
+        success: false,
+        error: 'Pool system not initialized'
+      });
+    }
+
+    const syncResults = await poolProvisioner.syncPoolState();
+    res.json({
+      success: true,
+      ...syncResults
+    });
+  } catch (err) {
+    console.error('[Pool API] Error syncing pool state:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Get bot's pool assignment
 app.get('/api/pool/bot/:instanceId', authenticateToken, async (req, res) => {
   try {
     const { instanceId } = req.params;
-    
+
     if (!poolSystemInitialized) {
       return res.json({
         success: true,
@@ -399,9 +420,9 @@ app.get('/api/pool/bot/:instanceId', authenticateToken, async (req, res) => {
         mode: 'legacy'
       });
     }
-    
+
     const isPooled = isInstancePooled(instanceId);
-    
+
     if (isPooled) {
       const connection = await poolProvisioner.getBotConnection(instanceId);
       res.json({

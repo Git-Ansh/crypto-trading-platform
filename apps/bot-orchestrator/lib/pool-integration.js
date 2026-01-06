@@ -372,8 +372,20 @@ const poolProvisioner = {
     if (!poolManager) {
       throw new Error('Pool system not initialized');
     }
-    
+
     return poolManager.cleanupEmptyPools();
+  },
+
+  /**
+   * Sync pool state with actual running bots
+   * Fixes discrepancies between pool state file and reality
+   */
+  async syncPoolState() {
+    if (!poolManager) {
+      throw new Error('Pool system not initialized');
+    }
+
+    return poolManager.syncPoolState();
   }
 };
 
