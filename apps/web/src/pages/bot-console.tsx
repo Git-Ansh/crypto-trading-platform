@@ -882,54 +882,71 @@ export default function BotConsolePage() {
                         ) : showPoolTab && poolStats?.poolMode ? (
                             // Pool Mode: Render pools as containers with bots inside
                             <div className="space-y-6">
-                                {/* Pool Statistics Overview */}
-                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                                    <Card>
-                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                            <CardTitle className="text-sm font-medium">Total Pools</CardTitle>
-                                            <Server className="h-4 w-4 text-muted-foreground" />
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="text-2xl font-bold">{poolStats?.totalPools || 0}</div>
-                                            <p className="text-xs text-muted-foreground">Active container pools</p>
-                                        </CardContent>
-                                    </Card>
-                                    <Card>
-                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                            <CardTitle className="text-sm font-medium">Total Bots</CardTitle>
-                                            <Bot className="h-4 w-4 text-muted-foreground" />
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="text-2xl font-bold">{poolStats?.totalBots || 0}</div>
-                                            <p className="text-xs text-muted-foreground">Running in pools</p>
-                                        </CardContent>
-                                    </Card>
-                                    <Card>
-                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                            <CardTitle className="text-sm font-medium">Capacity</CardTitle>
-                                            <HardDrive className="h-4 w-4 text-muted-foreground" />
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="text-2xl font-bold">
-                                                {poolStats?.totalBots || 0} / {(poolStats?.totalPools || 0) * (poolStats?.maxBotsPerPool || 3)}
+                                {/* Compact Health Check Report (replaces top stats) */}
+                                <Card className="mb-2">
+                                    <CardHeader className="py-3">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <CardTitle className="text-sm">Health Report</CardTitle>
+                                                {healthCheckResult && (
+                                                    <CardDescription className="text-xs">
+                                                        Last check: {new Date(healthCheckResult.timestamp).toLocaleTimeString()} • Duration: {healthCheckResult.durationMs}ms
+                                                    </CardDescription>
+                                                )}
                                             </div>
-                                            <Progress
-                                                value={((poolStats?.totalBots || 0) / ((poolStats?.totalPools || 1) * (poolStats?.maxBotsPerPool || 3))) * 100}
-                                                className="mt-2"
-                                            />
-                                        </CardContent>
-                                    </Card>
-                                    <Card>
-                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                            <CardTitle className="text-sm font-medium">Bots per Pool</CardTitle>
-                                            <Cpu className="h-4 w-4 text-muted-foreground" />
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="text-2xl font-bold">{poolStats?.maxBotsPerPool || 3}</div>
-                                            <p className="text-xs text-muted-foreground">Maximum capacity</p>
-                                        </CardContent>
-                                    </Card>
-                                </div>
+                                            {healthCheckResult ? (
+                                                (healthCheckResult.issues?.length || 0) === 0 ? (
+                                                    <Badge className="bg-green-600">
+                                                        <CheckCircle className="h-3 w-3 mr-1" />
+                                                        All Healthy
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge variant="destructive" className="text-xs">
+                                                        <XCircle className="h-3 w-3 mr-1" />
+                                                        {(healthCheckResult.issues?.length || 0)} Issues
+                                                    </Badge>
+                                                )
+                                            ) : (
+                                                <Badge variant="secondary" className="text-xs">No report</Badge>
+                                            )}
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="py-2">
+                                        {healthCheckResult ? (
+                                            <div className="grid gap-3 md:grid-cols-2 text-xs">
+                                                <div className="space-y-1">
+                                                    <p className="font-medium flex items-center gap-2">
+                                                        <Server className="h-3 w-3 text-muted-foreground" /> Pools
+                                                    </p>
+                                                    <div className="space-y-1 max-h-28 overflow-auto pr-1">
+                                                        {healthCheckResult.pools?.map((pool) => (
+                                                            <div key={pool.id} className="flex items-center justify-between border-b last:border-b-0 py-1">
+                                                                <span className="font-mono">{pool.id.split('-').slice(-2).join('-')}</span>
+                                                                <span className={getPoolStatusColor(pool.status)}>{pool.status}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="font-medium flex items-center gap-2">
+                                                        <AlertCircle className="h-3 w-3 text-muted-foreground" /> Issues
+                                                    </p>
+                                                    {(healthCheckResult.issues?.length || 0) > 0 ? (
+                                                        <ul className="list-disc list-inside max-h-28 overflow-auto pr-1">
+                                                            {healthCheckResult.issues!.map((issue, i) => (
+                                                                <li key={i}>{issue.type}: {issue.id} - {issue.message}</li>
+                                                            ))}
+                                                        </ul>
+                                                    ) : (
+                                                        <p className="text-muted-foreground">No issues detected</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p className="text-xs text-muted-foreground">Click "Health Check" to run diagnostics and update this report.</p>
+                                        )}
+                                    </CardContent>
+                                </Card>
 
                                 {/* Pool Containers with Bots */}
                                 <div className="grid gap-6 md:grid-cols-2">
@@ -1079,66 +1096,7 @@ export default function BotConsolePage() {
                                     })}
                                 </div>
 
-                                {/* Health Check Report */}
-                                {healthCheckResult && (
-                                    <Card>
-                                        <CardHeader>
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <CardTitle>Health Check Report</CardTitle>
-                                                    <CardDescription>
-                                                        Last check: {new Date(healthCheckResult.timestamp).toLocaleString()}
-                                                        {' • '}Duration: {healthCheckResult.durationMs}ms
-                                                    </CardDescription>
-                                                </div>
-                                                {(healthCheckResult.issues?.length || 0) === 0 ? (
-                                                    <Badge className="bg-green-600">
-                                                        <CheckCircle className="h-4 w-4 mr-1" />
-                                                        All Healthy
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="destructive">
-                                                        <XCircle className="h-4 w-4 mr-1" />
-                                                        {healthCheckResult.issues?.length || 0} Issues
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent className="space-y-4">
-                                            {(healthCheckResult.issues?.length || 0) > 0 && (
-                                                <Alert variant="destructive">
-                                                    <AlertCircle className="h-4 w-4" />
-                                                    <AlertTitle>Issues Detected</AlertTitle>
-                                                    <AlertDescription>
-                                                        <ul className="list-disc list-inside mt-2">
-                                                            {healthCheckResult.issues?.map((issue, i) => (
-                                                                <li key={i}>
-                                                                    {issue.type}: {issue.id} - {issue.message}
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </AlertDescription>
-                                                </Alert>
-                                            )}
-
-                                            {(healthCheckResult.recoveryActions?.length || 0) > 0 && (
-                                                <Alert>
-                                                    <Activity className="h-4 w-4" />
-                                                    <AlertTitle>Recovery Actions Taken</AlertTitle>
-                                                    <AlertDescription>
-                                                        <ul className="list-disc list-inside mt-2">
-                                                            {healthCheckResult.recoveryActions?.map((action, i) => (
-                                                                <li key={i}>
-                                                                    {action.type}: {action.id} - {action.action}
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </AlertDescription>
-                                                </Alert>
-                                            )}
-                                        </CardContent>
-                                    </Card>
-                                )}
+                                {/* Removed large Health Check card to keep focus on pools */}
 
                                 {lastPoolRefresh && (
                                     <p className="text-xs text-muted-foreground text-center">
