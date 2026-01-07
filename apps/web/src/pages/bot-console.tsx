@@ -834,34 +834,64 @@ export default function BotConsolePage() {
                     <main className="flex-1 p-6 w-full min-w-0">
                         {/* Pool Management Controls (when in pool mode) */}
                         {showPoolTab && poolStats?.poolMode && (
-                            <div className="mb-6 flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => fetchPoolStats(true)}
-                                    disabled={poolRefreshing}
-                                    size="sm"
-                                >
-                                    <RefreshCw className={`h-4 w-4 mr-2 ${poolRefreshing ? 'animate-spin' : ''}`} />
-                                    Refresh Pools
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={runHealthCheck}
-                                    disabled={healthCheckLoading}
-                                    size="sm"
-                                >
-                                    <Activity className={`h-4 w-4 mr-2 ${healthCheckLoading ? 'animate-pulse' : ''}`} />
-                                    Health Check
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={cleanupEmptyPools}
-                                    disabled={cleanupLoading}
-                                    size="sm"
-                                >
-                                    <Trash2 className={`h-4 w-4 mr-2 ${cleanupLoading ? 'animate-pulse' : ''}`} />
-                                    Cleanup Empty
-                                </Button>
+                            <div className="mb-6 flex gap-2 items-center justify-between flex-wrap">
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => fetchPoolStats(true)}
+                                        disabled={poolRefreshing}
+                                        size="sm"
+                                    >
+                                        <RefreshCw className={`h-4 w-4 mr-2 ${poolRefreshing ? 'animate-spin' : ''}`} />
+                                        Refresh Pools
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={runHealthCheck}
+                                        disabled={healthCheckLoading}
+                                        size="sm"
+                                    >
+                                        <Activity className={`h-4 w-4 mr-2 ${healthCheckLoading ? 'animate-pulse' : ''}`} />
+                                        Health Check
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={cleanupEmptyPools}
+                                        disabled={cleanupLoading}
+                                        size="sm"
+                                    >
+                                        <Trash2 className={`h-4 w-4 mr-2 ${cleanupLoading ? 'animate-pulse' : ''}`} />
+                                        Cleanup Empty
+                                    </Button>
+                                </div>
+
+                                {/* Compact Health Status Inline */}
+                                {healthCheckResult && (
+                                    <div className="text-xs bg-muted/50 rounded px-3 py-2 flex items-center gap-3">
+                                        <div className="flex items-center gap-2">
+                                            {(healthCheckResult.issues?.length || 0) === 0 ? (
+                                                <>
+                                                    <CheckCircle className="h-3 w-3 text-green-600" />
+                                                    <span className="text-green-600 font-medium">All Healthy</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <AlertCircle className="h-3 w-3 text-red-600" />
+                                                    <span className="text-red-600 font-medium">{healthCheckResult.issues?.length} Issues</span>
+                                                </>
+                                            )}
+                                        </div>
+                                        <div className="border-l border-muted-foreground/30 px-3 text-muted-foreground">
+                                            {healthCheckResult.pools?.length || 0} pools • {healthCheckResult.bots?.length || 0} bots
+                                        </div>
+                                        {(healthCheckResult.issues?.length || 0) > 0 && (
+                                            <div className="border-l border-muted-foreground/30 pl-3 text-destructive text-[10px] max-w-xs">
+                                                {healthCheckResult.issues!.slice(0, 2).map((issue) => issue.id).join(', ')}
+                                                {(healthCheckResult.issues?.length || 0) > 2 && ` +${(healthCheckResult.issues?.length || 0) - 2}`}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -882,57 +912,11 @@ export default function BotConsolePage() {
                         ) : showPoolTab && poolStats?.poolMode ? (
                             // Pool Mode: Render pools as containers with bots inside
                             <div className="space-y-6">
-                                {/* Compact Health Check Report (replaces top stats) */}
-                                <Card className="mb-2">
-                                    <CardHeader className="py-2 px-4">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <div className="min-w-0">
-                                                <CardTitle className="text-xs">Health</CardTitle>
-                                                {healthCheckResult && (
-                                                    <CardDescription className="text-[10px]">
-                                                        {new Date(healthCheckResult.timestamp).toLocaleTimeString()}
-                                                    </CardDescription>
-                                                )}
-                                            </div>
-                                            {healthCheckResult ? (
-                                                (healthCheckResult.issues?.length || 0) === 0 ? (
-                                                    <Badge className="bg-green-600 text-xs py-1 px-2 flex-shrink-0">
-                                                        <CheckCircle className="h-2 w-2 mr-1" />
-                                                        Healthy
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="destructive" className="text-[10px] py-1 px-2 flex-shrink-0">
-                                                        {(healthCheckResult.issues?.length || 0)} Issues
-                                                    </Badge>
-                                                )
-                                            ) : (
-                                                <Badge variant="secondary" className="text-[10px] py-1 px-2 flex-shrink-0">No report</Badge>
-                                            )}
-                                        </div>
-                                    </CardHeader>
-                                    {healthCheckResult && (healthCheckResult.issues?.length || 0) > 0 && (
-                                        <CardContent className="py-1 px-4">
-                                            <div className="text-[10px] space-y-0.5 max-h-12 overflow-auto pr-1">
-                                                {healthCheckResult.issues!.slice(0, 3).map((issue, i) => (
-                                                    <div key={i} className="text-destructive">
-                                                        • {issue.type}: {issue.id}
-                                                    </div>
-                                                ))}
-                                                {(healthCheckResult.issues?.length || 0) > 3 && (
-                                                    <div className="text-muted-foreground">• +{(healthCheckResult.issues?.length || 0) - 3} more</div>
-                                                )}
-                                            </div>
-                                        </CardContent>
-                                    )}
-                                </Card>
-
-                                {/* Pool Containers with Bots */}
-                                <div className="grid gap-6 md:grid-cols-2">
-                                    {poolStats?.pools.map((pool) => {
-                                        const poolBots = bots.filter(bot => pool.bots.includes(bot.instanceId));
-                                        
-                                        return (
-                                            <Card key={pool.id} className="border-2 border-muted-foreground/20">
+                                {poolStats?.pools.map((pool) => {
+                                    const poolBots = bots.filter(bot => pool.bots.includes(bot.instanceId));
+                                    
+                                    return (
+                                        <Card key={pool.id} className="border-2 border-muted-foreground/20">
                                                 <CardHeader>
                                                     <div className="flex items-center justify-between">
                                                         <CardTitle className="text-lg flex items-center gap-2">
@@ -1068,22 +1052,19 @@ export default function BotConsolePage() {
                                                             <p className="text-xs text-muted-foreground text-center py-2">No bots in this pool</p>
                                                         )}
                                                     </div>
-                                                </CardContent>
-                                            </Card>
-                                        );
-                                    })}
-                                </div>
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })}
 
-                                {/* Removed large Health Check card to keep focus on pools */}
-
-                                {lastPoolRefresh && (
-                                    <p className="text-xs text-muted-foreground text-center">
-                                        <Clock className="h-3 w-3 inline mr-1" />
-                                        Pool data last updated: {lastPoolRefresh.toLocaleTimeString()}
-                                    </p>
-                                )}
-                            </div>
-                        ) : (
+                        {lastPoolRefresh && (
+                            <p className="text-xs text-muted-foreground text-center">
+                                <Clock className="h-3 w-3 inline mr-1" />
+                                Pool data last updated: {lastPoolRefresh.toLocaleTimeString()}
+                            </p>
+                        )}
+                    </div>
+                ) : (
                             // Legacy Mode: Render bots as grid (original layout)
                             <div className="grid gap-6 grid-cols-[repeat(auto-fit,minmax(380px,1fr))] w-full">
                                 {bots.map((bot) => (
