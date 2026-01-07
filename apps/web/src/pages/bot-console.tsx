@@ -1289,12 +1289,9 @@ export default function BotConsolePage() {
                                 ))}
                             </div>
                         )}
-                    </main>
-                </div>
-            </SidebarInset>
-        </SidebarProvider>
-    );
-}
+
+                        {/* Delete Bot Dialog */}
+                        <AlertDialog open={!!botToDelete} onOpenChange={(open) => !open && setBotToDelete(null)}>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
