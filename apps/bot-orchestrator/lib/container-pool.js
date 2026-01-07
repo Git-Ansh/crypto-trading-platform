@@ -642,30 +642,119 @@ class ContainerPoolManager {
    */
   async cleanupEmptyPools() {
     const toRemove = [];
-    
+
     for (const [id, pool] of this.pools) {
       if (pool.bots.length === 0 && pool.status === 'running') {
         toRemove.push(id);
       }
     }
-    
+
     for (const poolId of toRemove) {
       const pool = this.pools.get(poolId);
       console.log(`[ContainerPool] Cleaning up empty pool ${poolId}`);
-      
+
       try {
         await this._runDockerCompose(pool.poolDir, ['down', '-v']);
         await fs.remove(pool.poolDir);
         this.pools.delete(poolId);
-        
+
         console.log(`[ContainerPool] ✓ Pool ${poolId} removed`);
       } catch (err) {
         console.error(`[ContainerPool] Failed to remove pool ${poolId}: ${err.message}`);
       }
     }
-    
+
     await this._saveState();
     return toRemove.length;
+  }
+
+  /**
+   * Sync pool state with actual running bots
+   * Fixes discrepancies between pool state file and reality
+   */
+  async syncPoolState() {
+    console.log('[ContainerPool] Starting pool state sync...');
+    const results = {
+      poolsChecked: 0,
+      botsRemoved: [],
+      botsAdded: [],
+      poolsUpdated: [],
+      errors: []
+    };
+
+    for (const [poolId, pool] of this.pools) {
+      results.poolsChecked++;
+
+      try {
+        // Check if container actually exists
+        const { stdout: containerExists } = await execPromise(
+          `docker ps -q -f name=${pool.containerName}`
+        ).catch(() => ({ stdout: '' }));
+
+        if (!containerExists.trim()) {
+          console.log(`[ContainerPool] Pool ${poolId} container not found, marking as stopped`);
+          pool.status = 'stopped';
+          results.poolsUpdated.push(poolId);
+          continue;
+        }
+
+        // Get actual running bots from supervisor
+        const { stdout: supervisorStatus } = await execPromise(
+          `docker exec ${pool.containerName} supervisorctl status`
+        ).catch(() => ({ stdout: '' }));
+
+        const runningBots = new Set();
+        const lines = supervisorStatus.split('\n');
+        for (const line of lines) {
+          const match = line.match(/^bot-([^\s]+)\s+RUNNING/);
+          if (match) {
+            runningBots.add(match[1]);
+          }
+        }
+
+        // Find bots in state but not actually running
+        const staleBots = pool.bots.filter(botId => !runningBots.has(botId));
+
+        for (const botId of staleBots) {
+          console.log(`[ContainerPool] Removing stale bot ${botId} from pool ${poolId}`);
+          pool.bots = pool.bots.filter(id => id !== botId);
+          this.botMapping.delete(botId);
+          results.botsRemoved.push({ botId, poolId, reason: 'not_running' });
+        }
+
+        // Find running bots not in state (shouldn't happen, but handle it)
+        for (const botId of runningBots) {
+          if (!pool.bots.includes(botId)) {
+            console.log(`[ContainerPool] Found orphaned bot ${botId} in pool ${poolId}`);
+            // Don't add it back - this indicates a deeper issue
+            results.errors.push({
+              type: 'orphaned_bot',
+              botId,
+              poolId,
+              message: 'Bot running in supervisor but not in pool state'
+            });
+          }
+        }
+
+        if (staleBots.length > 0) {
+          results.poolsUpdated.push(poolId);
+        }
+
+      } catch (err) {
+        console.error(`[ContainerPool] Error syncing pool ${poolId}:`, err.message);
+        results.errors.push({
+          type: 'sync_error',
+          poolId,
+          message: err.message
+        });
+      }
+    }
+
+    await this._saveState();
+
+    console.log(`[ContainerPool] Sync complete: ${results.botsRemoved.length} bots removed, ${results.poolsUpdated.length} pools updated`);
+
+    return results;
   }
 
   /**

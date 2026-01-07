@@ -79,6 +79,10 @@ const data = {
           title: "New Bot",
           url: "/bot-provisioning",
         },
+        {
+          title: "Pool Management",
+          url: "/pool-management",
+        },
       ],
     },
     // {

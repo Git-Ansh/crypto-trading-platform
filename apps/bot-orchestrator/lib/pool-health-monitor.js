@@ -116,11 +116,12 @@ class PoolHealthMonitor {
 
   /**
    * Run a full health check on all pools and bots
+   * @param {string} [userId] - Optional userId to filter pools
    */
-  async runHealthCheck() {
+  async runHealthCheck(userId = null) {
     const startTime = Date.now();
-    console.log('[HealthMonitor] Running health check...');
-    
+    console.log(`[HealthMonitor] Running health check${userId ? ` for user ${userId}` : ''}...`);
+
     const results = {
       timestamp: new Date().toISOString(),
       pools: [],
@@ -128,14 +129,19 @@ class PoolHealthMonitor {
       issues: [],
       recoveryActions: []
     };
-    
+
     const stats = this.poolManager.getPoolStats();
-    
+
+    // Filter pools by userId if specified
+    const poolsToCheck = userId
+      ? stats.pools.filter(pool => pool.userId === userId)
+      : stats.pools;
+
     // Check each pool container
-    for (const pool of stats.pools) {
+    for (const pool of poolsToCheck) {
       const poolHealth = await this._checkPoolHealth(pool);
       results.pools.push(poolHealth);
-      
+
       if (poolHealth.status !== 'healthy') {
         results.issues.push({
           type: 'pool',
@@ -143,7 +149,7 @@ class PoolHealthMonitor {
           status: poolHealth.status,
           message: poolHealth.message
         });
-        
+
         // Attempt recovery if possible
         if (poolHealth.recoverable) {
           const action = await this._recoverPool(pool);
@@ -336,6 +342,15 @@ class PoolHealthMonitor {
         result.status = 'healthy';
         result.message = 'Bot process running in supervisor';
         result.details.supervisorStatus = 'RUNNING';
+
+        // Update slot status if it was previously failed
+        if (slot.status === 'failed' || slot.status === 'pending') {
+          slot.status = 'running';
+          // Save state asynchronously (don't await to avoid blocking health check)
+          this.poolManager._saveState().catch(err => {
+            console.warn(`[HealthMonitor] Failed to save state after status update: ${err.message}`);
+          });
+        }
       } else if (processStatus.includes('STOPPED')) {
         result.status = 'unhealthy';
         result.message = 'Bot process stopped';
