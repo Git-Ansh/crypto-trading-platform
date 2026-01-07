@@ -63,7 +63,7 @@ const data = {
   ],
   navMain: [
     {
-      title: "Trading Bots",
+      title: "Navigation",
       url: "/bot-console",
       icon: Bot,
       items: [

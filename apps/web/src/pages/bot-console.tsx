@@ -1057,13 +1057,7 @@ export default function BotConsolePage() {
                                 );
                             })}
 
-                        {lastPoolRefresh && (
-                            <p className="text-xs text-muted-foreground text-center">
-                                <Clock className="h-3 w-3 inline mr-1" />
-                                Pool data last updated: {lastPoolRefresh.toLocaleTimeString()}
-                            </p>
-                        )}
-                    </div>
+                        </div>
                 ) : (
                             // Legacy Mode: Render bots as grid (original layout)
                             <div className="grid gap-6 grid-cols-[repeat(auto-fit,minmax(380px,1fr))] w-full">
@@ -1378,6 +1372,14 @@ export default function BotConsolePage() {
                             </DialogContent>
                         </Dialog>
                     </main>
+
+                    {/* Footer: Pool Last Updated */}
+                    {lastPoolRefresh && showPoolTab && poolStats?.poolMode && (
+                        <footer className="border-t bg-muted/50 px-6 py-3 text-center text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3 inline mr-1" />
+                            Pool data last updated: {lastPoolRefresh.toLocaleTimeString()}
+                        </footer>
+                    )}
                 </div>
             </SidebarInset>
         </SidebarProvider>
