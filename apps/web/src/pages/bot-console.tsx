@@ -911,7 +911,7 @@ export default function BotConsolePage() {
                             </Card>
                         ) : showPoolTab && poolStats?.poolMode ? (
                             // Pool Mode: Render pools as containers with bots inside
-                            <div className="space-y-6">
+                            <div className="grid grid-cols-2 gap-6">
                                 {poolStats?.pools.map((pool) => {
                                     const poolBots = bots.filter(bot => pool.bots.includes(bot.instanceId));
                                     
