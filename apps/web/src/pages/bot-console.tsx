@@ -884,68 +884,46 @@ export default function BotConsolePage() {
                             <div className="space-y-6">
                                 {/* Compact Health Check Report (replaces top stats) */}
                                 <Card className="mb-2">
-                                    <CardHeader className="py-3">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <CardTitle className="text-sm">Health Report</CardTitle>
+                                    <CardHeader className="py-2 px-4">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div className="min-w-0">
+                                                <CardTitle className="text-xs">Health</CardTitle>
                                                 {healthCheckResult && (
-                                                    <CardDescription className="text-xs">
-                                                        Last check: {new Date(healthCheckResult.timestamp).toLocaleTimeString()} • Duration: {healthCheckResult.durationMs}ms
+                                                    <CardDescription className="text-[10px]">
+                                                        {new Date(healthCheckResult.timestamp).toLocaleTimeString()}
                                                     </CardDescription>
                                                 )}
                                             </div>
                                             {healthCheckResult ? (
                                                 (healthCheckResult.issues?.length || 0) === 0 ? (
-                                                    <Badge className="bg-green-600">
-                                                        <CheckCircle className="h-3 w-3 mr-1" />
-                                                        All Healthy
+                                                    <Badge className="bg-green-600 text-xs py-1 px-2 flex-shrink-0">
+                                                        <CheckCircle className="h-2 w-2 mr-1" />
+                                                        Healthy
                                                     </Badge>
                                                 ) : (
-                                                    <Badge variant="destructive" className="text-xs">
-                                                        <XCircle className="h-3 w-3 mr-1" />
+                                                    <Badge variant="destructive" className="text-[10px] py-1 px-2 flex-shrink-0">
                                                         {(healthCheckResult.issues?.length || 0)} Issues
                                                     </Badge>
                                                 )
                                             ) : (
-                                                <Badge variant="secondary" className="text-xs">No report</Badge>
+                                                <Badge variant="secondary" className="text-[10px] py-1 px-2 flex-shrink-0">No report</Badge>
                                             )}
                                         </div>
                                     </CardHeader>
-                                    <CardContent className="py-2">
-                                        {healthCheckResult ? (
-                                            <div className="grid gap-3 md:grid-cols-2 text-xs">
-                                                <div className="space-y-1">
-                                                    <p className="font-medium flex items-center gap-2">
-                                                        <Server className="h-3 w-3 text-muted-foreground" /> Pools
-                                                    </p>
-                                                    <div className="space-y-1 max-h-28 overflow-auto pr-1">
-                                                        {healthCheckResult.pools?.map((pool) => (
-                                                            <div key={pool.id} className="flex items-center justify-between border-b last:border-b-0 py-1">
-                                                                <span className="font-mono">{pool.id.split('-').slice(-2).join('-')}</span>
-                                                                <span className={getPoolStatusColor(pool.status)}>{pool.status}</span>
-                                                            </div>
-                                                        ))}
+                                    {healthCheckResult && (healthCheckResult.issues?.length || 0) > 0 && (
+                                        <CardContent className="py-1 px-4">
+                                            <div className="text-[10px] space-y-0.5 max-h-12 overflow-auto pr-1">
+                                                {healthCheckResult.issues!.slice(0, 3).map((issue, i) => (
+                                                    <div key={i} className="text-destructive">
+                                                        • {issue.type}: {issue.id}
                                                     </div>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <p className="font-medium flex items-center gap-2">
-                                                        <AlertCircle className="h-3 w-3 text-muted-foreground" /> Issues
-                                                    </p>
-                                                    {(healthCheckResult.issues?.length || 0) > 0 ? (
-                                                        <ul className="list-disc list-inside max-h-28 overflow-auto pr-1">
-                                                            {healthCheckResult.issues!.map((issue, i) => (
-                                                                <li key={i}>{issue.type}: {issue.id} - {issue.message}</li>
-                                                            ))}
-                                                        </ul>
-                                                    ) : (
-                                                        <p className="text-muted-foreground">No issues detected</p>
-                                                    )}
-                                                </div>
+                                                ))}
+                                                {(healthCheckResult.issues?.length || 0) > 3 && (
+                                                    <div className="text-muted-foreground">• +{(healthCheckResult.issues?.length || 0) - 3} more</div>
+                                                )}
                                             </div>
-                                        ) : (
-                                            <p className="text-xs text-muted-foreground">Click "Health Check" to run diagnostics and update this report.</p>
-                                        )}
-                                    </CardContent>
+                                        </CardContent>
+                                    )}
                                 </Card>
 
                                 {/* Pool Containers with Bots */}
