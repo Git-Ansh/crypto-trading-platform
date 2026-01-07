@@ -1,4 +1,4 @@
-// Custom hook for strategy management
+// Custom hook for strategy management with real-time WebSocket updates
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { strategyAPI, Strategy, BotStrategy, StrategyUpdateResponse } from '@/lib/strategy-api';
 
@@ -7,20 +7,118 @@ let cachedStrategies: Strategy[] | null = null;
 let strategiesLoading = false;
 let strategiesLoadPromise: Promise<Strategy[]> | null = null;
 
+// WebSocket singleton for real-time strategy updates
+let wsInstance: WebSocket | null = null;
+const wsSubscribers = new Set<(strategies: Strategy[]) => void>();
+
+function getWebSocketURL(): string {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const host = window.location.host;
+  return `${protocol}//${host}/ws/strategies`;
+}
+
+function initializeWebSocket() {
+  if (wsInstance) return;
+
+  try {
+    const wsURL = getWebSocketURL();
+    console.log('[StrategyWS] Connecting to:', wsURL);
+    
+    wsInstance = new WebSocket(wsURL);
+
+    wsInstance.onopen = () => {
+      console.log('[StrategyWS] Connected to strategy updates');
+    };
+
+    wsInstance.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        console.log('[StrategyWS] Received message:', message);
+
+        if (message.type === 'strategies:list') {
+          // Initial strategy list
+          const strategies = message.strategies || [];
+          cachedStrategies = strategies;
+          wsSubscribers.forEach(cb => cb(strategies));
+        } else if (message.type === 'strategies:changed') {
+          // Strategy change notification
+          const { event: changeEvent, availableStrategies } = message;
+          console.log(`[StrategyWS] Strategy ${changeEvent.type}: ${changeEvent.strategy}`);
+          
+          if (availableStrategies) {
+            cachedStrategies = availableStrategies;
+            wsSubscribers.forEach(cb => cb(availableStrategies));
+          }
+        }
+      } catch (err) {
+        console.error('[StrategyWS] Error parsing message:', err);
+      }
+    };
+
+    wsInstance.onerror = (error) => {
+      console.error('[StrategyWS] Connection error:', error);
+    };
+
+    wsInstance.onclose = () => {
+      console.log('[StrategyWS] Disconnected');
+      wsInstance = null;
+      // Attempt to reconnect after 5 seconds
+      setTimeout(() => {
+        initializeWebSocket();
+      }, 5000);
+    };
+  } catch (err) {
+    console.error('[StrategyWS] Failed to create WebSocket:', err);
+  }
+}
+
+function subscribeToStrategyUpdates(callback: (strategies: Strategy[]) => void): () => void {
+  wsSubscribers.add(callback);
+
+  // Initialize WebSocket if not already connected
+  if (!wsInstance) {
+    initializeWebSocket();
+  }
+
+  // Return unsubscribe function
+  return () => {
+    wsSubscribers.delete(callback);
+    if (wsSubscribers.size === 0 && wsInstance) {
+      // Close WebSocket when no more subscribers
+      wsInstance.close();
+      wsInstance = null;
+    }
+  };
+}
+
 export const useStrategyManagement = () => {
   const [strategies, setStrategies] = useState<Strategy[]>(cachedStrategies || []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [wsConnected, setWsConnected] = useState(wsInstance?.readyState === WebSocket.OPEN);
   const mountedRef = useRef(true);
+  const unsubscribeRef = useRef<(() => void) | null>(null);
 
   // Load available strategies after initial render - with global cache
   useEffect(() => {
     mountedRef.current = true;
     
+    // Subscribe to real-time strategy updates
+    if (!unsubscribeRef.current) {
+      unsubscribeRef.current = subscribeToStrategyUpdates((updatedStrategies) => {
+        if (mountedRef.current) {
+          setStrategies(updatedStrategies);
+          setWsConnected(true);
+        }
+      });
+    }
+    
     // If we have cached strategies, use them immediately
     if (cachedStrategies && cachedStrategies.length > 0) {
       setStrategies(cachedStrategies);
-      return;
+      return () => {
+        mountedRef.current = false;
+      };
     }
     
     // If already loading, wait for that promise
@@ -30,7 +128,9 @@ export const useStrategyManagement = () => {
           setStrategies(data);
         }
       });
-      return;
+      return () => {
+        mountedRef.current = false;
+      };
     }
     
     // Defer strategy loading to not block initial render
@@ -41,6 +141,7 @@ export const useStrategyManagement = () => {
     return () => {
       clearTimeout(timer);
       mountedRef.current = false;
+      // Don't unsubscribe here - let the hook unmount handle it
     };
   }, []);
 
@@ -142,10 +243,21 @@ export const useStrategyManagement = () => {
 
   const clearError = useCallback(() => setError(null), []);
 
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+      }
+    };
+  }, []);
+
   return {
     strategies,
     loading,
     error,
+    wsConnected,
     loadStrategies,
     getBotStrategy,
     updateBotStrategy,

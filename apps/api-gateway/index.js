@@ -236,6 +236,7 @@ const positionRoutes = require("./routes/positions");
 const botRoutes = require("./routes/bot");
 const freqtradeProxyRoutes = require("./routes/freqtrade-proxy");
 const accountRoutes = require("./routes/account");
+const strategiesRoutes = require("./routes/strategies");
 
 // Handle database connection before routing
 app.use(async (req, res, next) => {
@@ -275,6 +276,7 @@ app.use("/api/positions", positionRoutes);
 app.use("/api/bot", botRoutes);
 app.use("/api/account", accountRoutes);
 app.use("/api/freqtrade", freqtradeLimiter, freqtradeProxyRoutes); // Use dedicated rate limiter for freqtrade proxy
+app.use("/api/strategies", strategiesRoutes); // Strategy management endpoints
 
 // Add a diagnostic route to check if server is running properly
 app.get("/api/status", (req, res) => {
@@ -434,10 +436,50 @@ if (process.env.NODE_ENV !== 'production') {
 const errorHandler = require("./middleware/errorHandler");
 app.use(errorHandler);
 
+// Initialize StrategyManager for real-time strategy monitoring
+const StrategyManager = require("../../services/strategy-manager");
+const { poolProvisioner, initPoolSystem, getPoolComponents } = require("../bot-orchestrator/lib/pool-integration");
+
+async function initializeStrategyManager() {
+  try {
+    // Initialize pool system first to get access to pool-integration methods
+    try {
+      await initPoolSystem({ enableHealthMonitor: false });
+      console.log('[API Gateway] Pool system initialized for StrategyManager');
+    } catch (poolErr) {
+      console.warn('[API Gateway] Pool system init failed (may already be initialized):', poolErr.message);
+    }
+
+    // Create StrategyManager with pool-integration as orchestrator
+    const strategyManager = new StrategyManager(poolProvisioner);
+    await strategyManager.start();
+    app.locals.strategyManager = strategyManager;
+    console.log('[API Gateway] StrategyManager initialized with pool-integration');
+  } catch (err) {
+    console.error('[API Gateway] Failed to initialize StrategyManager:', err);
+  }
+}
+
 // Only start listening on the port if we're not in Vercel environment
 if (process.env.VERCEL !== "1") {
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  const http = require('http');
+  const { setupWebSocketServer } = require('./middleware/websocketHandler');
+
+  initializeStrategyManager().then(() => {
+    // Create HTTP server
+    const server = http.createServer(app);
+
+    // Setup WebSocket server
+    setupWebSocketServer(server, app.locals.strategyManager);
+
+    // Listen on server
+    server.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`WebSocket server available at ws://localhost:${PORT}/ws/strategies`);
+    });
+  }).catch(err => {
+    console.error('Failed to start server:', err);
+    process.exit(1);
   });
 }
 

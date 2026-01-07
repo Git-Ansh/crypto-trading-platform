@@ -480,6 +480,113 @@ class ContainerPoolManager {
   }
 
   /**
+   * Restart a bot within its pool container
+   * Used when strategy file is edited and bot needs to reload
+   * @param {string} instanceId - Bot instance ID
+   */
+  async restartBotInPool(instanceId) {
+    const slot = this.botMapping.get(instanceId);
+    if (!slot) {
+      console.warn(`[ContainerPool] No slot found for bot ${instanceId}`);
+      return { success: false, error: 'Bot not found in pool' };
+    }
+    
+    const pool = this.pools.get(slot.poolId);
+    if (!pool) {
+      console.warn(`[ContainerPool] Pool ${slot.poolId} not found`);
+      return { success: false, error: 'Pool not found' };
+    }
+    
+    console.log(`[ContainerPool] Restarting bot ${instanceId} in pool ${pool.id}`);
+    
+    try {
+      await this._execInContainer(pool.containerName, [
+        'supervisorctl', 'restart', `bot-${instanceId}`
+      ]);
+      
+      slot.status = 'running';
+      await this._saveState();
+      
+      console.log(`[ContainerPool] ✓ Bot ${instanceId} restarted`);
+      return { success: true, instanceId };
+      
+    } catch (err) {
+      console.error(`[ContainerPool] Failed to restart bot ${instanceId}: ${err.message}`);
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
+   * Update bot strategy and restart
+   * Used when a strategy is removed and bot needs to fallback to default
+   * @param {string} instanceId - Bot instance ID
+   * @param {string} newStrategy - New strategy name
+   */
+  async updateBotStrategyInPool(instanceId, newStrategy) {
+    const slot = this.botMapping.get(instanceId);
+    if (!slot) {
+      console.warn(`[ContainerPool] No slot found for bot ${instanceId}`);
+      return { success: false, error: 'Bot not found in pool' };
+    }
+    
+    const pool = this.pools.get(slot.poolId);
+    if (!pool) {
+      console.warn(`[ContainerPool] Pool ${slot.poolId} not found`);
+      return { success: false, error: 'Pool not found' };
+    }
+    
+    console.log(`[ContainerPool] Updating bot ${instanceId} strategy to ${newStrategy}`);
+    
+    try {
+      // Update bot config file
+      const botConfigDir = path.join(pool.poolDir, 'bots', instanceId);
+      const configPath = path.join(botConfigDir, 'config.json');
+      
+      if (await fs.pathExists(configPath)) {
+        const config = await fs.readJson(configPath);
+        const oldStrategy = config.strategy;
+        config.strategy = newStrategy;
+        await fs.writeJson(configPath, config, { spaces: 2 });
+        console.log(`[ContainerPool] Updated config: ${oldStrategy} → ${newStrategy}`);
+      }
+      
+      // Update supervisor config
+      const supervisorConfPath = path.join(pool.poolDir, 'supervisor', `bot-${instanceId}.conf`);
+      if (await fs.pathExists(supervisorConfPath)) {
+        let supervisorConf = await fs.readFile(supervisorConfPath, 'utf8');
+        // Replace strategy in command line
+        supervisorConf = supervisorConf.replace(
+          /--strategy\s+\S+/,
+          `--strategy ${newStrategy}`
+        );
+        await fs.writeFile(supervisorConfPath, supervisorConf, 'utf8');
+        console.log(`[ContainerPool] Updated supervisor config for ${instanceId}`);
+      }
+      
+      // Reload supervisor config and restart bot
+      await this._execInContainer(pool.containerName, [
+        'supervisorctl', 'reread'
+      ]);
+      await this._execInContainer(pool.containerName, [
+        'supervisorctl', 'update'
+      ]);
+      await this._execInContainer(pool.containerName, [
+        'supervisorctl', 'restart', `bot-${instanceId}`
+      ]);
+      
+      slot.status = 'running';
+      await this._saveState();
+      
+      console.log(`[ContainerPool] ✓ Bot ${instanceId} updated to strategy ${newStrategy} and restarted`);
+      return { success: true, instanceId, newStrategy };
+      
+    } catch (err) {
+      console.error(`[ContainerPool] Failed to update bot ${instanceId} strategy: ${err.message}`);
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
    * Remove a bot from its pool container
    * @param {string} instanceId - Bot instance ID
    */

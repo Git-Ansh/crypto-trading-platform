@@ -386,6 +386,98 @@ const poolProvisioner = {
     }
 
     return poolManager.syncPoolState();
+  },
+
+  /**
+   * Restart a bot to reload its strategy from file
+   * Called by StrategyManager when a strategy file is edited
+   * @param {string} instanceId - Bot instance ID
+   */
+  async restartBot(instanceId) {
+    if (!initialized) {
+      throw new Error('Pool system not initialized');
+    }
+
+    console.log(`[PoolProvisioner] Restarting bot ${instanceId} to reload strategy`);
+    return poolManager.restartBotInPool(instanceId);
+  },
+
+  /**
+   * Update a bot's strategy and restart it
+   * Called by StrategyManager when a strategy is removed
+   * @param {string} instanceId - Bot instance ID
+   * @param {string} newStrategy - New strategy to use (e.g., 'EmaRsiStrategy')
+   */
+  async fallbackBotStrategy(instanceId, newStrategy) {
+    if (!initialized) {
+      throw new Error('Pool system not initialized');
+    }
+
+    console.log(`[PoolProvisioner] Falling back bot ${instanceId} to strategy ${newStrategy}`);
+    return poolManager.updateBotStrategyInPool(instanceId, newStrategy);
+  },
+
+  /**
+   * Get the strategy a bot is currently using
+   * @param {string} instanceId - Bot instance ID
+   */
+  async getBotStrategy(instanceId) {
+    if (!initialized) {
+      throw new Error('Pool system not initialized');
+    }
+
+    const slot = poolManager.botMapping.get(instanceId);
+    if (!slot) {
+      return null;
+    }
+
+    const pool = poolManager.pools.get(slot.poolId);
+    if (!pool) {
+      return null;
+    }
+
+    try {
+      const configPath = path.join(pool.poolDir, 'bots', instanceId, 'config.json');
+      if (await fs.pathExists(configPath)) {
+        const config = await fs.readJson(configPath);
+        return config.strategy;
+      }
+    } catch (err) {
+      console.error(`[PoolProvisioner] Failed to get strategy for ${instanceId}:`, err.message);
+    }
+    return null;
+  },
+
+  /**
+   * Get all bots using a specific strategy
+   * @param {string} strategyName - Strategy name to search for
+   * @returns {Promise<string[]>} Array of instance IDs using this strategy
+   */
+  async getBotsUsingStrategy(strategyName) {
+    if (!initialized) {
+      throw new Error('Pool system not initialized');
+    }
+
+    const botsUsingStrategy = [];
+    
+    for (const [instanceId, slot] of poolManager.botMapping) {
+      const pool = poolManager.pools.get(slot.poolId);
+      if (!pool) continue;
+
+      try {
+        const configPath = path.join(pool.poolDir, 'bots', instanceId, 'config.json');
+        if (await fs.pathExists(configPath)) {
+          const config = await fs.readJson(configPath);
+          if (config.strategy === strategyName) {
+            botsUsingStrategy.push(instanceId);
+          }
+        }
+      } catch (err) {
+        console.error(`[PoolProvisioner] Failed to check strategy for ${instanceId}:`, err.message);
+      }
+    }
+    
+    return botsUsingStrategy;
   }
 };
 
