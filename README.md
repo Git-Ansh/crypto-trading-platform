@@ -1,78 +1,102 @@
-# Crypto Trading Platform 
+# Crypto Trading Platform
 
 Multi-bot cryptocurrency trading platform with FreqTrade integration, real-time portfolio monitoring, and centralized strategy management.
 
-## 🏗️ Architecture
+## Architecture
+
+Nx monorepo with npm workspaces, three core services, and shared packages.
 
 ```
 crypto-trading-platform/
 ├── apps/
-│   ├── web/                    # React frontend (Vite + TypeScript) - PORT 5173
-│   ├── api-gateway/            # Express.js main server - PORT 5001
-│   └── bot-orchestrator/       # Bot manager service - PORT 5000
+│   ├── web/                    # React 19 + Vite + TypeScript (PORT 5173)
+│   ├── api-gateway/            # Express.js main API (PORT 5001)
+│   └── bot-orchestrator/       # Bot lifecycle manager (PORT 5000)
 ├── packages/
-│   ├── shared-types/           # TypeScript interfaces
-│   ├── shared-auth/            # Unified authentication logic
-│   ├── shared-config/          # Environment configuration
-│   ├── shared-utils/           # Common utilities
-│   └── freqtrade-client/       # Bot API client library
+│   ├── shared-types/           # TypeScript interfaces (dual ESM/CJS)
+│   ├── shared-auth/            # Firebase authentication helpers
+│   ├── shared-config/          # Environment configuration loader
+│   └── shared-utils/           # Common utilities
 ├── infrastructure/
-│   ├── docker/                 # Docker Compose files
-│   ├── nginx/                  # Nginx configurations
-│   └── systemd/                # Systemd service definitions
-└── data/
-    ├── strategies/             # Centralized strategy files
-    ├── bot-instances/          # Per-user bot data
-    ├── shared-market-data/     # Shared exchange data
-    └── postgres/               # PostgreSQL data
+│   ├── systemd/                # Service definitions for VPS
+│   └── nginx/                  # Reverse proxy configs
+├── data/
+│   ├── strategies/             # Shared FreqTrade strategies
+│   └── bot-instances/          # Per-user bot data directories
+├── docs/                       # Project documentation
+└── scripts/                    # Utility scripts (health checks, sync tools)
 ```
 
-## 🚀 Quick Start
+**Data Flow**: Browser → API Gateway (5001) → Bot Orchestrator (5000) → FreqTrade Containers (8100+)
+
+## Quick Start
 
 ```bash
 # Install dependencies
 npm install
 
-# Start development
-npx nx serve web                # Frontend on 5173
-npx nx serve api-gateway        # API on 5001  
-npx nx serve bot-orchestrator   # Bots on 5000
+# Build shared packages (required before running services)
+npm run build:packages
 
-# Build for production
-npx nx run-many --target=build --all
+# Start all services with tmux
+./dev-servers.sh start
+
+# Or start services individually
+npm run dev:web         # Frontend on 5173
+npm run dev:api         # API Gateway on 5001
+npm run dev:bot         # Bot Orchestrator on 5000
+
+# Check service status
+./dev-servers.sh status
+
+# Stop all services
+./dev-servers.sh stop
 ```
 
-## 📦 Key Commands
+## Key Commands
 
 ```bash
-# Build specific app
-npx nx build web
-npx nx build api-gateway
+# Development
+npm run build:packages          # Build shared-types and shared-config
+npm run build:web              # Build frontend for production
+npm run build                  # Build packages + web
 
-# View dependency graph
-npx nx graph
+# Testing
+./test-integration.sh          # Run integration tests
+./scripts/pool-health-check.sh # Check FreqTrade container pool
 
-# Run tests
-npx nx test <app-name>
-
-# Lint all
-npx nx run-many --target=lint --all
+# Deployment
+./deploy.sh                    # Deploy to VPS (systemd services)
 ```
 
-## 🎯 Deployment
+## Environment Setup
 
-**Frontend**: Vercel (automated from monorepo)
-**Backend**: VPS via systemd services
+- Development: `.env.development` at repo root
+- Production: `.env.production` (symlinked by deploy.sh)
+- Required vars: `FIREBASE_PROJECT_ID`, `JWT_SECRET`, `MONGO_URI`
+- Optional: `TURSO_API_KEY`, `TURSO_ORG`, `POOL_MODE_ENABLED`
 
-See [infrastructure/DEPLOYMENT.md](infrastructure/DEPLOYMENT.md) for details.
+## Deployment
 
-## 📚 Documentation
+- **Frontend**: Vercel (automated from `apps/web`)
+- **Backend**: VPS with systemd services
+- **Containers**: Docker for FreqTrade instances
 
-- [Architecture Plan](/plan-architectureModernization.prompt.md)
-- [API Configuration](Crypto/API_CONFIGURATION.md) 
-- [Quick Reference](Crypto-Pilot-Freqtrade/QUICK_REFERENCE.md)
+Service management:
+```bash
+sudo systemctl status api-gateway
+sudo systemctl status bot-orchestrator
+sudo journalctl -u api-gateway -f
+sudo journalctl -u bot-orchestrator -f
+```
 
----
+## Documentation
 
-**Phase 1 Status**: ✅ Monorepo Setup Complete
-**Next Phase**: Shared Packages & NestJS Refactoring
+- [AI Coding Instructions](.github/copilot-instructions.md)
+- [Development Status](docs/DEVELOPMENT_STATUS.md)
+- [Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)
+- [Pool System](apps/bot-orchestrator/lib/POOL_SYSTEM_README.md)
+
+## Project Status
+
+Phase 1 complete: Monorepo migration, shared packages, and multi-tenant container pool system operational.
