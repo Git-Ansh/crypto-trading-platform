@@ -16,12 +16,20 @@ import {
     Activity,
     DollarSign,
     ArrowDownToLine,
-    ArrowUpFromLine
+    ArrowUpFromLine,
+    Server,
+    RefreshCw,
+    Clock,
+    Cpu,
+    HardDrive,
+    XCircle,
+    ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 import { ModeToggle } from "@/components/mode-toggle";
 import {
     SidebarProvider,
@@ -31,6 +39,11 @@ import {
 import { Loading, LoadingSpinner } from "@/components/ui/loading";
 import { AppSidebar } from '@/components/app-sidebar';
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+    Alert,
+    AlertDescription,
+    AlertTitle,
+} from "@/components/ui/alert";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -49,7 +62,29 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 const MAX_BOTS = 3;
 
@@ -61,6 +96,67 @@ interface BotInstance {
     stake_currency: string;
     dry_run: boolean;
     containerStatus: 'running' | 'stopped' | 'error' | 'unknown';
+}
+
+interface PoolMetrics {
+    memoryUsageMB: number;
+    cpuPercent: number;
+    lastUpdated: string | null;
+}
+
+interface PoolData {
+    id: string;
+    userId: string;
+    containerName: string;
+    status: string;
+    botsCount: number;
+    capacity: number;
+    utilizationPercent: number;
+    bots: string[];
+    metrics?: PoolMetrics;
+}
+
+interface BotAssignment {
+    instanceId: string;
+    poolId: string;
+    slotIndex: number;
+    port: number;
+    status: string;
+}
+
+interface PoolStatsResponse {
+    success: boolean;
+    poolMode: boolean;
+    userId: string;
+    totalPools: number;
+    totalBots: number;
+    maxBotsPerPool: number;
+    pools: PoolData[];
+    bots: BotAssignment[];
+}
+
+interface HealthCheckResult {
+    success: boolean;
+    timestamp: string;
+    pools: Array<{
+        id: string;
+        status: string;
+        message: string;
+        details: {
+            containerStatus?: string;
+            supervisor?: string;
+            metrics?: { memory: string; cpu: string; network: string };
+        };
+    }>;
+    bots: Array<{
+        id: string;
+        poolId: string;
+        status: string;
+        message: string;
+    }>;
+    issues: Array<{ type: string; id: string; status: string; message: string }>;
+    recoveryActions: Array<{ type: string; id: string; action: string }>;
+    durationMs: number;
 }
 
 const BotBalance = ({ bot, onBalanceUpdate }: { bot: BotInstance, onBalanceUpdate?: (id: string, balance: number, currency: string) => void }) => {
@@ -167,6 +263,16 @@ export default function BotConsolePage() {
     const [botActionLoading, setBotActionLoading] = useState<{ [id: string]: 'start' | 'stop' | null }>({});
     const [balances, setBalances] = useState<Record<string, { value: number, currency: string }>>({});
     const [walletAllocations, setWalletAllocations] = useState<Record<string, { allocatedAmount: number; currentValue: number; availableBalance?: number }>>({});
+    
+    // Pool management state
+    const [poolStats, setPoolStats] = useState<PoolStatsResponse | null>(null);
+    const [poolLoading, setPoolLoading] = useState(true);
+    const [poolRefreshing, setPoolRefreshing] = useState(false);
+    const [healthCheckResult, setHealthCheckResult] = useState<HealthCheckResult | null>(null);
+    const [healthCheckLoading, setHealthCheckLoading] = useState(false);
+    const [cleanupLoading, setCleanupLoading] = useState(false);
+    const [lastPoolRefresh, setLastPoolRefresh] = useState<Date | null>(null);
+    const [showPoolTab, setShowPoolTab] = useState(false);
 
     const handleBalanceUpdate = useCallback((id: string, value: number, currency: string) => {
         setBalances(prev => {
@@ -254,13 +360,117 @@ export default function BotConsolePage() {
         }
     };
 
+    const fetchPoolStats = useCallback(async (showRefresh = false) => {
+        try {
+            if (showRefresh) setPoolRefreshing(true);
+
+            const token = await getAuthToken();
+            if (!token) {
+                throw new Error('Not authenticated');
+            }
+
+            const response = await fetch(`${config.botManager.baseUrl}/api/pool/my-pools`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch pool stats: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            setPoolStats(data);
+            setLastPoolRefresh(new Date());
+            if (data.poolMode) {
+                setShowPoolTab(true);
+            }
+        } catch (err) {
+            console.error('Error fetching pool stats:', err);
+            setPoolStats(null);
+        } finally {
+            setPoolLoading(false);
+            setPoolRefreshing(false);
+        }
+    }, []);
+
+    const runHealthCheck = async () => {
+        try {
+            setHealthCheckLoading(true);
+            const token = await getAuthToken();
+
+            const response = await fetch(`${config.botManager.baseUrl}/api/pool/my-health-check`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                setError(data.message || data.error || 'Health check failed');
+                setHealthCheckResult(null);
+                return;
+            }
+
+            setHealthCheckResult({
+                ...data,
+                issues: data.issues || [],
+                recoveryActions: data.recoveryActions || [],
+                pools: data.pools || [],
+                bots: data.bots || []
+            });
+        } catch (err) {
+            console.error('Health check failed:', err);
+            setError(err instanceof Error ? err.message : 'Health check failed');
+            setHealthCheckResult(null);
+        } finally {
+            setHealthCheckLoading(false);
+        }
+    };
+
+    const cleanupEmptyPools = async () => {
+        try {
+            setCleanupLoading(true);
+            const token = await getAuthToken();
+
+            const response = await fetch(`${config.botManager.baseUrl}/api/pool/cleanup`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                setError(data.message || data.error || 'Cleanup failed');
+                return;
+            }
+
+            if (data.success) {
+                setSuccess('Empty pools cleaned up successfully');
+                fetchPoolStats(true);
+            }
+        } catch (err) {
+            console.error('Cleanup failed:', err);
+            setError(err instanceof Error ? err.message : 'Cleanup failed');
+        } finally {
+            setCleanupLoading(false);
+        }
+    };
+
     useEffect(() => {
         // Wait for Firebase auth to be ready before fetching
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
                 setLoading(true);
                 try {
-                    await Promise.all([fetchBots(), fetchWalletAllocations()]);
+                    await Promise.all([fetchBots(), fetchWalletAllocations(), fetchPoolStats()]);
                 } finally {
                     setLoading(false);
                 }
@@ -271,7 +481,7 @@ export default function BotConsolePage() {
         });
         
         return () => unsubscribe();
-    }, []);
+    }, [fetchPoolStats]);
 
     const [botToDelete, setBotToDelete] = useState<BotInstance | null>(null);
     const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
@@ -538,6 +748,33 @@ export default function BotConsolePage() {
         return status === 'running' ? 'default' : (status === 'error' ? 'destructive' : 'secondary');
     };
 
+    const getPoolStatusColor = (status: string) => {
+        switch (status) {
+            case 'running': return 'bg-green-500';
+            case 'healthy': return 'text-green-600';
+            case 'stopped': return 'bg-yellow-500';
+            case 'degraded': return 'text-yellow-600';
+            case 'unhealthy': return 'text-red-600';
+            default: return 'bg-gray-500';
+        }
+    };
+
+    const getPoolStatusBadge = (status: string) => {
+        switch (status) {
+            case 'running':
+            case 'healthy':
+                return <Badge variant="default" className="bg-green-600">{status}</Badge>;
+            case 'stopped':
+            case 'degraded':
+                return <Badge variant="secondary" className="bg-yellow-600 text-white">{status}</Badge>;
+            case 'unhealthy':
+            case 'failed':
+                return <Badge variant="destructive">{status}</Badge>;
+            default:
+                return <Badge variant="outline">{status}</Badge>;
+        }
+    };
+
     if (loading) {
         return <Loading message="Loading bot console..." />;
     }
@@ -595,6 +832,39 @@ export default function BotConsolePage() {
 
                     {/* Main Content */}
                     <main className="flex-1 p-6 w-full min-w-0">
+                        {/* Pool Management Controls (when in pool mode) */}
+                        {showPoolTab && poolStats?.poolMode && (
+                            <div className="mb-6 flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => fetchPoolStats(true)}
+                                    disabled={poolRefreshing}
+                                    size="sm"
+                                >
+                                    <RefreshCw className={`h-4 w-4 mr-2 ${poolRefreshing ? 'animate-spin' : ''}`} />
+                                    Refresh Pools
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={runHealthCheck}
+                                    disabled={healthCheckLoading}
+                                    size="sm"
+                                >
+                                    <Activity className={`h-4 w-4 mr-2 ${healthCheckLoading ? 'animate-pulse' : ''}`} />
+                                    Health Check
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={cleanupEmptyPools}
+                                    disabled={cleanupLoading}
+                                    size="sm"
+                                >
+                                    <Trash2 className={`h-4 w-4 mr-2 ${cleanupLoading ? 'animate-pulse' : ''}`} />
+                                    Cleanup Empty
+                                </Button>
+                            </div>
+                        )}
+
                         {bots.length === 0 ? (
                             <Card className="border-dashed">
                                 <CardContent className="flex flex-col items-center justify-center py-12">
@@ -609,7 +879,276 @@ export default function BotConsolePage() {
                                     </Button>
                                 </CardContent>
                             </Card>
+                        ) : showPoolTab && poolStats?.poolMode ? (
+                            // Pool Mode: Render pools as containers with bots inside
+                            <div className="space-y-6">
+                                {/* Pool Statistics Overview */}
+                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                    <Card>
+                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                            <CardTitle className="text-sm font-medium">Total Pools</CardTitle>
+                                            <Server className="h-4 w-4 text-muted-foreground" />
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="text-2xl font-bold">{poolStats?.totalPools || 0}</div>
+                                            <p className="text-xs text-muted-foreground">Active container pools</p>
+                                        </CardContent>
+                                    </Card>
+                                    <Card>
+                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                            <CardTitle className="text-sm font-medium">Total Bots</CardTitle>
+                                            <Bot className="h-4 w-4 text-muted-foreground" />
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="text-2xl font-bold">{poolStats?.totalBots || 0}</div>
+                                            <p className="text-xs text-muted-foreground">Running in pools</p>
+                                        </CardContent>
+                                    </Card>
+                                    <Card>
+                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                            <CardTitle className="text-sm font-medium">Capacity</CardTitle>
+                                            <HardDrive className="h-4 w-4 text-muted-foreground" />
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="text-2xl font-bold">
+                                                {poolStats?.totalBots || 0} / {(poolStats?.totalPools || 0) * (poolStats?.maxBotsPerPool || 3)}
+                                            </div>
+                                            <Progress
+                                                value={((poolStats?.totalBots || 0) / ((poolStats?.totalPools || 1) * (poolStats?.maxBotsPerPool || 3))) * 100}
+                                                className="mt-2"
+                                            />
+                                        </CardContent>
+                                    </Card>
+                                    <Card>
+                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                            <CardTitle className="text-sm font-medium">Bots per Pool</CardTitle>
+                                            <Cpu className="h-4 w-4 text-muted-foreground" />
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="text-2xl font-bold">{poolStats?.maxBotsPerPool || 3}</div>
+                                            <p className="text-xs text-muted-foreground">Maximum capacity</p>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+
+                                {/* Pool Containers with Bots */}
+                                <div className="grid gap-6 md:grid-cols-2">
+                                    {poolStats?.pools.map((pool) => {
+                                        const poolBots = bots.filter(bot => pool.bots.includes(bot.instanceId));
+                                        
+                                        return (
+                                            <Card key={pool.id} className="border-2 border-muted-foreground/20">
+                                                <CardHeader>
+                                                    <div className="flex items-center justify-between">
+                                                        <CardTitle className="text-lg flex items-center gap-2">
+                                                            <Server className="h-5 w-5" />
+                                                            {pool.id.split('-').slice(-2).join('-')}
+                                                        </CardTitle>
+                                                        {getPoolStatusBadge(pool.status)}
+                                                    </div>
+                                                    <CardDescription className="font-mono text-xs">
+                                                        {pool.containerName}
+                                                    </CardDescription>
+                                                </CardHeader>
+                                                <CardContent className="space-y-4">
+                                                    {/* Pool Metrics */}
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <p className="text-sm text-muted-foreground">Bots</p>
+                                                            <p className="text-xl font-bold">{pool.botsCount} / {pool.capacity}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm text-muted-foreground">Utilization</p>
+                                                            <p className="text-xl font-bold">{pool.utilizationPercent}%</p>
+                                                        </div>
+                                                    </div>
+                                                    <Progress value={pool.utilizationPercent} />
+                                                    {pool.metrics?.lastUpdated && (
+                                                        <div className="grid grid-cols-2 gap-4 pt-2 border-t text-sm">
+                                                            <div className="flex items-center gap-2">
+                                                                <HardDrive className="h-4 w-4 text-muted-foreground" />
+                                                                <span>{pool.metrics.memoryUsageMB} MB</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <Cpu className="h-4 w-4 text-muted-foreground" />
+                                                                <span>{pool.metrics.cpuPercent.toFixed(1)}%</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Bots in this Pool */}
+                                                    <div className="border-t pt-4 space-y-3">
+                                                        <p className="text-sm font-medium">Bots in this pool:</p>
+                                                        {poolBots.length > 0 ? (
+                                                            <div className="space-y-2">
+                                                                {poolBots.map((bot) => (
+                                                                    <div key={bot.instanceId} className="bg-muted/50 rounded-lg p-3 space-y-2">
+                                                                        <div className="flex items-center justify-between">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <div className={`h-2 w-2 rounded-full ${getStatusColor(bot)}`} />
+                                                                                <span className="font-mono text-sm font-medium">{bot.instanceId}</span>
+                                                                            </div>
+                                                                            <Badge variant={bot.dry_run ? 'secondary' : 'destructive'} className="text-xs">
+                                                                                {bot.dry_run ? 'Paper' : 'Live'}
+                                                                            </Badge>
+                                                                        </div>
+                                                                        <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                                                                            <div>{bot.exchange?.toUpperCase()} • Port {bot.port}</div>
+                                                                            <div className="text-right">{bot.strategy}</div>
+                                                                        </div>
+                                                                        <div className="flex items-center justify-between text-sm pt-2 border-t">
+                                                                            <span>Balance:</span>
+                                                                            <BotBalance bot={bot} onBalanceUpdate={handleBalanceUpdate} />
+                                                                        </div>
+                                                                        <div className="flex gap-1 flex-wrap pt-2">
+                                                                            {bot.containerStatus === 'running' ? (
+                                                                                <Button
+                                                                                    variant="outline"
+                                                                                    size="xs"
+                                                                                    disabled={!!botActionLoading[bot.instanceId]}
+                                                                                    onClick={() => handleBotAction(bot.instanceId, 'stop')}
+                                                                                    className="text-xs h-6"
+                                                                                >
+                                                                                    <Square className="h-3 w-3 mr-1 fill-current" />
+                                                                                    Stop
+                                                                                </Button>
+                                                                            ) : (
+                                                                                <Button
+                                                                                    variant="outline"
+                                                                                    size="xs"
+                                                                                    disabled={!!botActionLoading[bot.instanceId]}
+                                                                                    onClick={() => handleBotAction(bot.instanceId, 'start')}
+                                                                                    className="text-xs h-6"
+                                                                                >
+                                                                                    <Play className="h-3 w-3 mr-1 fill-current" />
+                                                                                    Start
+                                                                                </Button>
+                                                                            )}
+                                                                            <Button
+                                                                                variant="outline"
+                                                                                size="xs"
+                                                                                className="text-xs h-6"
+                                                                                onClick={() => navigate(`/bot/${bot.instanceId}/config`)}
+                                                                            >
+                                                                                <Settings className="h-3 w-3 mr-1" />
+                                                                                Config
+                                                                            </Button>
+                                                                            <Button
+                                                                                variant="outline"
+                                                                                size="xs"
+                                                                                className="text-xs h-6"
+                                                                                onClick={() => {
+                                                                                    setSelectedBotForAddFunds(bot);
+                                                                                    setAddFundsDialogOpen(true);
+                                                                                }}
+                                                                            >
+                                                                                <ArrowDownToLine className="h-3 w-3 mr-1" />
+                                                                                Funds
+                                                                            </Button>
+                                                                            <Button
+                                                                                variant="outline"
+                                                                                size="xs"
+                                                                                className="text-xs h-6"
+                                                                                onClick={() => {
+                                                                                    setSelectedBotForWithdraw(bot);
+                                                                                    setWithdrawDialogOpen(true);
+                                                                                }}
+                                                                            >
+                                                                                <ArrowUpFromLine className="h-3 w-3 mr-1" />
+                                                                                Withdraw
+                                                                            </Button>
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="xs"
+                                                                                className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs h-6 ml-auto"
+                                                                                onClick={() => setBotToDelete(bot)}
+                                                                            >
+                                                                                <Trash2 className="h-3 w-3" />
+                                                                            </Button>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-xs text-muted-foreground text-center py-2">No bots in this pool</p>
+                                                        )}
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Health Check Report */}
+                                {healthCheckResult && (
+                                    <Card>
+                                        <CardHeader>
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <CardTitle>Health Check Report</CardTitle>
+                                                    <CardDescription>
+                                                        Last check: {new Date(healthCheckResult.timestamp).toLocaleString()}
+                                                        {' • '}Duration: {healthCheckResult.durationMs}ms
+                                                    </CardDescription>
+                                                </div>
+                                                {(healthCheckResult.issues?.length || 0) === 0 ? (
+                                                    <Badge className="bg-green-600">
+                                                        <CheckCircle className="h-4 w-4 mr-1" />
+                                                        All Healthy
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge variant="destructive">
+                                                        <XCircle className="h-4 w-4 mr-1" />
+                                                        {healthCheckResult.issues?.length || 0} Issues
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            {(healthCheckResult.issues?.length || 0) > 0 && (
+                                                <Alert variant="destructive">
+                                                    <AlertCircle className="h-4 w-4" />
+                                                    <AlertTitle>Issues Detected</AlertTitle>
+                                                    <AlertDescription>
+                                                        <ul className="list-disc list-inside mt-2">
+                                                            {healthCheckResult.issues?.map((issue, i) => (
+                                                                <li key={i}>
+                                                                    {issue.type}: {issue.id} - {issue.message}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </AlertDescription>
+                                                </Alert>
+                                            )}
+
+                                            {(healthCheckResult.recoveryActions?.length || 0) > 0 && (
+                                                <Alert>
+                                                    <Activity className="h-4 w-4" />
+                                                    <AlertTitle>Recovery Actions Taken</AlertTitle>
+                                                    <AlertDescription>
+                                                        <ul className="list-disc list-inside mt-2">
+                                                            {healthCheckResult.recoveryActions?.map((action, i) => (
+                                                                <li key={i}>
+                                                                    {action.type}: {action.id} - {action.action}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </AlertDescription>
+                                                </Alert>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                {lastPoolRefresh && (
+                                    <p className="text-xs text-muted-foreground text-center">
+                                        <Clock className="h-3 w-3 inline mr-1" />
+                                        Pool data last updated: {lastPoolRefresh.toLocaleTimeString()}
+                                    </p>
+                                )}
+                            </div>
                         ) : (
+                            // Legacy Mode: Render bots as grid (original layout)
                             <div className="grid gap-6 grid-cols-[repeat(auto-fit,minmax(380px,1fr))] w-full">
                                 {bots.map((bot) => (
                                     <Card key={bot.instanceId} className="overflow-hidden flex flex-col">
@@ -750,8 +1289,12 @@ export default function BotConsolePage() {
                                 ))}
                             </div>
                         )}
-
-                        <AlertDialog open={!!botToDelete} onOpenChange={(open) => !open && setBotToDelete(null)}>
+                    </main>
+                </div>
+            </SidebarInset>
+        </SidebarProvider>
+    );
+}
                             <AlertDialogContent>
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>

@@ -11,7 +11,8 @@ import BotConsolePage from "./pages/bot-console";
 import BotProvisioningPage from "./pages/bot-provisioning";
 import BotConfigPage from "./pages/bot-config";
 import AccountSettingsPage from "./pages/account-settings";
-import PoolManagementPage from "./pages/pool-management";
+// Pool Management page is deprecated - functionality integrated into BotConsolePage
+// import PoolManagementPage from "./pages/pool-management";
 
 // Protected route component that uses our existing AuthContext
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -153,12 +154,12 @@ export const AppRoutes: React.FC<{ authDebugPage: React.ComponentType }> = ({
         }
       />
 
-      {/* Protected Pool Management route */}
+      {/* Protected Pool Management route - deprecated, redirects to bot-console */}
       <Route
         path="/pool-management"
         element={
           <ProtectedRoute>
-            <PoolManagementPage />
+            <Navigate to="/bot-console" replace />
           </ProtectedRoute>
         }
       />
