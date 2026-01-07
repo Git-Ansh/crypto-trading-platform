@@ -342,6 +342,15 @@ class PoolHealthMonitor {
         result.status = 'healthy';
         result.message = 'Bot process running in supervisor';
         result.details.supervisorStatus = 'RUNNING';
+
+        // Update slot status if it was previously failed
+        if (slot.status === 'failed' || slot.status === 'pending') {
+          slot.status = 'running';
+          // Save state asynchronously (don't await to avoid blocking health check)
+          this.poolManager._saveState().catch(err => {
+            console.warn(`[HealthMonitor] Failed to save state after status update: ${err.message}`);
+          });
+        }
       } else if (processStatus.includes('STOPPED')) {
         result.status = 'unhealthy';
         result.message = 'Bot process stopped';

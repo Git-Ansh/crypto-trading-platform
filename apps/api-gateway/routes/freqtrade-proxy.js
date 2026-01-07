@@ -395,10 +395,133 @@ router.post('/provision', auth, async (req, res) => {
     // Check if bot already has allocation (use instanceId or generate one)
     const botId = instanceId || `bot_${Date.now()}`;
     if (user.botAllocations && user.botAllocations.has(botId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Bot already has funds allocated.',
-      });
+      // Check if the bot actually exists in the orchestrator
+      console.log(`[Provision] Bot ${botId} has allocation, checking if it actually exists...`);
+
+      try {
+        const botsResult = await proxyRequest('GET', '/api/bots', token);
+
+        if (!botsResult.success) {
+          console.error(`[Provision] Failed to get bot list:`, botsResult.error);
+          // Can't verify - clean up the allocation anyway since we're trying to provision
+          // This handles the case where the bot doesn't exist but we can't verify
+          console.log(`[Provision] Cannot verify bot existence, cleaning up allocation to allow provisioning...`);
+
+          const allocation = user.botAllocations.get(botId);
+          const returnAmount = allocation.currentValue || allocation.allocatedAmount || 0;
+          const pnl = (allocation.currentValue || 0) - (allocation.allocatedAmount || 0);
+          const now = new Date();
+
+          // Return funds to wallet
+          const newBalance = (user.paperWallet?.balance || 0) + returnAmount;
+          user.paperWallet = {
+            balance: newBalance,
+            currency: user.paperWallet?.currency || 'USD',
+            lastUpdated: now,
+          };
+
+          // Remove allocation
+          user.botAllocations.delete(botId);
+
+          // Add transaction
+          user.walletTransactions.push({
+            type: 'deallocate',
+            amount: returnAmount,
+            botId,
+            botName: allocation.botName || botId,
+            description: `Auto-cleanup: returned $${returnAmount.toFixed(2)} from unverified bot (P&L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)})`,
+            balanceAfter: newBalance,
+            timestamp: now,
+          });
+
+          await user.save();
+          console.log(`[Provision] Cleaned up allocation (unverified), returned $${returnAmount}, new balance: $${newBalance}`);
+
+          // Continue with provisioning
+        } else {
+          const runningBots = botsResult.data.map(b => b.instanceId);
+          const botExists = runningBots.includes(botId);
+
+          if (!botExists) {
+            // Orphaned allocation - clean it up automatically
+            console.log(`[Provision] Bot ${botId} doesn't exist, cleaning up orphaned allocation...`);
+
+            const allocation = user.botAllocations.get(botId);
+            const returnAmount = allocation.currentValue || allocation.allocatedAmount || 0;
+            const pnl = (allocation.currentValue || 0) - (allocation.allocatedAmount || 0);
+            const now = new Date();
+
+            // Return funds to wallet
+            const newBalance = (user.paperWallet?.balance || 0) + returnAmount;
+            user.paperWallet = {
+              balance: newBalance,
+              currency: user.paperWallet?.currency || 'USD',
+              lastUpdated: now,
+            };
+
+            // Remove allocation
+            user.botAllocations.delete(botId);
+
+            // Add transaction
+            user.walletTransactions.push({
+              type: 'deallocate',
+              amount: returnAmount,
+              botId,
+              botName: allocation.botName || botId,
+              description: `Auto-cleanup: returned $${returnAmount.toFixed(2)} from orphaned bot (P&L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)})`,
+              balanceAfter: newBalance,
+              timestamp: now,
+            });
+
+            await user.save();
+            console.log(`[Provision] Cleaned up orphaned allocation, returned $${returnAmount}, new balance: $${newBalance}`);
+
+            // Continue with provisioning (allocation is now cleared)
+          } else {
+            // Bot actually exists - this is a real duplicate
+            return res.status(400).json({
+              success: false,
+              message: 'Bot already has funds allocated and is currently running.',
+            });
+          }
+        }
+      } catch (err) {
+        console.error(`[Provision] Error checking bot existence:`, err);
+        // Clean up the allocation anyway - better to allow provisioning than block it
+        console.log(`[Provision] Exception during verification, cleaning up allocation to allow provisioning...`);
+
+        const allocation = user.botAllocations.get(botId);
+        const returnAmount = allocation.currentValue || allocation.allocatedAmount || 0;
+        const pnl = (allocation.currentValue || 0) - (allocation.allocatedAmount || 0);
+        const now = new Date();
+
+        // Return funds to wallet
+        const newBalance = (user.paperWallet?.balance || 0) + returnAmount;
+        user.paperWallet = {
+          balance: newBalance,
+          currency: user.paperWallet?.currency || 'USD',
+          lastUpdated: now,
+        };
+
+        // Remove allocation
+        user.botAllocations.delete(botId);
+
+        // Add transaction
+        user.walletTransactions.push({
+          type: 'deallocate',
+          amount: returnAmount,
+          botId,
+          botName: allocation.botName || botId,
+          description: `Auto-cleanup: returned $${returnAmount.toFixed(2)} from unverified bot (P&L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)})`,
+          balanceAfter: newBalance,
+          timestamp: now,
+        });
+
+        await user.save();
+        console.log(`[Provision] Cleaned up allocation (exception), returned $${returnAmount}, new balance: $${newBalance}`);
+
+        // Continue with provisioning
+      }
     }
 
     // Provision the bot first - pass all config options to bot-orchestrator
@@ -483,6 +606,8 @@ router.delete('/bots/:instanceId', auth, async (req, res) => {
     const { instanceId } = req.params;
     const userId = req.user.id;
 
+    console.log(`[Delete Bot] Starting deletion for ${instanceId}, user ${userId}`);
+
     // Get user and check if bot has allocation
     const user = await User.findById(userId);
     if (!user) {
@@ -490,18 +615,29 @@ router.delete('/bots/:instanceId', auth, async (req, res) => {
     }
 
     const allocation = user.botAllocations?.get(instanceId);
+    console.log(`[Delete Bot] Bot allocation found:`, allocation ? 'Yes' : 'No');
 
-    // First, delete the bot from bot-orchestrator
-    const deleteResult = await proxyRequest('DELETE', `/api/bots/${instanceId}`, token);
-    
-    if (!deleteResult.success) {
-      // If bot doesn't exist in orchestrator but has allocation, still clean up wallet
-      if (deleteResult.status !== 404) {
-        return res.status(deleteResult.status).json(deleteResult.data || deleteResult.error);
+    // Try to delete the bot from bot-orchestrator
+    let orchestratorDeleted = false;
+    let orchestratorError = null;
+
+    try {
+      const deleteResult = await proxyRequest('DELETE', `/api/bots/${instanceId}`, token);
+      orchestratorDeleted = deleteResult.success;
+
+      if (!deleteResult.success && deleteResult.status !== 404) {
+        orchestratorError = deleteResult.data?.message || 'Unknown error';
+        console.warn(`[Delete Bot] Orchestrator deletion failed: ${orchestratorError}`);
+      } else {
+        console.log(`[Delete Bot] Orchestrator deletion: ${deleteResult.success ? 'Success' : 'Bot not found (404)'}`);
       }
+    } catch (err) {
+      orchestratorError = err.message;
+      console.error(`[Delete Bot] Orchestrator deletion error:`, err);
     }
 
-    // If bot had allocation, return funds to wallet
+    // ALWAYS clean up wallet allocation, even if orchestrator deletion failed
+    // This ensures database stays in sync with reality
     let walletUpdate = null;
     if (allocation) {
       const now = new Date();
@@ -509,6 +645,8 @@ router.delete('/bots/:instanceId', auth, async (req, res) => {
       const currentBalance = user.paperWallet?.balance || 0;
       const newBalance = currentBalance + returnAmount;
       const pnl = returnAmount - allocation.allocatedAmount;
+
+      console.log(`[Delete Bot] Cleaning up wallet: returning ${returnAmount}, P&L: ${pnl}`);
 
       // Update wallet balance
       user.paperWallet = {
@@ -532,6 +670,7 @@ router.delete('/bots/:instanceId', auth, async (req, res) => {
       });
 
       await user.save();
+      console.log(`[Delete Bot] Wallet cleaned up successfully, new balance: ${newBalance}`);
 
       walletUpdate = {
         previousBalance: currentBalance,
@@ -539,12 +678,21 @@ router.delete('/bots/:instanceId', auth, async (req, res) => {
         returned: returnAmount,
         pnl,
       };
+    } else {
+      console.log(`[Delete Bot] No allocation found for ${instanceId}`);
+    }
+
+    // Return success with warnings if orchestrator failed but wallet was cleaned
+    const warnings = [];
+    if (orchestratorError) {
+      warnings.push(`Container cleanup may have failed: ${orchestratorError}`);
     }
 
     res.json({
       success: true,
       message: `Bot ${instanceId} deleted successfully`,
       wallet: walletUpdate,
+      warnings: warnings.length > 0 ? warnings : undefined,
     });
   } catch (error) {
     console.error('Delete bot with wallet error:', error);
@@ -552,10 +700,124 @@ router.delete('/bots/:instanceId', auth, async (req, res) => {
   }
 });
 
+// POST /api/freqtrade/sync-wallet - Sync wallet allocations with actual running bots
+router.post('/sync-wallet', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  try {
+    const userId = req.user.id;
+    console.log(`[Sync Wallet] Starting sync for user ${userId}`);
+
+    // Get user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Get list of actual running bots from orchestrator
+    const botsResult = await proxyRequest('GET', '/api/bots', token);
+    if (!botsResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to fetch bot list from orchestrator'
+      });
+    }
+
+    const runningBots = new Set(botsResult.data.map(bot => bot.instanceId));
+    console.log(`[Sync Wallet] Found ${runningBots.size} running bots:`, Array.from(runningBots));
+
+    // Check for orphaned allocations
+    const orphanedAllocations = [];
+    const validAllocations = [];
+
+    if (user.botAllocations) {
+      for (const [botId, allocation] of user.botAllocations.entries()) {
+        if (!runningBots.has(botId)) {
+          orphanedAllocations.push({ botId, allocation });
+        } else {
+          validAllocations.push(botId);
+        }
+      }
+    }
+
+    console.log(`[Sync Wallet] Found ${orphanedAllocations.length} orphaned allocations`);
+
+    // Clean up orphaned allocations
+    let totalReturned = 0;
+    const cleanedBots = [];
+
+    if (orphanedAllocations.length > 0) {
+      const now = new Date();
+      let currentBalance = user.paperWallet?.balance || 0;
+
+      for (const { botId, allocation } of orphanedAllocations) {
+        const returnAmount = allocation.currentValue || allocation.allocatedAmount || 0;
+        const pnl = (allocation.currentValue || 0) - (allocation.allocatedAmount || 0);
+
+        console.log(`[Sync Wallet] Cleaning up ${botId}: returning ${returnAmount}`);
+
+        currentBalance += returnAmount;
+        totalReturned += returnAmount;
+
+        // Remove allocation
+        user.botAllocations.delete(botId);
+
+        // Add transaction
+        user.walletTransactions.push({
+          type: 'deallocate',
+          amount: returnAmount,
+          botId,
+          botName: allocation.botName || botId,
+          description: `Auto-cleanup: returned $${returnAmount.toFixed(2)} from orphaned bot (P&L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)})`,
+          balanceAfter: currentBalance,
+          timestamp: now,
+        });
+
+        cleanedBots.push({
+          botId,
+          botName: allocation.botName || botId,
+          returned: returnAmount,
+          pnl,
+        });
+      }
+
+      // Update wallet
+      user.paperWallet = {
+        balance: currentBalance,
+        currency: user.paperWallet?.currency || 'USD',
+        lastUpdated: now,
+      };
+
+      await user.save();
+      console.log(`[Sync Wallet] Cleaned up ${cleanedBots.length} orphaned allocations, returned ${totalReturned}`);
+    }
+
+    res.json({
+      success: true,
+      message: orphanedAllocations.length > 0
+        ? `Cleaned up ${orphanedAllocations.length} orphaned bot allocation(s)`
+        : 'Wallet is in sync with running bots',
+      data: {
+        runningBots: Array.from(runningBots),
+        validAllocations,
+        cleanedBots,
+        totalReturned,
+        newWalletBalance: user.paperWallet?.balance,
+      },
+    });
+  } catch (error) {
+    console.error('[Sync Wallet] Error:', error);
+    res.status(500).json({ success: false, message: 'Server error during wallet sync' });
+  }
+});
+
 // GET /api/freqtrade/health - Health check
 router.get('/health', async (req, res) => {
   const result = await proxyRequest('GET', '/health', null);
-  
+
   if (result.success) {
     res.json(result.data);
   } else {

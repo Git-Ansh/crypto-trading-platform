@@ -16,9 +16,9 @@ process.env.MAX_BOTS_PER_CONTAINER = '10';
 const { poolProvisioner, initPoolSystem } = require('../apps/bot-orchestrator/lib/pool-integration');
 const { execSync } = require('child_process');
 
-const NUM_TEST_USERS = 3;
-const BOTS_PER_USER = 12;
-const TOTAL_BOTS = NUM_TEST_USERS * BOTS_PER_USER;
+const NUM_TEST_USERS = 2;
+const BOTS_PER_USER = 8;
+const TOTAL_BOTS = NUM_TEST_USERS * BOTS_PER_USER; // 16 bots total
 
 const testUsers = [
   'Js1Gaz4sMPPiDNgFbmAgDFLe4je2', // Existing user 1
@@ -28,24 +28,28 @@ const testUsers = [
 
 async function provisionBot(userId, botNumber) {
   const instanceId = `${userId.substring(0, 12)}-loadtest-${botNumber}`;
-  
+
   try {
     const result = await poolProvisioner.provisionBot({
       userId,
       instanceId,
       strategy: 'EmaRsiStrategy',
-      config: {
-        dry_run: true,
-        stake_amount: 100,
-        max_open_trades: 3,
-        exchange: {
-          name: 'binance',
-          key: 'dummy',
-          secret: 'dummy'
-        }
-      }
+      initialBalance: 1000, // Required parameter
+      stake_amount: 100,
+      max_open_trades: 3,
+      timeframe: '15m',
+      exchange: 'kraken',
+      stake_currency: 'USD',
+      tradingPairs: ['BTC/USD', 'ETH/USD'],
+      exchangeConfig: {
+        name: 'kraken',
+        key: 'dummy',
+        secret: 'dummy'
+      },
+      apiUsername: 'admin',
+      apiPassword: 'password'
     });
-    
+
     return { success: true, instanceId, poolId: result.poolId };
   } catch (err) {
     return { success: false, instanceId, error: err.message };

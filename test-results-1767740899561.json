@@ -1,0 +1,202 @@
+{
+  "startTime": "2026-01-06T23:07:57.432Z",
+  "provisioned": [],
+  "failed": [
+    {
+      "success": false,
+      "instanceId": "test-user-1-bot-1",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-1-bot-2",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-1-bot-3",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-1-bot-4",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-1-bot-5",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-1-bot-6",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-1-bot-7",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-1-bot-8",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-1-bot-9",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-1-bot-10",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-1-bot-11",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-1-bot-12",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-2-bot-1",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-2-bot-2",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-2-bot-3",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-2-bot-4",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-2-bot-5",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-2-bot-6",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-2-bot-7",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-2-bot-8",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-2-bot-9",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-2-bot-10",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-2-bot-11",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-2-bot-12",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-3-bot-1",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-3-bot-2",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-3-bot-3",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-3-bot-4",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-3-bot-5",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-3-bot-6",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-3-bot-7",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-3-bot-8",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-3-bot-9",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-3-bot-10",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-3-bot-11",
+      "error": "Invalid token"
+    },
+    {
+      "success": false,
+      "instanceId": "test-user-3-bot-12",
+      "error": "Invalid token"
+    }
+  ],
+  "poolStats": null,
+  "healthCheck": null,
+  "dockerStats": [
+    {
+      "name": "freqtrade-pool-nKgFQvmMslUSBAV7SgLMzTRehhI2-pool-1",
+      "memory": "303MiB / 7.766GiB",
+      "cpu": "0.20%"
+    },
+    {
+      "name": "freqtrade-pool-Js1Gaz4sMPPiDNgFbmAgDFLe4je2-pool-1",
+      "memory": "347MiB / 7.766GiB",
+      "cpu": "3.28%"
+    }
+  ],
+  "endTime": "2026-01-06T23:08:19.530Z",
+  "duration": 22.098
+}
