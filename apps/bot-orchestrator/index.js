@@ -1959,7 +1959,8 @@ async function processProvisioningQueue() {
 
     console.log(`[${instanceId}] STEP 4: Creating base configuration...`);
     // --- 4. Create config.json ---
-    let defaultStrategyToUse = strategy; // Use the strategy from parameters (enhanced provisioning)
+    // Default to EmaRsiStrategy if nothing valid is provided
+    let defaultStrategyToUse = strategy || 'EmaRsiStrategy'; // Use the strategy from parameters (enhanced provisioning)
     const instanceStrategyFiles = await fs.readdir(instanceStrategiesDir);
     const pyFiles = instanceStrategyFiles.filter(f => f.endsWith('.py'));
     console.log(`[${instanceId}] Available strategy files: ${pyFiles.join(', ') || 'none'}`);
@@ -1969,7 +1970,7 @@ async function processProvisioningQueue() {
       defaultStrategyToUse = strategy;
       console.log(`[${instanceId}] Using requested strategy: ${strategy}`);
     } else if (pyFiles.length > 0) {
-      // Priority order: EnhancedRiskManagedStrategy > EmaRsiStrategy > HighFrequencyStrategy > balancedStrat > any other > DefaultStrategy
+      // Priority order: EnhancedRiskManagedStrategy > EmaRsiStrategy > DCAStrategy > PortfolioRebalancingStrategy > balancedStrat > any other > DefaultStrategy
       if (pyFiles.includes('EnhancedRiskManagedStrategy.py')) {
         defaultStrategyToUse = 'EnhancedRiskManagedStrategy';
         console.log(`[${instanceId}] Selected enhanced strategy: EnhancedRiskManagedStrategy`);
@@ -1982,9 +1983,6 @@ async function processProvisioningQueue() {
       } else if (pyFiles.includes('PortfolioRebalancingStrategy.py')) {
         defaultStrategyToUse = 'PortfolioRebalancingStrategy';
         console.log(`[${instanceId}] Selected portfolio rebalancing strategy`);
-      } else if (pyFiles.includes('HighFrequencyStrategy.py')) {
-        defaultStrategyToUse = 'HighFrequencyStrategy';
-        console.log(`[${instanceId}] Selected HighFrequencyStrategy`);
       } else if (pyFiles.includes('balancedStrat.py')) {
         defaultStrategyToUse = 'balancedStrat';
         console.log(`[${instanceId}] Selected balancedStrat`);
@@ -2020,8 +2018,8 @@ async function processProvisioningQueue() {
       timeframe = '1h'; // DCA strategies work better on longer timeframes
     } else if (defaultStrategyToUse === 'PortfolioRebalancingStrategy') {
       timeframe = '4h'; // Portfolio rebalancing needs longer timeframes
-    } else if (defaultStrategyToUse === 'HighFrequencyStrategy') {
-      timeframe = '5m'; // High frequency needs shorter timeframes
+    } else if (defaultStrategyToUse === 'EmaRsiStrategy') {
+      timeframe = '5m'; // EMA/RSI tuned for shorter windows
     }
 
     // Enforce local SQLite DB for local-first architecture with Turso sync

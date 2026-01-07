@@ -861,10 +861,21 @@ ${portMappings.join('\n')}
     const botDir = `/pool/bots/${instanceId}`;
     const configPath = `${botDir}/config.json`;
     const logPath = `/pool/logs/bot-${instanceId}.log`;
-    const strategy = config.strategy || 'DCAStrategy';
+
+    // Fallback strategy resolution: prefer requested, otherwise safe default EmaRsiStrategy
+    const requestedStrategy = config.strategy || 'EmaRsiStrategy';
+    const strategyPaths = [
+      path.join(this.strategiesDir, `${requestedStrategy}.py`),
+      path.join(this.strategiesDir, 'Admin Strategies', `${requestedStrategy}.py`)
+    ];
+    const strategyExists = strategyPaths.some(p => fs.existsSync(p));
+    const resolvedStrategy = strategyExists ? requestedStrategy : 'EmaRsiStrategy';
+    if (!strategyExists && requestedStrategy !== 'EmaRsiStrategy') {
+      console.warn(`[${instanceId}] Requested strategy '${requestedStrategy}' not found; falling back to EmaRsiStrategy`);
+    }
     
     return `[program:bot-${instanceId}]
-command=freqtrade trade --config ${configPath} --strategy-path /pool/strategies --strategy ${strategy} --db-url sqlite:///${botDir}/tradesv3.sqlite --logfile ${botDir}/freqtrade.log
+command=freqtrade trade --config ${configPath} --strategy-path /pool/strategies --strategy ${resolvedStrategy} --db-url sqlite:///${botDir}/tradesv3.sqlite --logfile ${botDir}/freqtrade.log
 directory=/freqtrade
 user=ftuser
 autostart=true
