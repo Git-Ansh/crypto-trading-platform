@@ -1,4 +1,4 @@
-# Crypto Trading Platform - Monorepo
+# Crypto Trading Platform 
 
 Multi-bot cryptocurrency trading platform with FreqTrade integration, real-time portfolio monitoring, and centralized strategy management.
 
