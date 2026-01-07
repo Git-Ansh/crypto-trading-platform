@@ -63,7 +63,7 @@ const data = {
   ],
   navMain: [
     {
-      title: "Trading Bots",
+      title: "Navigation",
       url: "/bot-console",
       icon: Bot,
       items: [
@@ -78,10 +78,6 @@ const data = {
         {
           title: "New Bot",
           url: "/bot-provisioning",
-        },
-        {
-          title: "Pool Management",
-          url: "/pool-management",
         },
       ],
     },
