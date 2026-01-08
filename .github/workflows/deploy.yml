@@ -16,7 +16,7 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /opt/crypto-trading-platform
+            cd /Workspace/crypto-trading-platform
             
             # Pull latest changes
             git fetch origin main
