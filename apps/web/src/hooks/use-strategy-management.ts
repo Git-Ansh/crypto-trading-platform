@@ -1,6 +1,7 @@
 // Custom hook for strategy management with real-time WebSocket updates
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { strategyAPI, Strategy, BotStrategy, StrategyUpdateResponse } from '@/lib/strategy-api';
+import { env } from '@/env';
 
 // Cache strategies globally to avoid refetching
 let cachedStrategies: Strategy[] | null = null;
@@ -10,8 +11,21 @@ let strategiesLoadPromise: Promise<Strategy[]> | null = null;
 // WebSocket singleton for real-time strategy updates
 let wsInstance: WebSocket | null = null;
 const wsSubscribers = new Set<(strategies: Strategy[]) => void>();
+let wsReconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 3;
 
 function getWebSocketURL(): string {
+  // Use the API URL from environment, converting http(s) to ws(s)
+  // This ensures WebSocket connects to the API server, not the frontend host
+  const apiUrl = env.apiUrl || '';
+  
+  if (apiUrl) {
+    // Convert http(s)://api.domain.com to ws(s)://api.domain.com/ws/strategies
+    const wsUrl = apiUrl.replace(/^http/, 'ws') + '/ws/strategies';
+    return wsUrl;
+  }
+  
+  // Fallback: use current host (for local development where API is on same origin)
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const host = window.location.host;
   return `${protocol}//${host}/ws/strategies`;
@@ -19,6 +33,12 @@ function getWebSocketURL(): string {
 
 function initializeWebSocket() {
   if (wsInstance) return;
+
+  // Don't attempt if we've exceeded reconnect attempts
+  if (wsReconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+    console.log('[StrategyWS] Max reconnect attempts reached, using REST API fallback');
+    return;
+  }
 
   try {
     const wsURL = getWebSocketURL();
@@ -28,6 +48,7 @@ function initializeWebSocket() {
 
     wsInstance.onopen = () => {
       console.log('[StrategyWS] Connected to strategy updates');
+      wsReconnectAttempts = 0; // Reset on successful connection
     };
 
     wsInstance.onmessage = (event) => {
@@ -57,18 +78,25 @@ function initializeWebSocket() {
 
     wsInstance.onerror = (error) => {
       console.error('[StrategyWS] Connection error:', error);
+      wsReconnectAttempts++;
     };
 
     wsInstance.onclose = () => {
       console.log('[StrategyWS] Disconnected');
       wsInstance = null;
-      // Attempt to reconnect after 5 seconds
-      setTimeout(() => {
-        initializeWebSocket();
-      }, 5000);
+      
+      // Only attempt to reconnect if we haven't exceeded max attempts
+      if (wsReconnectAttempts < MAX_RECONNECT_ATTEMPTS && wsSubscribers.size > 0) {
+        const delay = Math.min(5000 * Math.pow(2, wsReconnectAttempts), 30000); // Exponential backoff, max 30s
+        console.log(`[StrategyWS] Reconnecting in ${delay}ms (attempt ${wsReconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})`);
+        setTimeout(() => {
+          initializeWebSocket();
+        }, delay);
+      }
     };
   } catch (err) {
     console.error('[StrategyWS] Failed to create WebSocket:', err);
+    wsReconnectAttempts++;
   }
 }
 

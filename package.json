@@ -57,7 +57,6 @@
     "apps/*"
   ],
   "dependencies": {
-    "typescript": "~5.7.0",
     "@coinpaprika/api-nodejs-client": "^2.0.0",
     "@fortawesome/free-brands-svg-icons": "^7.1.0",
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
@@ -79,6 +78,7 @@
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
+    "chokidar": "^4.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cookie-parser": "^1.4.7",
@@ -112,6 +112,7 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
+    "typescript": "~5.7.0",
     "uuid": "^13.0.0",
     "ws": "^8.18.3"
   }

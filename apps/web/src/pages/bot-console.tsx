@@ -437,7 +437,8 @@ export default function BotConsolePage() {
             setCleanupLoading(true);
             const token = await getAuthToken();
 
-            const response = await fetch(`${config.botManager.baseUrl}/api/pool/cleanup`, {
+            // Use my-cleanup for user's own orphaned bots (doesn't require admin)
+            const response = await fetch(`${config.botManager.baseUrl}/api/pool/my-cleanup`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -453,7 +454,8 @@ export default function BotConsolePage() {
             }
 
             if (data.success) {
-                setSuccess('Empty pools cleaned up successfully');
+                const removedCount = data.removedBots || 0;
+                setSuccess(`Cleaned up ${removedCount} orphaned bot${removedCount !== 1 ? 's' : ''}`);
                 fetchPoolStats(true);
             }
         } catch (err) {

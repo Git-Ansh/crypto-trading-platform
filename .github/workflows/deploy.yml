@@ -1,0 +1,40 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/crypto-trading-platform
+            
+            # Pull latest changes
+            git fetch origin main
+            git reset --hard origin/main
+            
+            # Install dependencies
+            npm ci --omit=dev
+            
+            # Build shared packages
+            npm run build:packages
+            
+            # Restart services
+            sudo systemctl restart api-gateway
+            sudo systemctl restart bot-orchestrator
+            
+            # Verify services are running
+            sleep 5
+            sudo systemctl status api-gateway --no-pager
+            sudo systemctl status bot-orchestrator --no-pager
+            
+            echo "✅ Deployment complete!"
