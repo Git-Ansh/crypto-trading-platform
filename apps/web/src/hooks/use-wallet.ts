@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { auth } from '@/lib/firebase';
 import { config } from '@/lib/config';
+import { getAuthTokenAsync } from '@/lib/api';
 
 export interface WalletData {
     balance: number;
@@ -59,44 +59,38 @@ export function useWallet(autoFetch = true): UseWalletReturn {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const getAuthToken = useCallback(async (): Promise<string | null> => {
-        try {
-            const firebaseUser = auth.currentUser;
-            if (firebaseUser) {
-                return await firebaseUser.getIdToken();
-            }
-            return null;
-        } catch (err) {
-            console.error('Error getting auth token:', err);
-            return null;
-        }
-    }, []);
-
     const fetchWallet = useCallback(async () => {
         setLoading(true);
         setError(null);
 
         try {
-            const token = await getAuthToken();
+            console.log('[useWallet] Starting wallet fetch...');
+            const token = await getAuthTokenAsync();
             if (!token) {
+                console.error('[useWallet] No token available');
                 setError('Not authenticated');
                 setLoading(false);
                 return;
             }
+            console.log('[useWallet] Token obtained, fetching from:', `${config.api.baseUrl}/api/account/wallet`);
 
             const response = await fetch(`${config.api.baseUrl}/api/account/wallet`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
+            console.log('[useWallet] Response status:', response.status);
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
+                console.error('[useWallet] Error response:', errorData);
                 throw new Error(errorData.message || `Failed to fetch wallet: ${response.status}`);
             }
 
             const data = await response.json();
+            console.log('[useWallet] Received data:', data);
             
             // API returns { success: true, data: { balance, ... } }
             if (data.success && data.data) {
+                console.log('[useWallet] Setting wallet data');
                 setWallet({
                     balance: data.data.balance ?? 0,
                     currency: data.data.currency ?? 'USD',
@@ -120,7 +114,7 @@ export function useWallet(autoFetch = true): UseWalletReturn {
         } finally {
             setLoading(false);
         }
-    }, [getAuthToken]);
+    }, []);
 
     useEffect(() => {
         if (autoFetch) {

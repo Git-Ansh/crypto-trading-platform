@@ -38,6 +38,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const firebaseUserRef = useRef<FirebaseUser | null>(null);
 
+  // Helper to check if a JWT token is expired or about to expire
+  const isJWTTokenExpiring = (token: string, bufferSeconds: number = 120): boolean => {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return true;
+      
+      const payload = JSON.parse(atob(parts[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      
+      // Check if token expires within bufferSeconds
+      return payload.exp <= currentTime + bufferSeconds;
+    } catch {
+      return true; // Assume expired if we can't parse
+    }
+  };
+
+  // Function to refresh JWT token (for email/password users)
+  const refreshJWTToken = async (): Promise<string | null> => {
+    try {
+      console.log('[Auth] 🔄 Refreshing JWT token...');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/refresh-token`, {
+        method: 'POST',
+        credentials: 'include', // Include refresh token cookie
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.accessToken) {
+          console.log('[Auth] ✅ JWT token refreshed successfully!');
+          localStorage.setItem("auth_token", data.accessToken);
+          return data.accessToken;
+        }
+      }
+      
+      console.warn(`[Auth] ❌ JWT token refresh failed with status ${response.status}`);
+      return null;
+    } catch (error) {
+      console.error('[Auth] ❌ JWT token refresh error:', error);
+      return null;
+    }
+  };
+
   // Function to refresh the Firebase token
   const refreshFirebaseToken = async (): Promise<string | null> => {
     try {
@@ -62,31 +107,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Function to check if token needs refresh
+  // Function to check if token needs refresh (handles both Firebase and JWT)
   const checkTokenExpiry = async () => {
     try {
       const currentUser = firebaseUserRef.current || auth.currentUser;
-      if (!currentUser) return;
-
-      // Get the current token without forcing refresh
-      const token = await currentUser.getIdToken(false);
       
-      // Decode the token to check expiry
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Math.floor(Date.now() / 1000);
-      const timeToExpiry = payload.exp - currentTime;
-      
-      // If token expires in less than 2 minutes, refresh it
-      if (timeToExpiry < 120) {
-        console.log(`Token expires in ${timeToExpiry} seconds, refreshing...`);
-        await refreshFirebaseToken();
+      if (currentUser) {
+        // Firebase user - check Firebase token
+        const token = await currentUser.getIdToken(false);
+        
+        // Decode the token to check expiry
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const currentTime = Math.floor(Date.now() / 1000);
+        const timeToExpiry = payload.exp - currentTime;
+        
+        // If token expires in less than 2 minutes, refresh it
+        if (timeToExpiry < 120) {
+          console.log(`Firebase token expires in ${timeToExpiry} seconds, refreshing...`);
+          await refreshFirebaseToken();
+        }
+      } else {
+        // JWT user (email/password) - check JWT token
+        const token = localStorage.getItem("auth_token");
+        if (token && isJWTTokenExpiring(token, 120)) {
+          console.log(`JWT token expiring soon, refreshing...`);
+          const newToken = await refreshJWTToken();
+          if (!newToken) {
+            // Refresh failed - user needs to log in again
+            console.warn('[Auth] ⚠️ JWT token refresh failed, logging out user');
+            logout();
+          }
+        }
       }
     } catch (error) {
       console.error("Error checking token expiry:", error);
     }
   };
 
-  // Start automatic token refresh
+  // Start automatic token refresh (for both Firebase and JWT users)
   const startTokenRefresh = () => {
     // Clear any existing intervals
     if (refreshIntervalRef.current) {
@@ -98,8 +156,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Set up regular token refresh (every 13 minutes)
     refreshIntervalRef.current = setInterval(async () => {
-      if (firebaseUserRef.current || auth.currentUser) {
+      const currentUser = firebaseUserRef.current || auth.currentUser;
+      if (currentUser) {
+        // Firebase user
         await refreshFirebaseToken();
+      } else {
+        // JWT user (email/password)
+        const token = localStorage.getItem("auth_token");
+        if (token) {
+          await refreshJWTToken();
+        }
       }
     }, TOKEN_REFRESH_INTERVAL);
 
@@ -147,13 +213,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         // User is logged out from Firebase
         firebaseUserRef.current = null;
-        stopTokenRefresh();
         
         // Check if we still have a valid JWT token (for email/password login)
         const token = localStorage.getItem("auth_token");
         if (token) {
+          // JWT user is logged in - start token refresh for them too
+          console.log('[Auth] JWT user detected, starting auto-refresh');
+          startTokenRefresh();
           await checkAuthStatus();
         } else {
+          // No token at all - stop refresh and clear user
+          stopTokenRefresh();
           setUserState(null);
           setLoading(false);
         }
@@ -195,8 +265,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Store user data for quick access, but don't rely on it for auth
     if (newUser) {
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newUser));
+      
+      // Check if this is a JWT user (not Firebase) and start token refresh
+      if (!firebaseUserRef.current && !auth.currentUser) {
+        const token = localStorage.getItem("auth_token");
+        if (token) {
+          console.log('[Auth] JWT user logged in, starting auto-refresh');
+          startTokenRefresh();
+        }
+      }
     } else {
       localStorage.removeItem(AUTH_STORAGE_KEY);
+      stopTokenRefresh();
     }
   };
 
@@ -242,6 +322,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (data.valid && data.user) {
           console.log("Setting user from token verification:", data.user);
           setUser(data.user);
+          
+          // Start token refresh for JWT users if not already started
+          if (!firebaseUserRef.current && !auth.currentUser) {
+            const token = localStorage.getItem("auth_token");
+            if (token && !refreshIntervalRef.current) {
+              console.log('[Auth] Starting token refresh after verification');
+              startTokenRefresh();
+            }
+          }
         } else {
           console.log("Token verification failed or no user data");
           setUser(null);

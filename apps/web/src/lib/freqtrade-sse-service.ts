@@ -3,7 +3,7 @@
  * Based on the FreqTrade Bot Manager API Documentation
  */
 
-import { getAuthToken } from '@/lib/api';
+import { getAuthTokenAsync } from '@/lib/api';
 import { config, env } from '@/lib/config';
 
 // API Configuration - use config to support both dev and prod
@@ -111,6 +111,8 @@ export class FreqTradeSSEService {
   private isConnected = false;
   private lastConnectionAttempt = 0;
   private connectionCooldown = 1500; // Reduced from 3s for faster initial connection
+  private tokenRefreshTimer: NodeJS.Timeout | null = null;
+  private TOKEN_REFRESH_INTERVAL = 13 * 60 * 1000; // Refresh every 13 minutes (before 15min expiry)
 
   constructor() {
   }
@@ -138,6 +140,52 @@ export class FreqTradeSSEService {
     });
   }
 
+  // Setup automatic token refresh
+  private setupTokenRefresh() {
+    // Clear any existing timer
+    if (this.tokenRefreshTimer) {
+      clearInterval(this.tokenRefreshTimer);
+    }
+
+    // Set up periodic reconnection with fresh token
+    this.tokenRefreshTimer = setInterval(async () => {
+      console.log('[SSE] Refreshing connection with new token...');
+      
+      // Get fresh token
+      const token = await getAuthTokenAsync();
+      if (!token) {
+        console.error('[SSE] No token available for refresh');
+        return;
+      }
+
+      // Reconnect with fresh token
+      try {
+        await this.reconnectWithFreshToken();
+      } catch (error) {
+        console.error('[SSE] Token refresh reconnection failed:', error);
+      }
+    }, this.TOKEN_REFRESH_INTERVAL);
+
+    console.log('[SSE] Token refresh timer setup (every 13 minutes)');
+  }
+
+  // Reconnect with fresh token
+  private async reconnectWithFreshToken(): Promise<void> {
+    console.log('[SSE] Reconnecting with fresh token...');
+    
+    // Close existing connection
+    if (this.eventSource) {
+      this.eventSource.close();
+      this.eventSource = null;
+    }
+
+    // Reset reconnect attempts for fresh connection
+    this.reconnectAttempts = 0;
+
+    // Connect with fresh token
+    await this.connect();
+  }
+
   // Connect to SSE stream
   async connect(): Promise<void> {
     // Check connection cooldown to prevent rapid successive attempts
@@ -151,7 +199,8 @@ export class FreqTradeSSEService {
 
     this.lastConnectionAttempt = Date.now();
 
-    const token = getAuthToken();
+    // Use async version to auto-refresh expired tokens
+    const token = await getAuthTokenAsync();
 
     if (!token) {
       console.error('🔌 No authentication token available for SSE connection');
@@ -217,8 +266,8 @@ export class FreqTradeSSEService {
         this.isConnected = true;
         this.reconnectAttempts = 0;
         this.emit('connected', true);
-
-      };
+        // Setup token refresh when connection is established
+        this.setupTokenRefresh();      };
 
       this.eventSource.onmessage = (event) => {
         // Default message handler - most events should use specific event types
@@ -343,6 +392,12 @@ export class FreqTradeSSEService {
 
   // Disconnect SSE
   disconnect() {
+    // Clear token refresh timer
+    if (this.tokenRefreshTimer) {
+      clearInterval(this.tokenRefreshTimer);
+      this.tokenRefreshTimer = null;
+    }
+
     if (this.eventSource) {
       this.eventSource.close();
       this.eventSource = null;
@@ -376,7 +431,7 @@ export class FreqTradeSSEService {
 
   // Manual test method for debugging
   async testSSEConnection(): Promise<void> {
-    const token = getAuthToken();
+    const token = await getAuthTokenAsync();
 
     if (!token) {
       console.error('No token available for testing');
@@ -410,7 +465,7 @@ export class FreqTradeSSEService {
 
   // Fetch chart data for specific interval
   async fetchChartData(interval: '1h' | '24h' | '7d' | '30d'): Promise<ChartResponse> {
-    const token = getAuthToken();
+    const token = await getAuthTokenAsync();
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -438,7 +493,7 @@ export class FreqTradeSSEService {
     }
   }  // Fetch all chart data intervals
   async fetchAllChartData(): Promise<{ [key: string]: ChartResponse }> {
-    const token = getAuthToken();
+    const token = await getAuthTokenAsync();
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -467,7 +522,7 @@ export class FreqTradeSSEService {
   }
 
   async fetchPortfolioSnapshot(): Promise<PortfolioData | null> {
-    const token = getAuthToken();
+    const token = await getAuthTokenAsync();
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -512,7 +567,7 @@ export class FreqTradeSSEService {
 
   // Fetch raw portfolio history
   async fetchPortfolioHistory(): Promise<any[]> {
-    const token = getAuthToken();
+    const token = await getAuthTokenAsync();
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -540,7 +595,7 @@ export class FreqTradeSSEService {
     }
   }  // Fetch bot list
   async fetchBots(): Promise<any[]> {
-    const token = getAuthToken();
+    const token = await getAuthTokenAsync();
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -561,14 +616,15 @@ export class FreqTradeSSEService {
       }
 
       const data = await response.json();
-      return data;
+      // API returns { success: true, bots: [...] }, extract just the bots array
+      return data.bots || data || [];
     } catch (error) {
       console.error('❌ Failed to fetch bot list:', error);
       throw error;
     }
   }  // Fetch specific bot status
   async fetchBotStatus(instanceId: string): Promise<any> {
-    const token = getAuthToken();
+    const token = await getAuthTokenAsync();
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -598,7 +654,7 @@ export class FreqTradeSSEService {
 
   // Fetch bot balance
   async fetchBotBalance(instanceId: string): Promise<any> {
-    const token = getAuthToken();
+    const token = await getAuthTokenAsync();
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -628,7 +684,7 @@ export class FreqTradeSSEService {
 
   // Fetch bot profit
   async fetchBotProfit(instanceId: string): Promise<any> {
-    const token = getAuthToken();
+    const token = await getAuthTokenAsync();
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -663,7 +719,7 @@ export class FreqTradeSSEService {
     apiUsername: string;
     apiPassword: string;
   }): Promise<any> {
-    const token = getAuthToken();
+    const token = await getAuthTokenAsync();
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -740,7 +796,7 @@ export class FreqTradeSSEService {
 
   // Fetch live trading positions
   async fetchPositions(): Promise<any[]> {
-    const token = getAuthToken();
+    const token = await getAuthTokenAsync();
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -770,7 +826,7 @@ export class FreqTradeSSEService {
 
   // Fetch universal settings for all bots
   async fetchUniversalSettings(): Promise<UniversalSettingsResponse> {
-    const token = getAuthToken();
+    const token = await getAuthTokenAsync();
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -805,7 +861,7 @@ export class FreqTradeSSEService {
     dcaEnabled?: boolean;
     enabled?: boolean;
   }): Promise<any> {
-    const token = getAuthToken();
+    const token = await getAuthTokenAsync();
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -837,7 +893,7 @@ export class FreqTradeSSEService {
 
   // Fetch bot performance metrics
   async fetchBotPerformance(instanceId: string): Promise<BotPerformanceData> {
-    const token = getAuthToken();
+    const token = await getAuthTokenAsync();
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -921,3 +977,4 @@ if (typeof window !== 'undefined') {
 
 // Export default
 export default freqTradeSSEService;
+

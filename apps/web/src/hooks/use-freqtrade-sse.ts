@@ -376,11 +376,16 @@ export const useFreqTradeSSE = (): FreqTradeSSEState => {
         // Try to fetch bot list if available
         freqTradeSSEService.fetchBots()
           .then(botList => {
-            if (Array.isArray(botList) && botList.length > 0) {
-              // Note: setBots if needed, though SSE will update them
+            if (Array.isArray(botList)) {
+              setBots(botList);
+              setBotsError(null);
+              console.log('✅ Loaded initial bot list:', botList.length, 'bots');
             }
           })
-          .catch(error => console.warn('⚠️ Could not fetch initial bot list:', error))
+          .catch(error => {
+            console.warn('⚠️ Could not fetch initial bot list:', error);
+            setBotsError(error instanceof Error ? error.message : 'Failed to load bots');
+          })
           .finally(() => setBotsLoading(false)),
 
         // Try to fetch recent trades if available

@@ -21,7 +21,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { config } from '@/lib/config';
-import { auth } from '@/lib/firebase';
+import { getAuthTokenAsync } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
@@ -125,7 +125,7 @@ export default function PoolManagement() {
       if (showRefresh) setRefreshing(true);
       setError(null);
 
-      const token = await auth.currentUser?.getIdToken();
+      const token = await getAuthTokenAsync();
       if (!token) {
         throw new Error('Not authenticated');
       }
@@ -164,7 +164,7 @@ export default function PoolManagement() {
     try {
       setHealthCheckLoading(true);
       setError(null);
-      const token = await auth.currentUser?.getIdToken();
+      const token = await getAuthTokenAsync();
 
       const response = await fetch(`${config.botManager.baseUrl}/api/pool/my-health-check`, {
         method: 'POST',
@@ -203,7 +203,7 @@ export default function PoolManagement() {
     try {
       setCleanupLoading(true);
       setError(null);
-      const token = await auth.currentUser?.getIdToken();
+      const token = await getAuthTokenAsync();
 
       // Use my-cleanup for user's own orphaned bots (doesn't require admin)
       const response = await fetch(`${config.botManager.baseUrl}/api/pool/my-cleanup`, {

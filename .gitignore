@@ -44,42 +44,165 @@ Thumbs.db
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
 
-# Systemd env files with secrets
+# ============== ENVIRONMENT FILES ==============
+# All .env files except production templates (which should be symlinks)
+**/.env
+**/.env.local
+**/.env.development
+**/.env.development.local
+**/.env.test
+**/.env.test.local
+**/.env.production.local
 **/.env.systemd
-apps/api-gateway/firebase-key.pem
 
+# Keep only .env.production as templates/examples (they don't contain secrets)
+!**/.env.production
+!**/.env.example
+
+# ============== SENSITIVE FILES ==============
+# Firebase service account keys
+**/serviceAccountKey.json
+**/firebase-key.pem
+**/*-firebase-*.json
+
+# JWT and encryption keys
+**/private.key
+**/public.key
+**/*.pem
+**/*.key
+
+# SSL certificates
+**/*.crt
+**/*.cert
+
+# ============== USER DATA & RUNTIME FILES ==============
 # Bot instance data and user data (changes rapidly, contains sensitive info)
 data/bot-instances/
 apps/bot-orchestrator/data/bot-instances/
 **/freqtrade-instances/
 **/bot-instances/
 
-# Exclude all user token files
+# Universal settings files (user-specific configurations)
+**/universal-settings-*.json
+!**/universal-settings-example.json
+
+# Test results and temporary data
+test-results-*.json
+**/test-data/
+**/.temp/
+**/.cache/
+
+# Token files (dev/testing)
 *_token*.txt
 working_token*.txt
 current_token.txt
 fresh_token*.txt
 latest_token*.txt
+**/test-token.txt
 
-# Logs
+# ============== LOGS & MONITORING ==============
 logs/
 *.log
+**/logs/
+**/*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 .dev-logs/
-.dev-pids/
 
+# ============== DEV SCRIPTS & TOOLS ==============
 # Temporary shell scripts (if any local test scripts are created)
 # Production deployment scripts are committed, but local ones should be ignored
 **/local-*.sh
 **/temp-*.sh
 **/test-*.sh
 
-# Local development environment files (never commit)
-**/.env
-**/.env.local
-**/.env.development.local
-**/.env.test.local
-**/.env.production.local
+# Local development scripts (Windows PowerShell)
+dev-servers.ps1
+**/dev-*.ps1
+start-dev.ps1
+stop-dev.ps1
 
-# System env files with secrets
-**/.env.systemd
-**/serviceAccountKey.json
+# Process ID tracking
+.dev-pids/
+**/.dev-pids/
+*.pid
+
+# Docker compose overrides (local development)
+docker-compose.override.yml
+**/docker-compose.dev.yml
+**/docker-compose.local.yml
+
+# Database dumps and backups (local)
+**/*.sql
+**/*.dump
+**/db-backup/
+**/backup/
+
+# ============== BUILD & TEMP ==============
+# Build artifacts
+build/
+.build/
+dist-ssr/
+*.tsbuildinfo
+
+# Temporary files
+tmp/
+.tmp/
+temp/
+.temp/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============== EDITOR & IDE ==============
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# ============== PACKAGE MANAGER ==============
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+# PNPM
+.pnpm-debug.log
+
+# ============== MISC ==============
+# Mac
+.AppleDouble
+.LSOverride
+
+# Windows
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.directory
+.Trash-*

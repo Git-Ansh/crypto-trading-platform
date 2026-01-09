@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { strategyAPI, Strategy, BotStrategy, StrategyUpdateResponse } from '@/lib/strategy-api';
 import { env } from '@/env';
+import { getAuthToken, getAuthTokenAsync } from '@/lib/api';
 
 // Cache strategies globally to avoid refetching
 let cachedStrategies: Strategy[] | null = null;
@@ -19,19 +20,23 @@ function getWebSocketURL(): string {
   // This ensures WebSocket connects to the API server, not the frontend host
   const apiUrl = env.apiUrl || '';
   
+  // Get the JWT token for authentication
+  const token = getAuthToken();
+  
   if (apiUrl) {
-    // Convert http(s)://api.domain.com to ws(s)://api.domain.com/ws/strategies
+    // Convert http(s)://api.domain.com to ws(s)://api.domain.com/ws/strategies?token=...
     const wsUrl = apiUrl.replace(/^http/, 'ws') + '/ws/strategies';
-    return wsUrl;
+    return token ? `${wsUrl}?token=${encodeURIComponent(token)}` : wsUrl;
   }
   
   // Fallback: use current host (for local development where API is on same origin)
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const host = window.location.host;
-  return `${protocol}//${host}/ws/strategies`;
+  const wsUrl = `${protocol}//${host}/ws/strategies`;
+  return token ? `${wsUrl}?token=${encodeURIComponent(token)}` : wsUrl;
 }
 
-function initializeWebSocket() {
+async function initializeWebSocket() {
   if (wsInstance) return;
 
   // Don't attempt if we've exceeded reconnect attempts
@@ -41,6 +46,13 @@ function initializeWebSocket() {
   }
 
   try {
+    // Refresh token if expired before connecting
+    const freshToken = await getAuthTokenAsync();
+    if (!freshToken) {
+      console.log('[StrategyWS] No token available, skipping connection');
+      return;
+    }
+    
     const wsURL = getWebSocketURL();
     console.log('[StrategyWS] Connecting to:', wsURL);
     

@@ -10,6 +10,15 @@ const CustomError = require("../utils/CustomError");
  */
 // errorHandler.js
 const errorHandler = (err, req, res, next) => {
+  // Ensure CORS headers are set on error responses
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  }
+
   if (err instanceof CustomError) {
     return res.status(err.statusCode).json({
       success: false,

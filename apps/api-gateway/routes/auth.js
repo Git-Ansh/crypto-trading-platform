@@ -252,7 +252,17 @@ router.post("/refresh-token", async (req, res, next) => {
       throw new CustomError("Refresh token is required", 400);
     }
 
-    const decryptedRefresh = decrypt(refreshToken);
+    // Try to decrypt - if it fails, the token is from a different encryption key (e.g., server restart)
+    let decryptedRefresh;
+    try {
+      decryptedRefresh = decrypt(refreshToken);
+    } catch (decryptError) {
+      console.error("[Refresh Token] Decryption failed - token may be from previous session:", decryptError.message);
+      // Clear the invalid cookie
+      res.clearCookie("refreshToken");
+      res.clearCookie("token");
+      throw new CustomError("Session expired. Please log in again.", 401);
+    }
 
     const storedToken = await RefreshToken.findOne({
       encryptedToken: encrypt(decryptedRefresh),

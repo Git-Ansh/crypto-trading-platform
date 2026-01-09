@@ -11,7 +11,11 @@
     "vercel-build": "npm run build:packages && npm run build:web",
     "dev:web": "npm run dev --workspace=apps/web",
     "dev:api": "npm run dev --workspace=apps/api-gateway",
-    "dev:bot": "npm run dev --workspace=apps/bot-orchestrator"
+    "dev:bot": "npm run dev --workspace=apps/bot-orchestrator",
+    "validate:env": "node scripts/validate-env.js",
+    "precommit:check": "node scripts/pre-commit-check.js",
+    "safety:check": "npm run validate:env && npm run precommit:check",
+    "safety:guide": "cat SAFETY_GUIDE.md"
   },
   "private": true,
   "devDependencies": {

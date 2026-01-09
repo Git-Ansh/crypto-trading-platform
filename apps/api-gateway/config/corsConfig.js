@@ -13,6 +13,8 @@ const devOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
   "http://localhost:5174",
+  "http://192.168.1.225:5174",
+  "http://192.168.1.225:5173",
   "http://167.88.38.231:5173",
   "http://172.19.0.1:5173",
 ];

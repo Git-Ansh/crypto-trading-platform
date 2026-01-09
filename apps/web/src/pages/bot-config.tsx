@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { config } from '@/lib/config';
-import { auth } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { getAuthTokenAsync } from '@/lib/api';
 import {
     ArrowLeft,
     Bot,
@@ -336,18 +335,7 @@ export default function BotConfigPage() {
     // Monitor state
     const [monitorStatus, setMonitorStatus] = useState<{ running: boolean; botCount: number } | null>(null);
 
-    const getAuthToken = async (): Promise<string | null> => {
-        try {
-            const firebaseUser = auth.currentUser;
-            if (firebaseUser) {
-                return await firebaseUser.getIdToken();
-            }
-            return null;
-        } catch (error) {
-            console.error('Error getting auth token:', error);
-            return null;
-        }
-    };
+
 
     // Fetch bot info and settings
     const fetchBotData = useCallback(async () => {
@@ -357,7 +345,7 @@ export default function BotConfigPage() {
         setError(null);
         
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) {
                 setError('Authentication required');
                 return;
@@ -438,18 +426,19 @@ export default function BotConfigPage() {
         }
     }, [botId]);
 
-    // Wait for Firebase auth to be ready before fetching data
+    // Load data when authenticated (supports both Firebase and JWT)
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
+        const loadData = async () => {
+            const token = await getAuthTokenAsync();
             setAuthReady(true);
-            if (user) {
+            if (token) {
                 fetchBotData();
             } else {
                 setError('Authentication required');
                 setLoading(false);
             }
-        });
-        return () => unsubscribe();
+        };
+        loadData();
     }, [fetchBotData]);
 
     // Check for changes
@@ -478,7 +467,7 @@ export default function BotConfigPage() {
         setError(null);
         
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) {
                 setError('Authentication required');
                 return;
@@ -544,7 +533,7 @@ export default function BotConfigPage() {
         setError(null);
         
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) {
                 setError('Authentication required');
                 return;
@@ -584,7 +573,7 @@ export default function BotConfigPage() {
         if (!botId) return;
         
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) return;
 
             const response = await fetch(

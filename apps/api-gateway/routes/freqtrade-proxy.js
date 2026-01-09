@@ -37,7 +37,8 @@ function getTokenFromRequest(req) {
 }
 
 // Helper to make proxied requests to bot manager using fetch
-async function proxyRequest(method, endpoint, token, data = null, queryParams = {}) {
+// timeoutMs defaults to 15s for normal requests, but provisioning needs 2+ minutes
+async function proxyRequest(method, endpoint, token, data = null, queryParams = {}, timeoutMs = 15000) {
   let timeoutId;
   try {
     const url = new URL(`${BOT_MANAGER_URL}${endpoint}`);
@@ -49,7 +50,7 @@ async function proxyRequest(method, endpoint, token, data = null, queryParams = 
 
     const agent = url.protocol === 'https:' ? httpsAgent : httpAgent;
     const controller = new AbortController();
-    timeoutId = setTimeout(() => controller.abort(), 15000);
+    timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     const options = {
       method,
@@ -97,6 +98,22 @@ router.get('/strategies', auth, async (req, res) => {
   }
 
   const result = await proxyRequest('GET', '/api/strategies', token);
+  
+  if (result.success) {
+    res.json(result.data);
+  } else {
+    res.status(result.status).json(result.error);
+  }
+});
+
+// GET /api/freqtrade/strategies/enhanced - Get enhanced strategies with metadata
+router.get('/strategies/enhanced', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  const result = await proxyRequest('GET', '/api/strategies/enhanced', token);
   
   if (result.success) {
     res.json(result.data);
@@ -176,10 +193,13 @@ router.get('/bots', auth, async (req, res) => {
   }
 
   const result = await proxyRequest('GET', '/api/bots', token);
+  console.log('[FreqTrade Proxy /bots] Result from bot-orchestrator:', JSON.stringify(result, null, 2));
   
   if (result.success) {
+    console.log('[FreqTrade Proxy /bots] Sending success response with data:', result.data);
     res.json(result.data);
   } else {
+    console.log('[FreqTrade Proxy /bots] Sending error response:', result.status, result.error);
     res.status(result.status).json(result.error);
   }
 });
@@ -525,6 +545,7 @@ router.post('/provision', auth, async (req, res) => {
     }
 
     // Provision the bot first - pass all config options to bot-orchestrator
+    // Use 180 second (3 minute) timeout for provisioning as it involves Docker operations
     const provisionResult = await proxyRequest('POST', '/api/provision-enhanced', token, {
       instanceId: botId,
       initialBalance: allocation,
@@ -535,7 +556,7 @@ router.post('/provision', auth, async (req, res) => {
       timeframe,
       exchange,
       stake_currency,
-    });
+    }, {}, 180000); // 3 minute timeout for provisioning
     
     if (!provisionResult.success) {
       return res.status(provisionResult.status).json(provisionResult.data || provisionResult.error);
@@ -1146,6 +1167,57 @@ router.get('/stream', (req, res) => {
       message: 'Failed to create bot manager connection',
       error: error.message
     });
+  }
+});
+
+// ============== POOL ROUTES ==============
+// Proxy pool routes to bot-orchestrator
+
+// GET /pool/my-pools - Get user's pools
+router.get('/pool/my-pools', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  try {
+    const result = await proxyRequest('GET', '/api/pool/my-pools', token);
+    res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error('Pool my-pools proxy error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// POST /pool/my-health-check - User's health check
+router.post('/pool/my-health-check', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  try {
+    const result = await proxyRequest('POST', '/api/pool/my-health-check', token, req.body);
+    res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error('Pool my-health-check proxy error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// POST /pool/my-cleanup - User's cleanup
+router.post('/pool/my-cleanup', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  try {
+    const result = await proxyRequest('POST', '/api/pool/my-cleanup', token, req.body);
+    res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error('Pool my-cleanup proxy error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 

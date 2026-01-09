@@ -524,9 +524,93 @@ function setupCustomTokenFormat(axiosInstance: AxiosInstance, useRawToken: boole
   });
 }
 
-// Add this helper function to get the auth token
+// Add this helper function to get the auth token (synchronous version)
 export function getAuthToken() {
   return localStorage.getItem("auth_token");
+}
+
+// Helper to check if a JWT token is expired or about to expire
+function isTokenExpired(token: string, bufferSeconds: number = 60): boolean {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    
+    const payload = JSON.parse(atob(parts[1]));
+    const currentTime = Math.floor(Date.now() / 1000);
+    
+    // Check if token expires within bufferSeconds
+    return payload.exp <= currentTime + bufferSeconds;
+  } catch {
+    return true; // Assume expired if we can't parse
+  }
+}
+
+// Refresh the access token using the refresh token cookie
+async function refreshAccessToken(): Promise<string | null> {
+  try {
+    console.log('[Auth] 🔄 Attempting to refresh access token...');
+    const response = await fetch(`${config.api.baseUrl}/api/auth/refresh-token`, {
+      method: 'POST',
+      credentials: 'include', // Include cookies (refresh token)
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.accessToken) {
+        console.log('[Auth] ✅ Token refreshed successfully!');
+        localStorage.setItem("auth_token", data.accessToken);
+        return data.accessToken;
+      }
+    }
+    
+    console.warn(`[Auth] ❌ Token refresh failed with status ${response.status}. You may need to log out and log back in.`);
+    return null;
+  } catch (error) {
+    console.error('[Auth] ❌ Token refresh error:', error);
+    return null;
+  }
+}
+
+// Async version that prioritizes Firebase token when available
+// Automatically refreshes expired tokens for email/password users
+export async function getAuthTokenAsync(): Promise<string | null> {
+  try {
+    // First try to get Firebase token if user is logged in with Firebase
+    if (auth.currentUser) {
+      try {
+        const token = await auth.currentUser.getIdToken(false);
+        // Keep localStorage in sync
+        localStorage.setItem("auth_token", token);
+        return token;
+      } catch (error) {
+        console.warn('Failed to get Firebase token:', error);
+      }
+    }
+    
+    // Fallback to localStorage token (for email/password users)
+    const token = localStorage.getItem("auth_token");
+    
+    if (token) {
+      // Check if token is expired or about to expire (within 60 seconds)
+      if (isTokenExpired(token, 60)) {
+        console.log('[Auth] ⏰ Token expired or expiring soon (within 60s), attempting refresh...');
+        const newToken = await refreshAccessToken();
+        if (newToken) {
+          return newToken;
+        }
+        // If refresh failed, return the old token anyway (server will reject if truly expired)
+        console.warn('[Auth] ⚠️ Token refresh failed, using potentially expired token. Please log out and log back in.');
+      }
+    }
+    
+    return token;
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+    return null;
+  }
 }
 
 // Add a function to verify the token with the backend

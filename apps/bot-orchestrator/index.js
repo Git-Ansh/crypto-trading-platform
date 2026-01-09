@@ -259,24 +259,26 @@ const isWSL = process.platform === 'linux' && process.env.WSL_DISTRO_NAME;
 const isWindows = process.platform === 'win32';
 
 // Use explicit path resolution - prefer env var, then relative path
+// CRITICAL: Use path.resolve() to get ABSOLUTE paths - Docker on Windows fails with relative paths
 let BOT_BASE_DIR;
 if (process.env.BOT_BASE_DIR) {
-  BOT_BASE_DIR = process.env.BOT_BASE_DIR;
+  BOT_BASE_DIR = path.resolve(process.env.BOT_BASE_DIR);
 } else {
-  // Default to data/bot-instances relative to project root
-  BOT_BASE_DIR = path.join(__dirname, '../../data/bot-instances');
+  // Default to data/bot-instances relative to project root - MUST be absolute for Docker
+  BOT_BASE_DIR = path.resolve(__dirname, '../../data/bot-instances');
 }
-console.log('[Config] BOT_BASE_DIR:', BOT_BASE_DIR);
+console.log('[Config] BOT_BASE_DIR (absolute):', BOT_BASE_DIR);
 console.log('[Config] Platform:', process.platform, 'isWSL:', isWSL);
 const FREQTRADE_IMAGE = 'freqtradeorg/freqtrade:stable'; // Always use stable FreqTrade image for local SQLite
 console.log(`Using FREQTRADE_IMAGE: ${FREQTRADE_IMAGE}`);
 console.log(`CRITICAL: All new bots will use the stable image with local SQLite DB: ${FREQTRADE_IMAGE}`);
 // Shared strategies dir (used ONLY for fallback default strategy creation if main source is empty/missing)
-const STRATEGIES_DIR = process.env.STRATEGIES_DIR || path.join(__dirname, 'freqtrade-shared', 'strategies');
+// CRITICAL: All paths must be absolute for Docker on Windows
+const STRATEGIES_DIR = path.resolve(process.env.STRATEGIES_DIR || path.join(__dirname, 'freqtrade-shared', 'strategies'));
 // Main source directory on HOST where strategies are copied FROM during provisioning
-const MAIN_STRATEGIES_SOURCE_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || path.join(__dirname, '../../data/strategies');
+const MAIN_STRATEGIES_SOURCE_DIR = path.resolve(process.env.MAIN_STRATEGIES_SOURCE_DIR || path.join(__dirname, '../../data/strategies'));
 // SHARED data directory on HOST where historical data resides (must be managed separately)
-const SHARED_DATA_DIR = process.env.SHARED_DATA_DIR || path.join(__dirname, '../../data/shared-market-data');
+const SHARED_DATA_DIR = path.resolve(process.env.SHARED_DATA_DIR || path.join(__dirname, '../../data/shared-market-data'));
 
 // --- Queue System for Provisioning ---
 const provisioningQueue = [];
@@ -4173,16 +4175,18 @@ async function getSecurityData(userId) {
 // --- SSE Streaming with Historical Data Saving ---
 app.get('/api/stream', async (req, res) => {
   try {
-    console.log(`[SSE] Incoming connection request from ${req.ip}`);
+    // Force immediate output to both stderr and stdout
+    console.log(`[SSE] =============== NEW CONNECTION ===============`);
+    console.log(`[SSE] Incoming connection from ${req.ip}`);
     console.log(`[SSE] Query params:`, req.query);
     console.log(`[SSE] Headers origin:`, req.headers.origin);
 
     const user = await authenticateSSE(req);
     if (!user || !(user.id || user.uid)) {
-      console.warn(`[SSE] Authentication failed for request from ${req.ip}`);
+      console.log(`[SSE] ❌ Authentication FAILED for ${req.ip}`);
       return res.status(401).json({ error: 'Authentication failed' });
     }
-    console.log(`[SSE] User authenticated: ${user.id || user.uid}`);
+    console.log(`[SSE] ✅ User authenticated successfully: ${user.id || user.uid}`);
 
     // SSE headers - Send immediately using writeHead
     const sseHeaders = {
@@ -4294,52 +4298,92 @@ app.get('/api/stream', async (req, res) => {
 
 // --- SSE Authentication helper (supports ?token= for EventSource) ---
 async function authenticateSSE(req) {
+  console.log('[SSE-Auth] =============== AUTHENTICATION START ===============');
   try {
     const header = req.header('Authorization');
     let token = null;
     if (header && header.startsWith('Bearer ')) token = header.split(' ')[1];
     if (!token) token = req.query.token; // EventSource cannot set headers
 
-    // Detailed Cookie Logging
-    console.log('[SSE] Cookies:', req.cookies);
-    console.log('[SSE] Raw Cookie Header:', req.headers.cookie);
+    console.log('[SSE-Auth] Token source:', header ? 'Authorization header' : (req.query.token ? 'Query param' : 'None'));
+    console.log('[SSE-Auth] Token length:', token ? token.length : 0);
 
     if (!token && req.cookies) token = req.cookies.token; // Try cookie (HttpOnly)
     if (!token) {
-      console.warn('[SSE] Missing token');
+      console.log('[SSE-Auth] ❌ No token found');
       return null;
     }
 
-    // Try Firebase Admin first if available
+    console.log('[SSE-Auth] Token found, attempting authentication...');
+
+    // Detect token type by checking the header
+    try {
+      const decodedHeader = jwt.decode(token, { complete: true });
+      const algorithm = decodedHeader?.header?.alg;
+      console.log('[SSE-Auth] Token algorithm:', algorithm);
+      
+      // If it's HS256, it's our local JWT - try that first
+      if (algorithm === 'HS256') {
+        console.log('[SSE-Auth] Detected HS256 token, trying local JWT first...');
+        
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          const u = decoded.user || decoded;
+          const user = { id: u.id || u.uid, uid: u.uid || u.id, email: u.email, role: u.role || 'user' };
+          console.log(`[SSE-Auth] ✅ Local JWT SUCCESS! User: ${user.id}`);
+          return user;
+        } catch (e) {
+          console.log(`[SSE-Auth] ❌ Local JWT failed: ${e.message}`);
+          // Don't try Firebase for HS256 tokens
+          return null;
+        }
+      }
+    } catch (err) {
+      console.log('[SSE-Auth] Token header decode failed:', err.message);
+    }
+
+    // Try Firebase Admin first if available (for RS256 tokens)
     if (firebaseInitialized) {
       try {
+        console.log('[SSE] Trying Firebase Admin verification...');
+        process.stderr.write('[SSE DEBUG] Trying Firebase Admin...\n');
         const decoded = await admin.auth().verifyIdToken(token);
         const user = { id: decoded.uid, uid: decoded.uid, email: decoded.email, role: decoded.admin ? 'admin' : 'user' };
         console.log(`[SSE] Auth via Firebase Admin: ${user.uid}`);
         return user;
       } catch (e) {
+        process.stderr.write(`[SSE DEBUG] Firebase Admin failed: ${e.message}\n`);
         console.warn(`[SSE] Firebase Admin verify failed: ${e.message}. Falling back to JWKS.`);
       }
     }
 
     // Try Firebase verification via JWKS (no service account required)
+    console.log('[SSE] Trying Firebase JWKS verification...');
+    process.stderr.write('[SSE DEBUG] Trying Firebase JWKS...\n');
     const firebaseUser = await verifyFirebaseIdTokenWithoutAdmin(token);
     if (firebaseUser) {
       console.log(`[SSE] Auth via Firebase JWKS: ${firebaseUser.uid}`);
       return firebaseUser;
     }
+    process.stderr.write('[SSE DEBUG] Firebase JWKS failed\n');
+    console.log('[SSE] Firebase JWKS verification failed, trying local JWT...');
 
     // Fallback: Local JWT (for non-Firebase tokens)
     try {
+      console.log('[SSE] Trying local JWT verification...');
+      process.stderr.write(`[SSE DEBUG] Trying local JWT, JWT_SECRET exists: ${!!process.env.JWT_SECRET}\n`);
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const u = decoded.user || decoded;
       const user = { id: u.id || u.uid, uid: u.uid || u.id, email: u.email, role: u.role || 'user' };
+      process.stderr.write(`[SSE DEBUG] Local JWT SUCCESS! User: ${user.id}\n`);
       console.log(`[SSE] Auth via local JWT: ${user.id}`);
       return user;
     } catch (e) {
+      process.stderr.write(`[SSE DEBUG] Local JWT ERROR: ${e.message}\n`);
       console.warn(`[SSE] Local JWT verify failed: ${e.message}`);
     }
 
+    console.warn('[SSE] All authentication methods failed');
     return null;
   } catch (error) {
     console.error('[SSE] Authentication error:', error);

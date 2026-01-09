@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { config } from '@/lib/config';
-import { auth } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { getAuthTokenAsync } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 import {
     User,
     Mail,
@@ -196,22 +196,11 @@ export default function AccountSettingsPage() {
         frequency: 'instant',
     });
 
-    const getAuthToken = async (): Promise<string | null> => {
-        try {
-            const firebaseUser = auth.currentUser;
-            if (firebaseUser) {
-                return await firebaseUser.getIdToken();
-            }
-            return null;
-        } catch (error) {
-            console.error('Error getting auth token:', error);
-            return null;
-        }
-    };
+
 
     const fetchProfile = useCallback(async () => {
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) {
                 console.error('No auth token available');
                 return;
@@ -250,7 +239,7 @@ export default function AccountSettingsPage() {
 
     const fetchWallet = useCallback(async () => {
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) return;
 
             const response = await fetch(`${config.api.baseUrl}/api/account/wallet`, {
@@ -268,7 +257,7 @@ export default function AccountSettingsPage() {
 
     const fetchSessions = useCallback(async () => {
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) return;
 
             const response = await fetch(`${config.api.baseUrl}/api/account/sessions`, {
@@ -285,9 +274,10 @@ export default function AccountSettingsPage() {
     }, []);
 
     useEffect(() => {
-        // Wait for Firebase auth to be ready before fetching data
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            if (user) {
+        // Get auth state from AuthContext (supports both Firebase and JWT)
+        const loadData = async () => {
+            const token = await getAuthTokenAsync();
+            if (token) {
                 setLoading(true);
                 await Promise.all([fetchProfile(), fetchWallet(), fetchSessions()]);
                 setLoading(false);
@@ -295,16 +285,15 @@ export default function AccountSettingsPage() {
                 // No user logged in, stop loading
                 setLoading(false);
             }
-        });
-        
-        return () => unsubscribe();
+        };
+        loadData();
     }, [fetchProfile, fetchWallet, fetchSessions]);
 
     const handleSaveProfile = async () => {
         setSaving(true);
         setError(null);
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) throw new Error('Not authenticated');
 
             const response = await fetch(`${config.api.baseUrl}/api/account/profile`, {
@@ -347,7 +336,7 @@ export default function AccountSettingsPage() {
         setSaving(true);
         setError(null);
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) throw new Error('Not authenticated');
 
             const response = await fetch(`${config.api.baseUrl}/api/account/change-password`, {
@@ -388,7 +377,7 @@ export default function AccountSettingsPage() {
         setSaving(true);
         setError(null);
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) throw new Error('Not authenticated');
 
             let endpoint = '';
@@ -436,7 +425,7 @@ export default function AccountSettingsPage() {
 
     const handleRevokeSession = async (sessionId: string) => {
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) return;
 
             const response = await fetch(`${config.api.baseUrl}/api/account/sessions/${sessionId}`, {
@@ -455,7 +444,7 @@ export default function AccountSettingsPage() {
 
     const handleSendVerificationEmail = async () => {
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) return;
 
             const response = await fetch(`${config.api.baseUrl}/api/account/send-verification-email`, {
@@ -477,7 +466,7 @@ export default function AccountSettingsPage() {
     const handleSaveNotifications = async () => {
         setSaving(true);
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) throw new Error('Not authenticated');
 
             const response = await fetch(`${config.api.baseUrl}/api/account/notifications`, {

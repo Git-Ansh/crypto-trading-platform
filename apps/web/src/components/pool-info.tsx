@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Server, Bot, Activity, AlertCircle } from 'lucide-react';
 import { config } from '@/lib/config';
-import { auth } from '@/lib/firebase';
+import { getAuthTokenAsync } from '@/lib/api';
 
 interface PoolData {
   id: string;
@@ -62,7 +62,7 @@ export const PoolInfo = () => {
       setLoading(true);
       setError(null);
 
-      const token = await auth.currentUser?.getIdToken();
+      const token = await getAuthTokenAsync();
       if (!token) {
         throw new Error('Not authenticated');
       }

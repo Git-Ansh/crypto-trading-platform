@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { config } from '@/lib/config';
-import { auth } from '@/lib/firebase';
 import { useWallet } from '@/hooks/use-wallet';
+import { getAuthTokenAsync } from '@/lib/api';
 import {
     Bot,
     Loader2,
@@ -71,18 +71,7 @@ export default function BotProvisioningPage() {
         timeframe: '15m'
     });
 
-    const getAuthToken = async (): Promise<string | null> => {
-        try {
-            const firebaseUser = auth.currentUser;
-            if (firebaseUser) {
-                return await firebaseUser.getIdToken();
-            }
-            return null;
-        } catch (error) {
-            console.error('Error getting auth token:', error);
-            return null;
-        }
-    };
+
 
     // Update initial balance when wallet loads
     useEffect(() => {
@@ -98,11 +87,11 @@ export default function BotProvisioningPage() {
         const loadData = async () => {
             setLoading(true);
             try {
-                const token = await getAuthToken();
+                const token = await getAuthTokenAsync();
                 if (!token) return;
 
-                // Fetch strategies
-                const strategiesRes = await fetch(`${config.botManager.baseUrl}/api/strategies/enhanced`, {
+                // Fetch strategies (config.botManager.baseUrl already includes /api/freqtrade)
+                const strategiesRes = await fetch(`${config.botManager.baseUrl}/strategies/enhanced`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (strategiesRes.ok) {
@@ -111,7 +100,7 @@ export default function BotProvisioningPage() {
                 }
 
                 // Fetch bots to check limit and generate name
-                const botsRes = await fetch(`${config.botManager.baseUrl}/api/bots`, {
+                const botsRes = await fetch(`${config.botManager.baseUrl}/bots`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (botsRes.ok) {
@@ -165,7 +154,7 @@ export default function BotProvisioningPage() {
         setError(null);
 
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) throw new Error('Not authenticated');
 
             const response = await fetch(`${config.api.baseUrl}/api/freqtrade/provision`, {

@@ -77,7 +77,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const PositionsTable = lazy(() => import("@/components/positions-table").then(m => ({ default: m.PositionsTable })));
 const StrategySelector = lazy(() => import("@/components/strategy-selector").then(m => ({ default: m.StrategySelector })));
 import { config } from "@/lib/config";
-import { auth } from "@/lib/firebase";
+import { getAuthTokenAsync } from "@/lib/api";
 
 // ================== CONFIG ENDPOINTS ==================
 // Replace the Coindesk/CC endpoints with Binance endpoints
@@ -237,7 +237,7 @@ export default function Dashboard() {
   const startBot = useCallback(async (botId: string) => {
     try {
       setBotActionLoading(prev => ({ ...prev, [botId]: 'start' }));
-      const token = await auth.currentUser?.getIdToken();
+      const token = await getAuthTokenAsync();
       if (!token) {
         console.error('No auth token available');
         return;
@@ -265,7 +265,7 @@ export default function Dashboard() {
   const stopBot = useCallback(async (botId: string) => {
     try {
       setBotActionLoading(prev => ({ ...prev, [botId]: 'stop' }));
-      const token = await auth.currentUser?.getIdToken();
+      const token = await getAuthTokenAsync();
       if (!token) {
         console.error('No auth token available');
         return;
@@ -1330,7 +1330,7 @@ export default function Dashboard() {
       
       try {
         setSettingsLoading(true);
-        const token = await auth.currentUser?.getIdToken();
+        const token = await getAuthTokenAsync();
         if (!token) {
           console.warn('[Dashboard] No auth token available for bot settings fetch');
           return;
@@ -1370,7 +1370,7 @@ export default function Dashboard() {
       if (!selectedBotForStrategy || hasNoBots) return;
       
       try {
-        const token = await auth.currentUser?.getIdToken();
+        const token = await getAuthTokenAsync();
         if (!token) {
           console.warn('[Dashboard] No auth token available for performance fetch');
           return;
@@ -1427,7 +1427,7 @@ export default function Dashboard() {
     if (!selectedBotForStrategy || hasNoBots) return;
     
     try {
-      const token = await auth.currentUser?.getIdToken();
+      const token = await getAuthTokenAsync();
       const response = await fetch(
         `${config.api.baseUrl}/api/freqtrade/universal-settings/${selectedBotForStrategy}`,
         {

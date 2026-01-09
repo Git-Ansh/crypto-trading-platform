@@ -137,6 +137,8 @@ const defaultDevOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
   "http://localhost:5174",
+  "http://192.168.1.225:5174", // Network IP access
+  "http://192.168.1.225:5173",
 ];
 
 const parseOrigins = (value) =>
@@ -150,6 +152,9 @@ const allowedOrigins = (() => {
   if (fromEnv.length) return fromEnv;
   return NODE_ENV === "production" ? defaultProdOrigins : defaultDevOrigins;
 })();
+
+console.log("[CORS] Allowed origins:", allowedOrigins);
+console.log("[CORS] NODE_ENV:", NODE_ENV);
 
 // IMPORTANT: Apply CORS middleware BEFORE any routes
 app.use(
@@ -181,6 +186,23 @@ app.use(
 
 // Handle preflight OPTIONS requests explicitly
 app.options("*", cors());
+
+// Request logger - log all incoming requests
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - Origin: ${req.headers.origin || 'none'}`);
+  
+  // Ensure CORS headers are always present in response
+  if (req.headers.origin && allowedOrigins.includes(req.headers.origin)) {
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else if (NODE_ENV === 'development' && req.headers.origin) {
+    // In development, allow all origins
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  
+  next();
+});
 
 // Rest of your middleware
 app.use(express.json());
@@ -553,17 +575,14 @@ app._router.stack.forEach(function (r) {
 // Add this line to print registered user routes for debugging
 console.log("User routes registered:", Object.keys(usersRoutes.stack));
 
-// Import the CORS configuration
-const corsOptions = require("./config/corsConfig");
-
-// Apply CORS middleware
-app.use(cors(corsOptions));
+// Note: CORS is already configured at the top of this file (line ~154)
+// No need to apply it again here
 
 // For specific routes that need their own CORS config
-app.options("/api/auth/exchange-google-token", cors(corsOptions));
+app.options("/api/auth/exchange-google-token", cors());
 app.post(
   "/api/auth/exchange-google-token",
-  cors(corsOptions),
+  cors(),
   async (req, res) => {
     // Your existing route handler code
   }

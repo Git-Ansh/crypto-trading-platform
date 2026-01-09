@@ -1,4 +1,4 @@
-import { auth } from '@/lib/firebase';
+import { getAuthTokenAsync } from '@/lib/api';
 import { config, env } from '@/lib/config';
 
 // API Configuration - ALL requests go through the main server proxy to avoid CORS issues
@@ -66,17 +66,9 @@ export class FreqTradeService {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
 
-  // Get Firebase token
+  // Get auth token (supports both Firebase and email/password)
   private async getAuthToken(): Promise<string | null> {
-    try {
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        return await currentUser.getIdToken();
-      }
-    } catch (error) {
-      console.error('Failed to get Firebase token:', error);
-    }
-    return null;
+    return await getAuthTokenAsync();
   }
 
   // HTTP Request helper

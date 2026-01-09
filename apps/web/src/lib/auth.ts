@@ -18,7 +18,7 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import { verifyGoogleAuth } from "./api";
+import { verifyGoogleAuth, getAuthTokenAsync } from "./api";
 
 // Re-export the auth instance from firebase
 export { auth };
@@ -301,7 +301,7 @@ export const callAuthenticatedEndpoint = async (
       method,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${await auth.currentUser?.getIdToken()}`
+        'Authorization': `Bearer ${await getAuthTokenAsync()}`
       },
       credentials: 'include',
       body: data ? JSON.stringify(data) : undefined

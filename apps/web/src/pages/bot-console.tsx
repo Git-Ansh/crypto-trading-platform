@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { useAuth } from '@/contexts/AuthContext';
 import { config } from '@/lib/config';
-import { auth } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { getAuthTokenAsync } from '@/lib/api';
 import {
     Bot,
     Plus,
@@ -178,7 +176,7 @@ const BotBalance = ({ bot, onBalanceUpdate }: { bot: BotInstance, onBalanceUpdat
             if (!balance && isMounted) setLoading(true);
 
             try {
-                const token = await auth.currentUser?.getIdToken();
+                const token = await getAuthTokenAsync();
                 if (!token) {
                     // Auth not ready yet, retry after a short delay
                     if (isMounted && retryCount < 3) {
@@ -191,7 +189,7 @@ const BotBalance = ({ bot, onBalanceUpdate }: { bot: BotInstance, onBalanceUpdat
                     return;
                 }
 
-                const response = await fetch(`${config.botManager.baseUrl}/api/proxy/${bot.instanceId}/api/v1/balance`, {
+                const response = await fetch(`${config.botManager.baseUrl}/proxy/${bot.instanceId}/api/v1/balance`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -289,22 +287,11 @@ export default function BotConsolePage() {
         return totals;
     };
 
-    const getAuthToken = async (): Promise<string | null> => {
-        try {
-            const firebaseUser = auth.currentUser;
-            if (firebaseUser) {
-                return await firebaseUser.getIdToken();
-            }
-            return null;
-        } catch (error) {
-            console.error('Error getting auth token:', error);
-            return null;
-        }
-    };
+    // Use the unified getAuthTokenAsync from lib/api which supports both Firebase and localStorage JWT
 
     const fetchBots = async () => {
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) {
                 console.warn('[BotConsole] No auth token available, skipping fetch');
                 return;
@@ -313,7 +300,7 @@ export default function BotConsolePage() {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-            const response = await fetch(`${config.botManager.baseUrl}/api/bots`, {
+            const response = await fetch(`${config.botManager.baseUrl}/bots`, {
                 headers: { Authorization: `Bearer ${token}` },
                 signal: controller.signal
             });
@@ -337,7 +324,7 @@ export default function BotConsolePage() {
 
     const fetchWalletAllocations = async () => {
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) return;
 
             const response = await fetch(`${config.api.baseUrl}/api/account/wallet`, {
@@ -364,12 +351,12 @@ export default function BotConsolePage() {
         try {
             if (showRefresh) setPoolRefreshing(true);
 
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) {
                 throw new Error('Not authenticated');
             }
 
-            const response = await fetch(`${config.botManager.baseUrl}/api/pool/my-pools`, {
+            const response = await fetch(`${config.botManager.baseUrl}/pool/my-pools`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -398,9 +385,9 @@ export default function BotConsolePage() {
     const runHealthCheck = async () => {
         try {
             setHealthCheckLoading(true);
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
 
-            const response = await fetch(`${config.botManager.baseUrl}/api/pool/my-health-check`, {
+            const response = await fetch(`${config.botManager.baseUrl}/pool/my-health-check`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -435,10 +422,10 @@ export default function BotConsolePage() {
     const cleanupEmptyPools = async () => {
         try {
             setCleanupLoading(true);
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
 
             // Use my-cleanup for user's own orphaned bots (doesn't require admin)
-            const response = await fetch(`${config.botManager.baseUrl}/api/pool/my-cleanup`, {
+            const response = await fetch(`${config.botManager.baseUrl}/pool/my-cleanup`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -467,9 +454,10 @@ export default function BotConsolePage() {
     };
 
     useEffect(() => {
-        // Wait for Firebase auth to be ready before fetching
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            if (user) {
+        // Load data when authenticated (supports both Firebase and JWT)
+        const loadData = async () => {
+            const token = await getAuthTokenAsync();
+            if (token) {
                 setLoading(true);
                 try {
                     await Promise.all([fetchBots(), fetchWalletAllocations(), fetchPoolStats()]);
@@ -480,9 +468,8 @@ export default function BotConsolePage() {
                 // No user logged in, stop loading
                 setLoading(false);
             }
-        });
-        
-        return () => unsubscribe();
+        };
+        loadData();
     }, [fetchPoolStats]);
 
     const [botToDelete, setBotToDelete] = useState<BotInstance | null>(null);
@@ -501,10 +488,10 @@ export default function BotConsolePage() {
     const handleBotAction = async (instanceId: string, action: 'start' | 'stop') => {
         try {
             setBotActionLoading(prev => ({ ...prev, [instanceId]: action }));
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) return;
 
-            const response = await fetch(`${config.botManager.baseUrl}/api/bots/${instanceId}/${action}`, {
+            const response = await fetch(`${config.botManager.baseUrl}/bots/${instanceId}/${action}`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -529,10 +516,10 @@ export default function BotConsolePage() {
         setBotToDelete(null);
 
         try {
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) return;
 
-            const response = await fetch(`${config.botManager.baseUrl}/api/bots/${instanceId}`, {
+            const response = await fetch(`${config.botManager.baseUrl}/bots/${instanceId}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -558,7 +545,7 @@ export default function BotConsolePage() {
 
         try {
             setWithdrawLoading(true);
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) {
                 setError('Authentication required');
                 setWithdrawLoading(false);
@@ -616,7 +603,7 @@ export default function BotConsolePage() {
     const handleWithdrawAllFromBot = async (bot: BotInstance) => {
         try {
             setWithdrawLoading(true);
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) {
                 setError('Authentication required');
                 setWithdrawLoading(false);
@@ -666,7 +653,7 @@ export default function BotConsolePage() {
 
         try {
             setAddFundsLoading(true);
-            const token = await getAuthToken();
+            const token = await getAuthTokenAsync();
             if (!token) {
                 setError('Authentication required');
                 setAddFundsLoading(false);

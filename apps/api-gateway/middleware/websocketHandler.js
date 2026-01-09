@@ -4,6 +4,32 @@
  */
 
 const WebSocket = require('ws');
+const jwt = require('jsonwebtoken');
+const url = require('url');
+
+/**
+ * Verify JWT token from WebSocket connection
+ */
+function verifyWebSocketToken(request) {
+  try {
+    // Parse URL to get query parameters
+    const parsedUrl = url.parse(request.url, true);
+    const token = parsedUrl.query.token;
+
+    if (!token) {
+      console.log('[WebSocket] No token provided in connection');
+      return null;
+    }
+
+    // Verify the token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('[WebSocket] Token verified for user:', decoded.user?.id);
+    return decoded;
+  } catch (err) {
+    console.error('[WebSocket] Token verification failed:', err.message);
+    return null;
+  }
+}
 
 /**
  * Upgrade HTTP server to support WebSocket
@@ -11,11 +37,23 @@ const WebSocket = require('ws');
 function setupWebSocketServer(server, strategyManager) {
   const wss = new WebSocket.Server({ 
     server,
-    path: '/ws/strategies'
+    path: '/ws/strategies',
+    verifyClient: (info, callback) => {
+      // Verify JWT token before accepting connection
+      const decoded = verifyWebSocketToken(info.req);
+      if (!decoded) {
+        callback(false, 401, 'Unauthorized');
+      } else {
+        // Attach user info to the request for later use
+        info.req.user = decoded.user;
+        callback(true);
+      }
+    }
   });
 
-  wss.on('connection', (ws) => {
-    console.log('[WebSocket] New client connected for strategy updates');
+  wss.on('connection', (ws, request) => {
+    console.log('[WebSocket] New authenticated client connected for strategy updates');
+    console.log('[WebSocket] User:', request.user?.id);
 
     // Register with strategy manager
     strategyManager.addSubscriber(ws);
@@ -47,7 +85,7 @@ function setupWebSocketServer(server, strategyManager) {
     });
   });
 
-  console.log('[WebSocket] Server initialized on path /ws/strategies');
+  console.log('[WebSocket] Server initialized on path /ws/strategies with authentication');
   return wss;
 }
 
