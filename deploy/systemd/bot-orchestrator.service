@@ -5,9 +5,9 @@ Wants=network-online.target docker.service
 
 [Service]
 Type=simple
-User=root
-WorkingDirectory=/root/crypto-trading-platform/apps/bot-orchestrator
-EnvironmentFile=/root/crypto-trading-platform/apps/bot-orchestrator/.env.systemd
+User=ubuntu
+WorkingDirectory=/home/ubuntu/Workspace/crypto-trading-platform/apps/bot-orchestrator
+EnvironmentFile=/home/ubuntu/Workspace/crypto-trading-platform/apps/bot-orchestrator/.env.systemd
 ExecStart=/usr/bin/node index.js
 Restart=always
 RestartSec=10

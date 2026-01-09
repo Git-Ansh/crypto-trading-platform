@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=root
-WorkingDirectory=/root/Crypto-Pilot-Freqtrade/bot-manager
+User=ubuntu
+WorkingDirectory=/home/ubuntu/Workspace/crypto-trading-platform/bot-manager
 ExecStart=/usr/bin/node refresh-turso-token.js --schedule
 Restart=always
 RestartSec=30

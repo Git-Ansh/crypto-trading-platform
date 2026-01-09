@@ -3155,6 +3155,27 @@ async function listUserBotInstances(userId) {
             const botDir = path.join(poolDir, 'bots', botInstanceId);
             const configPath = path.join(botDir, 'config.json');
             
+            // Verify bot directory and config actually exist
+            if (!(await fs.pathExists(botDir))) {
+              console.log('[listUserBotInstances] Bot directory not found for', botInstanceId, '- cleaning up state');
+              // Clean up stale bot from pool state
+              try {
+                const poolManager = poolProvisioner.getPoolManager();
+                if (poolManager && poolManager.botMapping) {
+                  poolManager.botMapping.delete(botInstanceId);
+                  const poolState = poolManager.pools.get(pool.id);
+                  if (poolState) {
+                    poolState.bots = poolState.bots.filter(id => id !== botInstanceId);
+                    await poolManager._saveState();
+                    console.log('[listUserBotInstances] Cleaned up stale bot from state:', botInstanceId);
+                  }
+                }
+              } catch (cleanupErr) {
+                console.warn('[listUserBotInstances] Cleanup error:', cleanupErr.message);
+              }
+              continue;
+            }
+            
             if (!(await fs.pathExists(configPath))) {
               console.log('[listUserBotInstances] Config not found for', botInstanceId);
               continue;

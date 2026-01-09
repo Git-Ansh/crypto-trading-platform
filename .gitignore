@@ -64,8 +64,17 @@ latest_token*.txt
 # Logs
 logs/
 *.log
+.dev-logs/
+.dev-pids/
+
+# Temporary shell scripts (if any local test scripts are created)
+# Production deployment scripts are committed, but local ones should be ignored
+**/local-*.sh
+**/temp-*.sh
+**/test-*.sh
 
 # Local development environment files (never commit)
+**/.env
 **/.env.local
 **/.env.development.local
 **/.env.test.local

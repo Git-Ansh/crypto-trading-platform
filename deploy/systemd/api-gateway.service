@@ -5,9 +5,9 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=root
-WorkingDirectory=/root/crypto-trading-platform/apps/api-gateway
-EnvironmentFile=/root/crypto-trading-platform/apps/api-gateway/.env.systemd
+User=ubuntu
+WorkingDirectory=/home/ubuntu/Workspace/crypto-trading-platform/apps/api-gateway
+EnvironmentFile=/home/ubuntu/Workspace/crypto-trading-platform/apps/api-gateway/.env.systemd
 ExecStart=/usr/bin/node index.js
 Restart=always
 RestartSec=10

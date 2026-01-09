@@ -16,7 +16,7 @@ nano .env.systemd # Fill in your values
 Update your service file (`/etc/systemd/system/bot-manager.service`) to use this file:
 ```ini
 [Service]
-EnvironmentFile=/root/Crypto-Pilot-Freqtrade/bot-manager/.env.systemd
+EnvironmentFile=/home/ubuntu/Workspace/crypto-trading-platform/apps/bot-orchestrator/.env.systemd
 ```
 
 ## 2. Port Configuration

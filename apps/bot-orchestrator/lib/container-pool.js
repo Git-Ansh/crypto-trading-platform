@@ -26,7 +26,7 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const { spawn, exec } = require('child_process');
+const { spawn, exec, execSync } = require('child_process');
 const util = require('util');
 const execPromise = util.promisify(exec);
 
@@ -283,10 +283,8 @@ class ContainerPoolManager {
     await fs.ensureDir(path.join(poolDir, 'logs'));
     await fs.ensureDir(path.join(poolDir, 'bots'));
     
-    // Create individual bot directories within the pool
-    for (let i = 1; i <= this.maxBotsPerContainer; i++) {
-      await fs.ensureDir(path.join(poolDir, 'bots', `bot-${i}`));
-    }
+    // Bot directories are created on-demand when bots are provisioned
+    // (removed pre-creation of empty bot-1, bot-2, bot-3 folders)
     
     // Set ownership to UID 1000 (ftuser in container) for writable directories
     await execPromise(`chown -R 1000:1000 "${path.join(poolDir, 'logs')}"`);
@@ -667,7 +665,7 @@ class ContainerPoolManager {
       // Remove supervisor program config
       await this._execInContainer(pool.containerName, [
         'supervisorctl', 'remove', `bot-${instanceId}`
-      ]);
+      ]).catch(e => console.warn(`[ContainerPool] Could not remove supervisor program: ${e.message}`));
       
       // Remove from pool's bot list
       pool.bots = pool.bots.filter(id => id !== instanceId);
@@ -677,15 +675,24 @@ class ContainerPoolManager {
       
       // Clean up bot config directory in pool
       const botConfigDir = path.join(pool.poolDir, 'bots', instanceId);
-      await fs.remove(botConfigDir);
+      console.log(`[ContainerPool] Removing bot directory: ${botConfigDir}`);
+      if (await fs.pathExists(botConfigDir)) {
+        await fs.remove(botConfigDir);
+        console.log(`[ContainerPool] ✓ Removed bot directory: ${botConfigDir}`);
+      } else {
+        console.warn(`[ContainerPool] Bot directory not found: ${botConfigDir}`);
+      }
       
       // Remove supervisor config file
       const programConfigPath = path.join(pool.poolDir, 'supervisor', `bot-${instanceId}.conf`);
-      await fs.remove(programConfigPath);
+      if (await fs.pathExists(programConfigPath)) {
+        await fs.remove(programConfigPath);
+        console.log(`[ContainerPool] ✓ Removed supervisor config: ${programConfigPath}`);
+      }
       
       await this._saveState();
       
-      console.log(`[ContainerPool] ✓ Bot ${instanceId} removed from pool ${pool.id}`);
+      console.log(`[ContainerPool] ✓ Bot ${instanceId} fully removed from pool ${pool.id}`);
       
       // Check if pool is now empty
       if (pool.bots.length === 0) {
@@ -1054,8 +1061,30 @@ environment=FREQTRADE_USER_DATA_DIR="/pool/bots/${instanceId}"
 
   async _runDockerCompose(workDir, args) {
     return new Promise((resolve, reject) => {
-      // Use 'docker compose' (plugin) instead of 'docker-compose' (Python)
-      const proc = spawn('docker', ['compose', ...args], { cwd: workDir });
+      // Auto-detect docker-compose vs docker compose on first use
+      if (this._composeCommand === undefined) {
+        try {
+          // Try docker compose (V2 plugin)
+          execSync('docker compose version', { stdio: 'ignore' });
+          this._composeCommand = 'v2';
+          console.log(`[ContainerPool] Using 'docker compose' (V2 plugin)`);
+        } catch {
+          // Fall back to docker-compose (V1 standalone)
+          this._composeCommand = 'v1';
+          console.log(`[ContainerPool] Using 'docker-compose' (V1 standalone)`);
+        }
+      }
+      
+      let cmd, cmdArgs;
+      if (this._composeCommand === 'v1') {
+        cmd = 'docker-compose';
+        cmdArgs = args;
+      } else {
+        cmd = 'docker';
+        cmdArgs = ['compose', ...args];
+      }
+      
+      const proc = spawn(cmd, cmdArgs, { cwd: workDir });
       
       let stdout = '';
       let stderr = '';
@@ -1067,7 +1096,7 @@ environment=FREQTRADE_USER_DATA_DIR="/pool/bots/${instanceId}"
         if (code === 0) {
           resolve({ stdout, stderr });
         } else {
-          reject(new Error(`docker compose ${args.join(' ')} failed (code ${code}): ${stderr}`));
+          reject(new Error(`${cmd} ${cmdArgs.join(' ')} failed (code ${code}): ${stderr}`));
         }
       });
       
@@ -1077,7 +1106,8 @@ environment=FREQTRADE_USER_DATA_DIR="/pool/bots/${instanceId}"
 
   async _execInContainer(containerName, command) {
     const cmdStr = `docker exec ${containerName} ${command.join(' ')}`;
-    return execPromise(cmdStr);
+    const { stdout } = await execPromise(cmdStr);
+    return stdout || '';
   }
 }
 

@@ -111,6 +111,13 @@ const poolProvisioner = {
   },
 
   /**
+   * Get the pool manager instance (for direct access when needed)
+   */
+  getPoolManager() {
+    return poolManager;
+  },
+
+  /**
    * Provision a new bot using the pool system
    * 
    * @param {Object} params - Provisioning parameters

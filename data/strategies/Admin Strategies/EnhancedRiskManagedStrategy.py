@@ -548,7 +548,7 @@ class EnhancedRiskManagedStrategy(IStrategy):
             
             # Path to universal risk management files
             if bot_instance_id != 'unknown' and user_id != 'unknown':
-                base_path = Path(f"/root/Crypto-Pilot-Freqtrade/freqtrade-instances/{user_id}/{bot_instance_id}")
+                base_path = Path(f"/home/ubuntu/Workspace/crypto-trading-platform/data/freqtrade-instances/{user_id}/{bot_instance_id}")
                 settings_path = base_path / "universal-settings.json"
                 risk_config_path = base_path / "risk-config.json"
                 

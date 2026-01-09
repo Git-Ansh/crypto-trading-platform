@@ -8,15 +8,15 @@ StartLimitBurst=3
 
 [Service]
 Type=simple
-User=root
+User=ubuntu
 Group=root
-WorkingDirectory=/root/Crypto-Pilot-Freqtrade/bot-manager
+WorkingDirectory=/home/ubuntu/Workspace/crypto-trading-platform/bot-manager
 ExecStart=/usr/bin/node portfolio-monitor-service.js
 ExecReload=/bin/kill -HUP $MAINPID
 
 # Environment variables
 Environment=NODE_ENV=production
-Environment=BOT_BASE_DIR=/root/Crypto-Pilot-Freqtrade/freqtrade-instances
+Environment=BOT_BASE_DIR=/home/ubuntu/Workspace/crypto-trading-platform/freqtrade-instances
 
 # Restart configuration
 Restart=always
@@ -37,7 +37,7 @@ SyslogIdentifier=portfolio-monitor
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict
-ReadWritePaths=/root/Crypto-Pilot-Freqtrade/freqtrade-instances
+ReadWritePaths=/home/ubuntu/Workspace/crypto-trading-platform/freqtrade-instances
 
 # Health checks
 WatchdogSec=300

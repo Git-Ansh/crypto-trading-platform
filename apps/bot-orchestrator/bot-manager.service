@@ -5,10 +5,10 @@ Requires=docker.service
 
 [Service]
 Type=simple
-User=root
-WorkingDirectory=/root/Crypto-Pilot-Freqtrade/bot-manager
-EnvironmentFile=/root/Crypto-Pilot-Freqtrade/bot-manager/.env
-ExecStart=/usr/bin/env node /root/Crypto-Pilot-Freqtrade/bot-manager/index.js
+User=ubuntu
+WorkingDirectory=/home/ubuntu/Workspace/crypto-trading-platform/bot-manager
+EnvironmentFile=/home/ubuntu/Workspace/crypto-trading-platform/bot-manager/.env
+ExecStart=/usr/bin/env node /home/ubuntu/Workspace/crypto-trading-platform/bot-manager/index.js
 
 # Always restart on failure or exit
 Restart=always
