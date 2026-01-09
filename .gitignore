@@ -64,3 +64,13 @@ latest_token*.txt
 # Logs
 logs/
 *.log
+
+# Local development environment files (never commit)
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+
+# System env files with secrets
+**/.env.systemd
+**/serviceAccountKey.json
