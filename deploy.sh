@@ -1,7 +1,11 @@
 #!/bin/bash
-# Deployment script for Crypto Trading Platform monorepo
+# Deployment script for Crypto Trading Platform monorepo (Production VPS)
 
 set -e
+
+# Get script directory and project root
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$SCRIPT_DIR"
 
 echo "🚀 Deploying Crypto Trading Platform..."
 
@@ -21,12 +25,9 @@ fi
 
 echo -e "${GREEN}✓ Node.js version: $(node --version)${NC}"
 
-# Switch to production environment
-echo -e "${YELLOW}Switching to production environment...${NC}"
-cd /root/crypto-trading-platform
-ln -sf .env.production apps/api-gateway/.env
-ln -sf .env.production apps/bot-orchestrator/.env
-echo -e "${GREEN}✓ Environment files linked${NC}"
+# Change to project root
+cd "$PROJECT_ROOT"
+echo -e "${GREEN}✓ Working directory: $(pwd)${NC}"
 
 # Stop services
 echo -e "${YELLOW}Stopping services...${NC}"
@@ -35,8 +36,13 @@ echo -e "${GREEN}✓ Services stopped${NC}"
 
 # Install/update dependencies
 echo -e "${YELLOW}Installing dependencies...${NC}"
-npm install --production=false
+npm ci --omit=dev
 echo -e "${GREEN}✓ Dependencies installed${NC}"
+
+# Build shared packages
+echo -e "${YELLOW}Building shared packages...${NC}"
+npm run build:packages
+echo -e "${GREEN}✓ Packages built${NC}"
 
 # Copy systemd service files
 echo -e "${YELLOW}Installing systemd services...${NC}"
@@ -58,7 +64,7 @@ sudo systemctl start bot-orchestrator
 echo -e "${GREEN}✓ Services started${NC}"
 
 # Wait a moment for services to start
-sleep 3
+sleep 5
 
 # Check service status
 echo -e "\n${YELLOW}Service Status:${NC}"
@@ -69,13 +75,13 @@ sudo systemctl status bot-orchestrator --no-pager -l | head -15
 # Test endpoints
 echo -e "\n${YELLOW}Testing endpoints...${NC}"
 
-if curl -s http://localhost:5001/health > /dev/null 2>&1; then
+if curl -sf http://localhost:5001/api/health > /dev/null 2>&1; then
     echo -e "${GREEN}✓ API Gateway responding on port 5001${NC}"
 else
     echo -e "${RED}✗ API Gateway not responding${NC}"
 fi
 
-if curl -s http://localhost:5000/health > /dev/null 2>&1; then
+if curl -sf http://localhost:5000/api/health > /dev/null 2>&1; then
     echo -e "${GREEN}✓ Bot Orchestrator responding on port 5000${NC}"
 else
     echo -e "${RED}✗ Bot Orchestrator not responding${NC}"
@@ -83,6 +89,11 @@ fi
 
 echo -e "\n${GREEN}🎉 Deployment complete!${NC}"
 echo -e "\nView logs:"
+echo -e "  sudo journalctl -u api-gateway -f"
+echo -e "  sudo journalctl -u bot-orchestrator -f"
+echo -e "\nManage services:"
+echo -e "  sudo systemctl restart api-gateway bot-orchestrator"
+echo -e "  sudo systemctl status api-gateway bot-orchestrator"
 echo -e "  sudo journalctl -u api-gateway -f"
 echo -e "  sudo journalctl -u bot-orchestrator -f"
 echo -e "\nManage services:"

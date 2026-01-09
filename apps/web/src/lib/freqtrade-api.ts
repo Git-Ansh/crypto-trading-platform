@@ -11,7 +11,7 @@ const getCurrentConfig = () => {
   // All environments use the proxy through the main server
   return {
     baseUrl: `${PROXY_BASE_URL}${PROXY_ENDPOINT}`,
-    wsUrl: env.isProduction ? 'wss://freqtrade.crypto-pilot.dev/ws' : 'ws://localhost:5000/ws'
+    wsUrl: env.isProduction ? 'wss://api.crypto-pilot.dev/ws' : 'ws://localhost:5000/ws'
   };
 };
 

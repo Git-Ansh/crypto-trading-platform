@@ -124,7 +124,7 @@ async function syncInstance(instance) {
             env: {
                 ...process.env,
                 TURSO_API_KEY: process.env.TURSO_API_KEY,
-                TURSO_CMD: process.env.TURSO_CMD || '/root/.turso/turso'
+                TURSO_CMD: process.env.TURSO_CMD || 'turso' // Use PATH lookup
             }
         });
 

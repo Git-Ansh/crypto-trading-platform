@@ -146,15 +146,13 @@ const PORT = parseInt(process.env.PORT, 10) || 5000; // Use PORT from .env, defa
 const isWSL = process.platform === 'linux' && process.env.WSL_DISTRO_NAME;
 const isWindows = process.platform === 'win32';
 
-// Use explicit path resolution for Windows development
+// Use explicit path resolution - prefer env var, then relative path
 let BOT_BASE_DIR;
 if (process.env.BOT_BASE_DIR) {
   BOT_BASE_DIR = process.env.BOT_BASE_DIR;
-} else if (isWindows || isWSL) {
-  // Windows path - works from Windows node directly
-  BOT_BASE_DIR = path.join(__dirname, '..', 'freqtrade-instances');
 } else {
-  BOT_BASE_DIR = '/root/Crypto-Pilot-Freqtrade/freqtrade-instances';
+  // Default to data/bot-instances relative to project root
+  BOT_BASE_DIR = path.join(__dirname, '../../data/bot-instances');
 }
 console.log('[Config] BOT_BASE_DIR:', BOT_BASE_DIR);
 console.log('[Config] Platform:', process.platform, 'isWSL:', isWSL);
@@ -164,9 +162,9 @@ console.log(`CRITICAL: All new bots will use the stable image with local SQLite 
 // Shared strategies dir (used ONLY for fallback default strategy creation if main source is empty/missing)
 const STRATEGIES_DIR = process.env.STRATEGIES_DIR || path.join(__dirname, 'freqtrade-shared', 'strategies');
 // Main source directory on HOST where strategies are copied FROM during provisioning
-const MAIN_STRATEGIES_SOURCE_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || '/root/crypto-trading-platform/data/strategies';
+const MAIN_STRATEGIES_SOURCE_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || path.join(__dirname, '../../data/strategies');
 // SHARED data directory on HOST where historical data resides (must be managed separately)
-const SHARED_DATA_DIR = process.env.SHARED_DATA_DIR || '/root/freqtrade-shared'; // All bots will read data from subdirs here
+const SHARED_DATA_DIR = process.env.SHARED_DATA_DIR || path.join(__dirname, '../../data/shared-market-data');
 
 // --- Queue System for Provisioning ---
 const provisioningQueue = [];

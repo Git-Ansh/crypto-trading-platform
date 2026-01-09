@@ -18,7 +18,7 @@ const { getPoolManager } = require('./container-pool');
 // Configuration
 const POOL_MODE_ENABLED = process.env.POOL_MODE_ENABLED !== 'false'; // Default: enabled
 const LEGACY_CONTAINER_PREFIX = 'freqtrade-';
-const BOT_BASE_DIR = process.env.BOT_BASE_DIR || '/root/Crypto-Pilot-Freqtrade/freqtrade-instances';
+const BOT_BASE_DIR = process.env.BOT_BASE_DIR || path.join(__dirname, '../../../data/bot-instances');
 
 /**
  * Bot connection info structure

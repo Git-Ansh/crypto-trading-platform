@@ -16,58 +16,77 @@ const helmet = require("helmet");
 const admin = require("firebase-admin");
 const fs = require("fs");
 
-// Load private key from file or env var
-const getFirebasePrivateKey = () => {
-  // First try to load from file (preferred for systemd)
-  if (process.env.FIREBASE_PRIVATE_KEY_FILE) {
-    try {
-      return fs.readFileSync(process.env.FIREBASE_PRIVATE_KEY_FILE, "utf8");
-    } catch (err) {
-      console.error("Failed to read Firebase private key file:", err.message);
+// Try to load from serviceAccountKey.json first (production), then fall back to env vars
+const serviceAccountPath = path.join(__dirname, 'serviceAccountKey.json');
+let firebaseInitialized = false;
+
+if (fs.existsSync(serviceAccountPath) && !admin.apps.length) {
+  try {
+    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+    console.log("Firebase Admin SDK initialized from serviceAccountKey.json");
+    firebaseInitialized = true;
+  } catch (error) {
+    console.error("Failed to initialize Firebase from serviceAccountKey.json:", error.message);
+  }
+}
+
+// Fall back to environment variables if JSON file failed
+if (!firebaseInitialized && !admin.apps.length) {
+  const getFirebasePrivateKey = () => {
+    // First try to load from file (preferred for systemd)
+    if (process.env.FIREBASE_PRIVATE_KEY_FILE) {
+      try {
+        return fs.readFileSync(process.env.FIREBASE_PRIVATE_KEY_FILE, "utf8");
+      } catch (err) {
+        console.error("Failed to read Firebase private key file:", err.message);
+      }
     }
+    // Fall back to env var (for Vercel/other platforms)
+    if (process.env.FIREBASE_PRIVATE_KEY) {
+      return process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n");
+    }
+    return null;
+  };
+
+  const firebasePrivateKey = getFirebasePrivateKey();
+
+  // Use environment variables instead of requiring the JSON file
+  const firebaseConfig = {
+    type: process.env.FIREBASE_TYPE || "service_account",
+    project_id: process.env.FIREBASE_PROJECT_ID,
+    private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+    private_key: firebasePrivateKey,
+    client_email: process.env.FIREBASE_CLIENT_EMAIL,
+    client_id: process.env.FIREBASE_CLIENT_ID,
+    auth_uri:
+      process.env.FIREBASE_AUTH_URI ||
+      "https://accounts.google.com/o/oauth2/auth",
+    token_uri:
+      process.env.FIREBASE_TOKEN_URI || "https://oauth2.googleapis.com/token",
+    auth_provider_x509_cert_url:
+      process.env.FIREBASE_AUTH_PROVIDER_CERT_URL ||
+      "https://www.googleapis.com/oauth2/v1/certs",
+    client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL,
+  };
+
+  // Only initialize if we have the required credentials
+  if (
+    process.env.FIREBASE_PROJECT_ID &&
+    process.env.FIREBASE_CLIENT_EMAIL &&
+    firebasePrivateKey
+  ) {
+    admin.initializeApp({
+      credential: admin.credential.cert(firebaseConfig),
+    });
+    console.log("Firebase Admin SDK initialized from environment variables");
+    firebaseInitialized = true;
   }
-  // Fall back to env var (for Vercel/other platforms)
-  if (process.env.FIREBASE_PRIVATE_KEY) {
-    return process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n");
-  }
-  return null;
-};
+}
 
-const firebasePrivateKey = getFirebasePrivateKey();
-
-// Use environment variables instead of requiring the JSON file
-const firebaseConfig = {
-  type: process.env.FIREBASE_TYPE || "service_account",
-  project_id: process.env.FIREBASE_PROJECT_ID,
-  private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-  private_key: firebasePrivateKey,
-  client_email: process.env.FIREBASE_CLIENT_EMAIL,
-  client_id: process.env.FIREBASE_CLIENT_ID,
-  auth_uri:
-    process.env.FIREBASE_AUTH_URI ||
-    "https://accounts.google.com/o/oauth2/auth",
-  token_uri:
-    process.env.FIREBASE_TOKEN_URI || "https://oauth2.googleapis.com/token",
-  auth_provider_x509_cert_url:
-    process.env.FIREBASE_AUTH_PROVIDER_CERT_URL ||
-    "https://www.googleapis.com/oauth2/v1/certs",
-  client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL,
-};
-
-// Only initialize if we have the required credentials and Firebase isn't already initialized
-if (
-  process.env.FIREBASE_PROJECT_ID &&
-  process.env.FIREBASE_CLIENT_EMAIL &&
-  firebasePrivateKey &&
-  !admin.apps.length // Check if Firebase is already initialized
-) {
-  admin.initializeApp({
-    credential: admin.credential.cert(firebaseConfig),
-  });
-  console.log("Firebase Admin SDK initialized");
-} else if (admin.apps.length) {
-  console.log("Firebase Admin SDK already initialized");
-} else {
+if (!firebaseInitialized) {
   console.warn(
     "Firebase credentials missing, authentication features may not work properly"
   );

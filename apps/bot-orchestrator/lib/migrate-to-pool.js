@@ -26,7 +26,7 @@ const util = require('util');
 const execPromise = util.promisify(exec);
 
 // Configuration
-const BOT_BASE_DIR = process.env.BOT_BASE_DIR || '/root/Crypto-Pilot-Freqtrade/freqtrade-instances';
+const BOT_BASE_DIR = process.env.BOT_BASE_DIR || path.join(__dirname, '../../../data/bot-instances');
 const MIGRATION_LOG_FILE = path.join(BOT_BASE_DIR, '.migration-log.json');
 const LEGACY_CONTAINER_PREFIX = 'freqtrade-';
 

@@ -1,6 +1,6 @@
 /**
  * Strategy Watcher Service
- * Monitors /root/crypto-trading-platform/data/strategies for real-time changes
+ * Monitors strategies directory for real-time changes
  * 
  * Events:
  * - 'strategy:added' -> {name, path}
@@ -14,7 +14,8 @@ const { EventEmitter } = require('events');
 const chokidar = require('chokidar');
 
 const DEFAULT_STRATEGY = 'EmaRsiStrategy';
-const STRATEGIES_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || '/root/crypto-trading-platform/data/strategies';
+// Default path relative to project root for production
+const STRATEGIES_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || path.join(__dirname, '../../data/strategies');
 
 class StrategyWatcher extends EventEmitter {
   constructor() {

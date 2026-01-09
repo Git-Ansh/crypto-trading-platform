@@ -1,4 +1,4 @@
-// filepath: /root/bot-manager/lib/urlFormatter.js
+// URL formatter utilities for Turso database connections
 const { URL } = require('url');
 
 /**
