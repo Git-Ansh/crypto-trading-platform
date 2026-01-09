@@ -7,11 +7,11 @@ const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 20, keepAliveMse
 const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 20, keepAliveMsecs: 15000 });
 
 // Detect environment and set bot manager URL accordingly
-// In production (Vercel), we need to use the external URL since we can't reach localhost
-// In development, we use the local bot-manager instance
+// In production on VPS (systemd), we use localhost to reach bot-orchestrator
+// In production on Vercel, BOT_MANAGER_URL must be set to the VPS public IP or API gateway
 const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
-const BOT_MANAGER_URL = process.env.BOT_MANAGER_URL || 
-  (isProduction ? 'https://freqtrade.crypto-pilot.dev' : 'http://127.0.0.1:5000');
+const isVercel = process.env.VERCEL === '1';
+const BOT_MANAGER_URL = process.env.BOT_MANAGER_URL || 'http://127.0.0.1:5000';
 
 console.log(`[FreqTrade Proxy] Environment: ${isProduction ? 'production' : 'development'}`);
 console.log(`[FreqTrade Proxy] Bot Manager URL: ${BOT_MANAGER_URL}`);

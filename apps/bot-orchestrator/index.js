@@ -299,7 +299,7 @@ app.use(helmet({
       styleSrc: ["'self'", "https:", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:"],
       fontSrc: ["'self'", "https:", "data:"],
-      connectSrc: ["'self'", "https://freqtrade.crypto-pilot.dev", "wss://freqtrade.crypto-pilot.dev"], // Allow EventSource, API, and WebSocket connections
+      connectSrc: ["'self'", "https://api.crypto-pilot.dev", "wss://api.crypto-pilot.dev"], // Allow EventSource, API, and WebSocket connections
       objectSrc: ["'none'"],
       upgradeInsecureRequests: [],
     },
@@ -354,13 +354,9 @@ const authLimiter = rateLimit({
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : [
-    'http://localhost:5173',
-    'http://localhost:5000',
-    'https://freqtrade.crypto-pilot.dev',
     'https://crypto-pilot.dev',
     'https://www.crypto-pilot.dev',
-    'https://app.crypto-pilot.dev',
-    'https://dashboard.crypto-pilot.dev'
+    'https://api.crypto-pilot.dev'
   ];
 
 console.log('🌐 CORS allowed origins:', allowedOrigins);
