@@ -1,9 +1,11 @@
 const express = require('express');
 const cors = require('cors');
-const { spawn } = require('child_process');
+const { spawn, exec } = require('child_process');
 const fs = require('fs-extra'); // Use fs-extra for ensureDir etc.
 const path = require('path');
 const dotenv = require('dotenv');
+const util = require('util');
+const execPromise = util.promisify(exec);
 
 // ----------------------------------------------------------------------
 // DEPLOYMENT WARNING:
@@ -45,6 +47,116 @@ const {
 
 // Pool system initialization flag
 let poolSystemInitialized = false;
+
+/**
+ * Clean up orphaned bots for a specific user
+ * Removes bots that exist in state but not in supervisor/filesystem
+ */
+async function cleanupUserOrphanedBots(userId) {
+  const results = {
+    checkedBots: 0,
+    removedBots: 0,
+    removedFromState: [],
+    removedFromFilesystem: [],
+    errors: []
+  };
+
+  try {
+    if (!poolSystemInitialized) {
+      return results;
+    }
+
+    const { poolManager } = getPoolComponents();
+    
+    // Get all bots mapped to this user's pools
+    const userPools = [];
+    for (const [poolId, pool] of poolManager.pools) {
+      if (pool.userId === userId) {
+        userPools.push(pool);
+      }
+    }
+
+    // Check each bot in user's pools
+    for (const pool of userPools) {
+      for (const botId of [...pool.bots]) {
+        results.checkedBots++;
+        
+        try {
+          // Check if bot is actually running in supervisor
+          const { stdout: status } = await execPromise(
+            `docker exec ${pool.containerName} supervisorctl status bot-${botId} 2>/dev/null || echo "NOT_FOUND"`
+          ).catch(() => ({ stdout: 'NOT_FOUND' }));
+
+          const isOrphaned = status.includes('NOT_FOUND') || status.includes('no such process');
+          
+          if (isOrphaned) {
+            console.log(`[Cleanup] Found orphaned bot ${botId} in pool ${pool.id}`);
+            
+            // Remove from pool state
+            pool.bots = pool.bots.filter(id => id !== botId);
+            poolManager.botMapping.delete(botId);
+            results.removedFromState.push(botId);
+            
+            // Clean up bot directory in pool
+            const botConfigDir = path.join(pool.poolDir, 'bots', botId);
+            if (await fs.pathExists(botConfigDir)) {
+              await fs.remove(botConfigDir);
+              results.removedFromFilesystem.push(botId);
+            }
+            
+            // Remove supervisor config if exists
+            try {
+              await runDockerCommand(['exec', pool.containerName, 'rm', '-f', `/etc/supervisor/conf.d/bot-${botId}.conf`]);
+            } catch (e) { /* ignore */ }
+            
+            results.removedBots++;
+          }
+        } catch (checkErr) {
+          results.errors.push({ botId, error: checkErr.message });
+        }
+      }
+    }
+
+    // Also check user's filesystem for orphaned directories
+    const userDir = path.join(BOT_BASE_DIR, userId);
+    if (await fs.pathExists(userDir)) {
+      const entries = await fs.readdir(userDir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (!entry.isDirectory()) continue;
+        const instanceId = entry.name;
+        
+        // Skip if bot is tracked in pool state
+        if (poolManager.botMapping.has(instanceId)) continue;
+        
+        // Check if this looks like a bot directory with no running process
+        const configPath = path.join(userDir, instanceId, 'config.json');
+        if (await fs.pathExists(configPath)) {
+          // Check if there's a container for this bot
+          const containerName = `freqtrade-${instanceId}`;
+          const { stdout } = await execPromise(
+            `docker ps -q -f name=${containerName}`
+          ).catch(() => ({ stdout: '' }));
+          
+          if (!stdout.trim()) {
+            console.log(`[Cleanup] Found orphaned legacy bot directory: ${instanceId}`);
+            // Don't auto-delete filesystem, just report
+            results.removedFromState.push(`legacy:${instanceId}`);
+          }
+        }
+      }
+    }
+
+    // Save updated state
+    if (results.removedBots > 0) {
+      await poolManager._saveState();
+    }
+
+  } catch (err) {
+    results.errors.push({ error: err.message });
+  }
+
+  return results;
+}
 
 // Turso CLI command (allow overriding via env if path differs)
 const TURSO_CMD = process.env.TURSO_CMD || 'turso';
@@ -384,7 +496,39 @@ app.post('/api/pool/health-check', authenticateToken, authorize(['admin']), asyn
   }
 });
 
-// Clean up empty pools
+// Clean up user's own orphaned bots (user-accessible)
+app.post('/api/pool/my-cleanup', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user?.uid || req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'User not authenticated' });
+    }
+
+    if (!poolSystemInitialized) {
+      return res.status(400).json({
+        success: false,
+        error: 'Pool system not initialized'
+      });
+    }
+
+    console.log(`[Pool API] User ${userId} requesting cleanup of their orphaned bots`);
+
+    // Get user's bots and clean up orphaned ones
+    const cleanupResults = await cleanupUserOrphanedBots(userId);
+    
+    res.json({
+      success: true,
+      userId,
+      ...cleanupResults,
+      message: `Cleaned up ${cleanupResults.removedBots || 0} orphaned bots`
+    });
+  } catch (err) {
+    console.error('[Pool API] Error cleaning up user bots:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Clean up empty pools (admin only)
 app.post('/api/pool/cleanup', authenticateToken, authorize(['admin']), async (req, res) => {
   try {
     if (!poolSystemInitialized) {
@@ -394,11 +538,15 @@ app.post('/api/pool/cleanup', authenticateToken, authorize(['admin']), async (re
       });
     }
 
+    // Also sync state first to find orphaned bots
+    const syncResults = await poolProvisioner.syncPoolState();
     const removedCount = await poolProvisioner.cleanupEmptyPools();
+    
     res.json({
       success: true,
       removedPools: removedCount,
-      message: `Cleaned up ${removedCount} empty pool containers`
+      syncResults,
+      message: `Synced state and cleaned up ${removedCount} empty pool containers`
     });
   } catch (err) {
     console.error('[Pool API] Error cleaning up pools:', err.message);

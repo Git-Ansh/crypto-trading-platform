@@ -205,7 +205,8 @@ export default function PoolManagement() {
       setError(null);
       const token = await auth.currentUser?.getIdToken();
 
-      const response = await fetch(`${config.botManager.baseUrl}/api/pool/cleanup`, {
+      // Use my-cleanup for user's own orphaned bots (doesn't require admin)
+      const response = await fetch(`${config.botManager.baseUrl}/api/pool/my-cleanup`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -421,21 +421,76 @@ class ContainerPoolManager {
     await execPromise(`chown -R 1000:1000 "${botConfigDir}"`);
     
     // Notify supervisord to reload and start the new program
+    // Use atomic operation pattern: reread, update, then start with verification
     try {
-      await this._execInContainer(pool.containerName, [
+      console.log(`[ContainerPool] Configuring supervisor for bot-${instanceId}...`);
+      
+      // Step 1: Reread config files
+      const rereadResult = await this._execInContainer(pool.containerName, [
         'supervisorctl', 'reread'
       ]);
-      await this._execInContainer(pool.containerName, [
+      console.log(`[ContainerPool] Supervisor reread: ${rereadResult || 'OK'}`);
+      
+      // Step 2: Update (adds new programs)
+      const updateResult = await this._execInContainer(pool.containerName, [
         'supervisorctl', 'update'
       ]);
-      await this._execInContainer(pool.containerName, [
+      console.log(`[ContainerPool] Supervisor update: ${updateResult || 'OK'}`);
+      
+      // Step 3: Wait a moment for supervisor to register the program
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Step 4: Verify the program is registered before starting
+      const statusCheck = await this._execInContainer(pool.containerName, [
+        'supervisorctl', 'status', `bot-${instanceId}`
+      ]).catch(() => '');
+      
+      if (!statusCheck || statusCheck.includes('no such process')) {
+        // Program not registered, try adding it explicitly
+        console.log(`[ContainerPool] Program bot-${instanceId} not found, retrying update...`);
+        await this._execInContainer(pool.containerName, ['supervisorctl', 'reread']);
+        await this._execInContainer(pool.containerName, ['supervisorctl', 'update']);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+      
+      // Step 5: Start the bot
+      const startResult = await this._execInContainer(pool.containerName, [
         'supervisorctl', 'start', `bot-${instanceId}`
       ]);
+      console.log(`[ContainerPool] Supervisor start: ${startResult || 'OK'}`);
       
-      slot.status = 'running';
-      await this._saveState();
+      // Step 6: Verify bot is actually running
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const finalStatus = await this._execInContainer(pool.containerName, [
+        'supervisorctl', 'status', `bot-${instanceId}`
+      ]).catch(e => `ERROR: ${e.message}`);
       
-      console.log(`[ContainerPool] ✓ Bot ${instanceId} started in pool ${pool.id}`);
+      console.log(`[ContainerPool] Final status for bot-${instanceId}: ${finalStatus}`);
+      
+      if (finalStatus.includes('RUNNING')) {
+        slot.status = 'running';
+        await this._saveState();
+        console.log(`[ContainerPool] ✓ Bot ${instanceId} verified running in pool ${pool.id}`);
+      } else if (finalStatus.includes('STARTING')) {
+        slot.status = 'starting';
+        await this._saveState();
+        console.log(`[ContainerPool] ⏳ Bot ${instanceId} still starting in pool ${pool.id}`);
+      } else if (finalStatus.includes('FATAL') || finalStatus.includes('EXITED')) {
+        // Get logs to help debug
+        const logs = await this._execInContainer(pool.containerName, [
+          'supervisorctl', 'tail', `bot-${instanceId}`, 'stderr'
+        ]).catch(() => 'No logs available');
+        console.error(`[ContainerPool] Bot ${instanceId} failed to start. Status: ${finalStatus}`);
+        console.error(`[ContainerPool] Bot ${instanceId} stderr: ${logs}`);
+        slot.status = 'failed';
+        await this._saveState();
+        throw new Error(`Bot failed to start: ${finalStatus}. Check logs.`);
+      } else {
+        // Unknown state but proceed
+        slot.status = 'unknown';
+        await this._saveState();
+        console.warn(`[ContainerPool] Bot ${instanceId} in unknown state: ${finalStatus}`);
+      }
       
     } catch (err) {
       console.error(`[ContainerPool] Failed to start bot ${instanceId}: ${err.message}`);
