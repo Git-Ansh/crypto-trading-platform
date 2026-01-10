@@ -3,6 +3,7 @@
  * Environment Configuration Validator
  * Ensures all required environment variables are present and valid
  * Run this before committing or deploying
+ * testing: node scripts/validate-env.js
  */
 
 const fs = require('fs');
