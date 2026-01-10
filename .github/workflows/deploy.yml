@@ -42,20 +42,3 @@ jobs:
             curl -sf http://localhost:5000/api/health > /dev/null || exit 1
             
             echo "🎉 Deployment complete!"
-            # Install dependencies
-            npm ci --omit=dev
-            
-            # Build shared packages
-            npm run build:packages
-            
-            # Restart services
-            sudo systemctl restart api-gateway
-            sudo systemctl restart bot-orchestrator
-            
-            # Verify services are running
-            sleep 5
-            sudo systemctl status api-gateway --no-pager
-            sudo systemctl status bot-orchestrator --no-pager
-            
-            echo "✅ Deployment complete!"
->>>>>>> 11a17850e2d6ea4b750fe7e6fb35855b2fe16de5
