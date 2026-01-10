@@ -97,7 +97,9 @@ class ActiveTradeMonitor {
   }
 
   /**
-   * Discover all bot instances
+   * Discover all bot instances (pool-aware)
+   * Scans both pool structure ({userId}/{userId}-pool-N/bots/{instanceId}/)
+   * and legacy structure ({userId}/{instanceId}/) for backward compatibility
    */
   async discoverBots() {
     try {
@@ -117,18 +119,44 @@ class ActiveTradeMonitor {
         
         if (!stats.isDirectory()) continue;
         
-        const botDirs = await fs.readdir(userPath);
+        const userContents = await fs.readdir(userPath);
         
-        for (const instanceId of botDirs) {
-          const instancePath = path.join(userPath, instanceId);
-          const instanceStats = await fs.stat(instancePath);
+        for (const dirName of userContents) {
+          const dirPath = path.join(userPath, dirName);
+          const dirStats = await fs.stat(dirPath);
           
-          if (!instanceStats.isDirectory()) continue;
+          if (!dirStats.isDirectory()) continue;
           
-          const configPath = path.join(instancePath, 'config.json');
-          if (await fs.pathExists(configPath)) {
-            await this.registerBot(userId, instanceId, instancePath);
-            totalBots++;
+          // Check if this is a pool directory (format: {userId}-pool-N)
+          if (dirName.match(/^.+-pool-\d+$/)) {
+            // This is a pool directory - look for bots inside
+            const botsDir = path.join(dirPath, 'bots');
+            
+            if (await fs.pathExists(botsDir)) {
+              const botInstances = await fs.readdir(botsDir);
+              
+              for (const instanceId of botInstances) {
+                const instancePath = path.join(botsDir, instanceId);
+                const instanceStats = await fs.stat(instancePath);
+                
+                if (!instanceStats.isDirectory()) continue;
+                
+                const configPath = path.join(instancePath, 'config.json');
+                if (await fs.pathExists(configPath)) {
+                  await this.registerBot(userId, instanceId, instancePath);
+                  totalBots++;
+                }
+              }
+            }
+          } else {
+            // Legacy structure - bot directory directly under user directory
+            // Only process if it has a config.json (is actually a bot)
+            const configPath = path.join(dirPath, 'config.json');
+            if (await fs.pathExists(configPath)) {
+              console.warn(`[Monitor] Found legacy bot: ${userId}/${dirName} - consider migrating to pool mode`);
+              await this.registerBot(userId, dirName, dirPath);
+              totalBots++;
+            }
           }
         }
       }
@@ -156,11 +184,12 @@ class ActiveTradeMonitor {
         return;
       }
       
-      // Create feature and risk manager instances
-      const features = new UniversalFeatures(instanceId, userId);
+      // Create feature and risk manager instances with correct instancePath
+      // This prevents creating directories in legacy location (userId/instanceId)
+      const features = new UniversalFeatures(instanceId, userId, instancePath);
       await features.loadFeatures();
       
-      const riskManager = new UniversalRiskManager(instanceId, userId);
+      const riskManager = new UniversalRiskManager(instanceId, userId, instancePath);
       await riskManager.loadSettings();
       
       this.botInstances.set(key, {
