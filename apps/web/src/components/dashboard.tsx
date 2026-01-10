@@ -243,7 +243,7 @@ export default function Dashboard() {
         return;
       }
       
-      const response = await fetch(`${config.botManager.baseUrl}/api/bots/${botId}/start`, {
+      const response = await fetch(`${config.api.baseUrl}/api/freqtrade/bots/${botId}/start`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -271,7 +271,7 @@ export default function Dashboard() {
         return;
       }
       
-      const response = await fetch(`${config.botManager.baseUrl}/api/bots/${botId}/stop`, {
+      const response = await fetch(`${config.api.baseUrl}/api/freqtrade/bots/${botId}/stop`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });

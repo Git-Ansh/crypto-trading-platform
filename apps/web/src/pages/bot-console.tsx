@@ -189,7 +189,7 @@ const BotBalance = ({ bot, onBalanceUpdate }: { bot: BotInstance, onBalanceUpdat
                     return;
                 }
 
-                const response = await fetch(`${config.botManager.baseUrl}/proxy/${bot.instanceId}/api/v1/balance`, {
+                const response = await fetch(`${config.api.baseUrl}/api/freqtrade/proxy/${bot.instanceId}/api/v1/balance`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 

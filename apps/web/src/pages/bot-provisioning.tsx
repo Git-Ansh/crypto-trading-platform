@@ -90,8 +90,8 @@ export default function BotProvisioningPage() {
                 const token = await getAuthTokenAsync();
                 if (!token) return;
 
-                // Fetch strategies (config.botManager.baseUrl already includes /api/freqtrade)
-                const strategiesRes = await fetch(`${config.botManager.baseUrl}/strategies/enhanced`, {
+                // Fetch strategies via API gateway proxy
+                const strategiesRes = await fetch(`${config.api.baseUrl}/api/freqtrade/strategies/enhanced`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (strategiesRes.ok) {
@@ -100,7 +100,7 @@ export default function BotProvisioningPage() {
                 }
 
                 // Fetch bots to check limit and generate name
-                const botsRes = await fetch(`${config.botManager.baseUrl}/bots`, {
+                const botsRes = await fetch(`${config.api.baseUrl}/api/freqtrade/bots`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (botsRes.ok) {

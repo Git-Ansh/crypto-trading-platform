@@ -67,7 +67,7 @@ export const PoolInfo = () => {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(`${config.botManager.baseUrl}/api/pool/my-pools`, {
+      const response = await fetch(`${config.api.baseUrl}/api/freqtrade/pool/my-pools`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
