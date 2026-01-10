@@ -300,7 +300,7 @@ export default function BotConsolePage() {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-            const response = await fetch(`${config.botManager.baseUrl}/bots`, {
+            const response = await fetch(`${config.api.baseUrl}/api/freqtrade/bots`, {
                 headers: { Authorization: `Bearer ${token}` },
                 signal: controller.signal
             });
@@ -356,7 +356,7 @@ export default function BotConsolePage() {
                 throw new Error('Not authenticated');
             }
 
-            const response = await fetch(`${config.botManager.baseUrl}/pool/my-pools`, {
+            const response = await fetch(`${config.api.baseUrl}/api/freqtrade/pool/my-pools`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -387,7 +387,7 @@ export default function BotConsolePage() {
             setHealthCheckLoading(true);
             const token = await getAuthTokenAsync();
 
-            const response = await fetch(`${config.botManager.baseUrl}/pool/my-health-check`, {
+            const response = await fetch(`${config.api.baseUrl}/api/freqtrade/pool/my-health-check`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -425,7 +425,7 @@ export default function BotConsolePage() {
             const token = await getAuthTokenAsync();
 
             // Use my-cleanup for user's own orphaned bots (doesn't require admin)
-            const response = await fetch(`${config.botManager.baseUrl}/pool/my-cleanup`, {
+            const response = await fetch(`${config.api.baseUrl}/api/freqtrade/pool/my-cleanup`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -491,7 +491,7 @@ export default function BotConsolePage() {
             const token = await getAuthTokenAsync();
             if (!token) return;
 
-            const response = await fetch(`${config.botManager.baseUrl}/bots/${instanceId}/${action}`, {
+            const response = await fetch(`${config.api.baseUrl}/api/freqtrade/bots/${instanceId}/${action}`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -519,7 +519,7 @@ export default function BotConsolePage() {
             const token = await getAuthTokenAsync();
             if (!token) return;
 
-            const response = await fetch(`${config.botManager.baseUrl}/bots/${instanceId}`, {
+            const response = await fetch(`${config.api.baseUrl}/api/freqtrade/bots/${instanceId}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` }
             });

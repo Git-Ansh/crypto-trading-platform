@@ -616,6 +616,50 @@ router.post('/provision', auth, async (req, res) => {
   }
 });
 
+// POST /api/freqtrade/bots/:instanceId/start - Start a bot
+router.post('/bots/:instanceId/start', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  try {
+    const { instanceId } = req.params;
+    const result = await proxyRequest('POST', `/api/bots/${instanceId}/start`, token);
+    
+    if (result.success) {
+      res.json(result.data);
+    } else {
+      res.status(result.status).json(result.data || { success: false, message: result.error });
+    }
+  } catch (error) {
+    console.error('Bot start proxy error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// POST /api/freqtrade/bots/:instanceId/stop - Stop a bot
+router.post('/bots/:instanceId/stop', auth, async (req, res) => {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No authentication token' });
+  }
+
+  try {
+    const { instanceId } = req.params;
+    const result = await proxyRequest('POST', `/api/bots/${instanceId}/stop`, token);
+    
+    if (result.success) {
+      res.json(result.data);
+    } else {
+      res.status(result.status).json(result.data || { success: false, message: result.error });
+    }
+  } catch (error) {
+    console.error('Bot stop proxy error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // DELETE /api/freqtrade/bots/:instanceId - Delete bot and return funds to wallet
 router.delete('/bots/:instanceId', auth, async (req, res) => {
   const token = getTokenFromRequest(req);

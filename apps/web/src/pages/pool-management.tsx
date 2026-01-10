@@ -130,7 +130,7 @@ export default function PoolManagement() {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(`${config.botManager.baseUrl}/api/pool/my-pools`, {
+      const response = await fetch(`${config.api.baseUrl}/api/freqtrade/pool/my-pools`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -166,7 +166,7 @@ export default function PoolManagement() {
       setError(null);
       const token = await getAuthTokenAsync();
 
-      const response = await fetch(`${config.botManager.baseUrl}/api/pool/my-health-check`, {
+      const response = await fetch(`${config.api.baseUrl}/api/freqtrade/pool/my-health-check`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -206,7 +206,7 @@ export default function PoolManagement() {
       const token = await getAuthTokenAsync();
 
       // Use my-cleanup for user's own orphaned bots (doesn't require admin)
-      const response = await fetch(`${config.botManager.baseUrl}/api/pool/my-cleanup`, {
+      const response = await fetch(`${config.api.baseUrl}/api/freqtrade/pool/my-cleanup`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
