@@ -26,11 +26,11 @@ class FreqTradeAPIInterceptor {
    * Get or create a risk manager for a bot instance
    * Reloads settings on each call to ensure fresh configuration
    */
-  async getRiskManager(instanceId, userId) {
+  async getRiskManager(instanceId, userId, instanceDir = null) {
     const key = `${userId}-${instanceId}`;
     
     if (!this.riskManagers.has(key)) {
-      const riskManager = new UniversalRiskManager(instanceId, userId);
+      const riskManager = new UniversalRiskManager(instanceId, userId, instanceDir);
       await riskManager.loadSettings();
       this.riskManagers.set(key, riskManager);
     } else {
@@ -45,11 +45,11 @@ class FreqTradeAPIInterceptor {
   /**
    * Get or create a feature manager for a bot instance
    */
-  async getFeatureManager(instanceId, userId) {
+  async getFeatureManager(instanceId, userId, instanceDir = null) {
     const key = `${userId}-${instanceId}`;
     
     if (!this.featureManagers.has(key)) {
-      const features = new UniversalFeatures(instanceId, userId);
+      const features = new UniversalFeatures(instanceId, userId, instanceDir);
       await features.loadFeatures();
       this.featureManagers.set(key, features);
     } else {

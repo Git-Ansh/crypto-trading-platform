@@ -18,11 +18,12 @@ const sqlite3 = require('sqlite3').verbose();
 const UniversalRiskManager = require('./universal-risk-manager');
 
 class UniversalFreqTradeWrapper {
-  constructor(instanceId, userId, freqtradeApiUrl, dbPath) {
+  constructor(instanceId, userId, freqtradeApiUrl, dbPath, instanceDir = null) {
     this.instanceId = instanceId;
     this.userId = userId;
     this.freqtradeApiUrl = freqtradeApiUrl;
     this.dbPath = dbPath;
+    this.instanceDir = instanceDir;
     this.riskManager = null;
     
     // Monitoring state
@@ -38,8 +39,8 @@ class UniversalFreqTradeWrapper {
    */
   async start() {
     try {
-      // Initialize risk manager
-      this.riskManager = new UniversalRiskManager(this.instanceId, this.userId);
+      // Initialize risk manager with instanceDir to avoid legacy path creation
+      this.riskManager = new UniversalRiskManager(this.instanceId, this.userId, this.instanceDir);
       await this.riskManager.loadSettings();
       
       if (!this.riskManager.settings.enabled) {

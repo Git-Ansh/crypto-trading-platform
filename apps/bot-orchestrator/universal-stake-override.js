@@ -28,8 +28,8 @@ class UniversalStakeOverride {
     const key = `${userId}-${instanceId}`;
     
     try {
-      // Create risk manager
-      const riskManager = new UniversalRiskManager(instanceId, userId);
+      // Create risk manager with botDir to avoid legacy path creation
+      const riskManager = new UniversalRiskManager(instanceId, userId, botDir);
       await riskManager.loadSettings();
       this.riskManagers.set(key, riskManager);
       

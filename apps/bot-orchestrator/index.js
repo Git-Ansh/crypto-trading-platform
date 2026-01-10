@@ -4894,7 +4894,7 @@ app.get('/api/universal-features', authenticateToken, async (req, res) => {
       const stat = await fs.stat(instanceDir).catch(() => null);
       if (!stat || !stat.isDirectory()) continue;
       
-      const features = new UniversalFeatures(instanceId, userId);
+      const features = new UniversalFeatures(instanceId, userId, instanceDir);
       await features.loadFeatures();
       
       botsWithFeatures.push({
@@ -5026,7 +5026,7 @@ app.post('/api/universal-features/:instanceId/resume', authenticateToken, checkI
     const { instanceId } = req.params;
     const userId = req.user.id;
     
-    const features = new UniversalFeatures(instanceId, userId);
+    const features = new UniversalFeatures(instanceId, userId, req.instanceDir);
     await features.loadFeatures();
     const result = await features.resumeFromEmergency();
     
@@ -5064,7 +5064,7 @@ async function runUniversalRiskManagement() {
         const stat2 = await fs.stat(instanceDir).catch(() => null);
         if (!stat2 || !stat2.isDirectory()) continue;
 
-        const riskManager = new UniversalRiskManager(instanceId, userId);
+        const riskManager = new UniversalRiskManager(instanceId, userId, instanceDir);
         await riskManager.loadSettings();
 
         if (!riskManager.settings.enabled) continue;
