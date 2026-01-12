@@ -2,13 +2,21 @@
 const dotenv = require("dotenv");
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
 const { PostHog } = require("posthog-node");
 
 // Load environment variables based on NODE_ENV
+// Falls back to .env if the specific file doesn't exist (backward compat with production)
 const envFile = process.env.NODE_ENV === 'production' 
   ? '.env.production' 
   : '.env.development';
-dotenv.config({ path: path.join(__dirname, envFile) });
+const envPath = path.join(__dirname, envFile);
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+} else {
+  // Fallback to .env (production uses systemd EnvironmentFile)
+  dotenv.config({ path: path.join(__dirname, '.env') });
+}
 const cors = require("cors");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
@@ -17,7 +25,7 @@ const helmet = require("helmet");
 
 // Initialize Firebase Admin SDK
 const admin = require("firebase-admin");
-const fs = require("fs");
+// fs already required at top of file
 
 // Try to load from serviceAccountKey.json first (production), then fall back to env vars
 const serviceAccountPath = path.join(__dirname, 'serviceAccountKey.json');
