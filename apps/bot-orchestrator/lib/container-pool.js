@@ -420,6 +420,12 @@ class ContainerPoolManager {
     
     console.log(`[ContainerPool] Starting bot ${instanceId} in pool ${pool.id}`);
     
+    // Ensure the pool container is running before trying to start the bot
+    const containerReady = await this._ensurePoolContainerRunning(pool);
+    if (!containerReady) {
+      throw new Error(`Pool container ${pool.containerName} is not running and could not be started`);
+    }
+    
     // Ensure pool directories exist (in case they were deleted or pool is being recreated)
     await fs.ensureDir(pool.poolDir);
     await fs.ensureDir(path.join(pool.poolDir, 'supervisor'));
@@ -541,6 +547,15 @@ class ContainerPoolManager {
     
     console.log(`[ContainerPool] Stopping bot ${instanceId} in pool ${pool.id}`);
     
+    // Ensure container is running before trying to stop the bot
+    const containerReady = await this._ensurePoolContainerRunning(pool);
+    if (!containerReady) {
+      console.warn(`[ContainerPool] Container ${pool.containerName} not available, marking bot as stopped`);
+      slot.status = 'stopped';
+      await this._saveState();
+      return;
+    }
+    
     try {
       await this._execInContainer(pool.containerName, [
         'supervisorctl', 'stop', `bot-${instanceId}`
@@ -575,6 +590,13 @@ class ContainerPoolManager {
     }
     
     console.log(`[ContainerPool] Restarting bot ${instanceId} in pool ${pool.id}`);
+    
+    // Ensure container is running before trying to restart the bot
+    const containerReady = await this._ensurePoolContainerRunning(pool);
+    if (!containerReady) {
+      console.error(`[ContainerPool] Container ${pool.containerName} not available for restart`);
+      return { success: false, error: 'Pool container not running' };
+    }
     
     try {
       await this._execInContainer(pool.containerName, [
@@ -613,6 +635,13 @@ class ContainerPoolManager {
     }
     
     console.log(`[ContainerPool] Updating bot ${instanceId} strategy to ${newStrategy}`);
+    
+    // Ensure container is running before trying to update the bot
+    const containerReady = await this._ensurePoolContainerRunning(pool);
+    if (!containerReady) {
+      console.error(`[ContainerPool] Container ${pool.containerName} not available for strategy update`);
+      return { success: false, error: 'Pool container not running' };
+    }
     
     try {
       // Update bot config file
@@ -1145,6 +1174,70 @@ environment=FREQTRADE_USER_DATA_DIR="/pool/bots/${instanceId}"
       
       proc.on('error', reject);
     });
+  }
+
+  /**
+   * Check if a Docker container exists and is running
+   * @param {string} containerName - Name or ID of the container
+   * @returns {Promise<boolean>} True if container exists and is running
+   */
+  async _isContainerRunning(containerName) {
+    try {
+      const { stdout } = await execPromise(`docker inspect -f '{{.State.Running}}' ${containerName} 2>/dev/null`);
+      return stdout.trim() === 'true';
+    } catch (err) {
+      return false;
+    }
+  }
+
+  /**
+   * Ensure pool container is running, recreate if necessary
+   * @param {Object} pool - Pool object
+   * @returns {Promise<boolean>} True if container is ready
+   */
+  async _ensurePoolContainerRunning(pool) {
+    try {
+      const isRunning = await this._isContainerRunning(pool.containerName);
+      
+      if (isRunning) {
+        return true;
+      }
+      
+      console.warn(`[ContainerPool] Container ${pool.containerName} not running, attempting to recreate...`);
+      
+      // Try to start the existing container first
+      try {
+        await execPromise(`docker start ${pool.containerName}`);
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for startup
+        
+        const nowRunning = await this._isContainerRunning(pool.containerName);
+        if (nowRunning) {
+          console.log(`[ContainerPool] ✓ Started existing container ${pool.containerName}`);
+          return true;
+        }
+      } catch (startErr) {
+        console.log(`[ContainerPool] Could not start container: ${startErr.message}`);
+      }
+      
+      // Container doesn't exist or won't start, recreate it
+      console.log(`[ContainerPool] Recreating pool container from compose file...`);
+      await this._runDockerCompose(pool.poolDir, ['up', '-d']);
+      await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for full startup
+      
+      const finalCheck = await this._isContainerRunning(pool.containerName);
+      if (finalCheck) {
+        console.log(`[ContainerPool] ✓ Successfully recreated container ${pool.containerName}`);
+        pool.status = 'running';
+        await this._saveState();
+        return true;
+      } else {
+        console.error(`[ContainerPool] Failed to recreate container ${pool.containerName}`);
+        return false;
+      }
+    } catch (err) {
+      console.error(`[ContainerPool] Error ensuring container running: ${err.message}`);
+      return false;
+    }
   }
 
   async _execInContainer(containerName, command) {
