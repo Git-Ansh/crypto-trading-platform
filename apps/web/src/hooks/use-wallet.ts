@@ -72,6 +72,18 @@ export function useWallet(autoFetch = true): UseWalletReturn {
                 setLoading(false);
                 return;
             }
+            
+            // First, sync wallet to clean up orphaned bot allocations
+            console.log('[useWallet] Syncing wallet to cleanup orphaned allocations...');
+            try {
+                await fetch(`${config.api.baseUrl}/api/freqtrade/sync-wallet`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            } catch (syncErr) {
+                console.warn('[useWallet] Sync failed (non-critical):', syncErr);
+            }
+            
             console.log('[useWallet] Token obtained, fetching from:', `${config.api.baseUrl}/api/account/wallet`);
 
             const response = await fetch(`${config.api.baseUrl}/api/account/wallet`, {

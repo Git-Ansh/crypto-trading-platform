@@ -206,3 +206,4 @@ $RECYCLE.BIN/
 # Linux
 .directory
 .Trash-*
+.github/copilot-instructions.md

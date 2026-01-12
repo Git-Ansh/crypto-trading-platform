@@ -27,11 +27,11 @@ COPY supervisord.conf /etc/supervisor/supervisord.conf
 
 # Create healthcheck script
 COPY healthcheck.sh /usr/local/bin/healthcheck.sh
-RUN chmod +x /usr/local/bin/healthcheck.sh
+RUN sed -i 's/\r$//' /usr/local/bin/healthcheck.sh && chmod +x /usr/local/bin/healthcheck.sh
 
 # Create entrypoint script for pool container
 COPY pool-entrypoint.sh /usr/local/bin/pool-entrypoint.sh
-RUN chmod +x /usr/local/bin/pool-entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/pool-entrypoint.sh && chmod +x /usr/local/bin/pool-entrypoint.sh
 
 # Create placeholder config
 RUN echo "; Placeholder - bot configs will be added dynamically" > /etc/supervisor/conf.d/placeholder.conf

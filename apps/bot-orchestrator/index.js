@@ -15,7 +15,10 @@ const execPromise = util.promisify(exec);
 // ----------------------------------------------------------------------
 
 // IMPORTANT: Load environment variables BEFORE any module that uses them
-dotenv.config({ path: path.join(__dirname, '.env') });
+const envFile = process.env.NODE_ENV === 'production' 
+  ? '.env.production' 
+  : '.env.development';
+dotenv.config({ path: path.join(__dirname, envFile) });
 
 const { formatDbUrl } = require('./lib/urlFormatter');
 const { URL } = require('url');
@@ -1275,50 +1278,19 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
     }
 
     if (isPooled) {
-      // POOLED BOT: Stop and remove from supervisor in the pool container
+      // POOLED BOT: Use pool manager to properly remove bot from pool
       console.log(`[API] Bot ${instanceId} is pooled - removing from pool container`);
       try {
         const { poolManager } = getPoolComponents();
-        const connection = await poolManager.getBotConnectionInfo(instanceId);
         
-        if (connection) {
-          const containerName = connection.host;
-          const supervisorName = `bot-${instanceId}`;
-          
-          console.log(`[API] Stopping bot in pool container ${containerName} (supervisor: ${supervisorName})`);
-          
-          // Stop the bot process in supervisor
-          try {
-            await runDockerCommand(['exec', containerName, 'supervisorctl', 'stop', supervisorName]);
-            console.log(`[API] ✓ Bot process ${supervisorName} stopped`);
-          } catch (stopErr) {
-            console.log(`[API] Bot process stop failed (may already be stopped): ${stopErr.message}`);
-          }
-          
-          // Remove the bot from supervisor
-          try {
-            await runDockerCommand(['exec', containerName, 'supervisorctl', 'remove', supervisorName]);
-            console.log(`[API] ✓ Bot process ${supervisorName} removed from supervisor`);
-          } catch (removeErr) {
-            console.log(`[API] Bot process removal failed: ${removeErr.message}`);
-          }
-          
-          // Remove the supervisor config file
-          try {
-            await runDockerCommand(['exec', containerName, 'rm', '-f', `/etc/supervisor/conf.d/${supervisorName}.conf`]);
-            console.log(`[API] ✓ Supervisor config file removed`);
-          } catch (rmConfErr) {
-            console.log(`[API] Supervisor config removal failed: ${rmConfErr.message}`);
-          }
-          
-          // Update supervisor to pick up changes
-          try {
-            await runDockerCommand(['exec', containerName, 'supervisorctl', 'reread']);
-            await runDockerCommand(['exec', containerName, 'supervisorctl', 'update']);
-          } catch (updateErr) {
-            console.log(`[API] Supervisor update failed: ${updateErr.message}`);
-          }
-        }
+        // Use the pool manager's removeBotFromPool method which handles:
+        // - Stopping the bot process
+        // - Removing from supervisor
+        // - Removing config files
+        // - Updating pool state
+        // - Cleaning up bot directory
+        await poolManager.removeBotFromPool(instanceId);
+        console.log(`[API] ✓ Bot ${instanceId} removed from pool`);
       } catch (poolErr) {
         console.warn(`[API] Error removing bot from pool: ${poolErr.message}`);
       }
@@ -1932,19 +1904,72 @@ async function processProvisioningQueue() {
   }
 
   // ======================================================================
-  // POOL MODE PROVISIONING (REQUIRED)
-  // Legacy one-container-per-bot mode has been removed
-  // All bots MUST be provisioned in pool mode for proper organization
+  // POOL MODE PROVISIONING (REQUIRED for production)
+  // Development fallback: Allow mock/disabled mode for local testing
   // ======================================================================
   if (!POOL_MODE_ENABLED || !poolProvisioner.isPoolModeEnabled()) {
-    console.error(`[${instanceId}] ERROR: Pool mode is REQUIRED but not enabled`);
-    console.error(`[${instanceId}] Set POOL_MODE_ENABLED=true in environment`);
+    console.warn(`[${instanceId}] Pool mode not enabled - using development fallback`);
     
-    if (!task.res.headersSent) {
-      task.res.status(500).json({ 
-        success: false, 
-        message: 'Pool mode is required for bot provisioning' 
-      });
+    // Development fallback: Create bot metadata without Docker
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[${instanceId}] Development mode: Creating bot entry without container`);
+      
+      // Create bot directory structure
+      const userDir = path.join(BOT_BASE_DIR, userId);
+      const botDir = path.join(userDir, instanceId);
+      
+      try {
+        await fs.ensureDir(botDir);
+        await fs.ensureDir(path.join(botDir, 'user_data'));
+        
+        // Create minimal config
+        const configJson = {
+          userId,
+          max_open_trades: max_open_trades || 3,
+          stake_currency: stake_currency || 'USD',
+          stake_amount: stake_amount || 100,
+          dry_run: true,
+          dry_run_wallet: { [stake_currency || 'USD']: initialBalance || 1000 },
+          strategy: strategy || 'EmaRsiStrategy',
+          timeframe: timeframe || '15m',
+          exchange: { name: exchange || 'kraken' },
+          api_server: { enabled: false } // Disabled in dev fallback mode
+        };
+        
+        await fs.writeFile(
+          path.join(botDir, 'config.json'),
+          JSON.stringify(configJson, null, 2)
+        );
+        
+        console.log(`[${instanceId}] ✓ Development bot created (no container)`);
+        
+        if (!task.res.headersSent) {
+          task.res.json({
+            success: true,
+            message: 'Bot created in development mode (no container)',
+            instanceId,
+            port: 0,
+            containerName: 'dev-mode-no-container',
+            strategy: strategy || 'EmaRsiStrategy',
+            isPooled: false,
+            devMode: true
+          });
+        }
+      } catch (err) {
+        console.error(`[${instanceId}] Development fallback error:`, err);
+        if (!task.res.headersSent) {
+          task.res.status(500).json({ success: false, message: err.message });
+        }
+      }
+    } else {
+      // Production requires pool mode
+      console.error(`[${instanceId}] ERROR: Pool mode is REQUIRED in production`);
+      if (!task.res.headersSent) {
+        task.res.status(500).json({ 
+          success: false, 
+          message: 'Pool mode is required for bot provisioning' 
+        });
+      }
     }
     
     isProvisioning = false;
@@ -2270,19 +2295,27 @@ async function listUserBotInstances(userId) {
 
         const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
         const port = config.api_server?.listen_port;
-        console.log('[listUserBotInstances] Port for', instanceId, ':', port);
-        if (!port) continue;
+        const isDevMode = config.api_server?.enabled === false;
+        console.log('[listUserBotInstances] Port for', instanceId, ':', port, 'devMode:', isDevMode);
+        
+        // In development, include bots without ports (dev fallback mode)
+        // In production, skip bots without ports
+        if (!port && !isDevMode) continue;
 
         const containerName = `freqtrade-${instanceId}`;
 
-        // Check container status - skip Docker check if it fails
+        // Check container status - skip Docker check if it fails or in dev mode
         let containerStatus = 'unknown';
-        try {
-          const statusOutput = await runDockerCommand(['ps', '-f', `name=${containerName}`, '--format', '{{.Names}}']);
-          containerStatus = statusOutput.includes(containerName) ? 'running' : 'stopped';
-        } catch (statusErr) {
-          console.log('[listUserBotInstances] Docker check failed for', instanceId, ':', statusErr.message);
-          containerStatus = 'unknown'; // Don't mark as error, just unknown
+        if (isDevMode) {
+          containerStatus = 'dev-mode';
+        } else {
+          try {
+            const statusOutput = await runDockerCommand(['ps', '-f', `name=${containerName}`, '--format', '{{.Names}}']);
+            containerStatus = statusOutput.includes(containerName) ? 'running' : 'stopped';
+          } catch (statusErr) {
+            console.log('[listUserBotInstances] Docker check failed for', instanceId, ':', statusErr.message);
+            containerStatus = 'unknown'; // Don't mark as error, just unknown
+          }
         }
 
         console.log('[listUserBotInstances] Adding bot:', instanceId, 'containerStatus:', containerStatus);
@@ -2290,8 +2323,8 @@ async function listUserBotInstances(userId) {
           instanceId,
           userId,
           strategy: config.strategy,
-          port,
-          containerName,
+          port: port || 0,
+          containerName: isDevMode ? 'dev-mode-no-container' : containerName,
           containerStatus,
           exchange: config.exchange?.name,
           dry_run: config.dry_run,
@@ -2300,7 +2333,8 @@ async function listUserBotInstances(userId) {
           max_open_trades: config.max_open_trades,
           username: config.api_server?.username,
           password: config.api_server?.password,
-          isPooled: false
+          isPooled: false,
+          devMode: isDevMode
         });
       } catch (instanceErr) {
         console.warn(`[listUserBotInstances] Error processing instance ${instanceId}:`, instanceErr.message);
@@ -3581,9 +3615,11 @@ const server = app.listen(PORT, '0.0.0.0', async () => {
   // Initialize Pool System (Phase 2: Multi-Tenant Architecture)
   if (POOL_MODE_ENABLED) {
     try {
+      const enableHealthMonitor = process.env.HEALTH_MONITOR_ENABLED !== 'false';
       console.log('[Server] Initializing Container Pool System...');
+      console.log(`[Server] Health Monitor: ${enableHealthMonitor ? 'ENABLED' : 'DISABLED'}`);
       await initPoolSystem({
-        enableHealthMonitor: true
+        enableHealthMonitor
       });
       poolSystemInitialized = true;
       console.log('[Server] ✅ Container Pool System initialized');

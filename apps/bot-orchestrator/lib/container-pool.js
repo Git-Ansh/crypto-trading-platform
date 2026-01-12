@@ -38,6 +38,8 @@ const POOL_BASE_PORT = parseInt(process.env.POOL_BASE_PORT) || 9000;
 const POOL_IMAGE = process.env.POOL_IMAGE || 'freqtrade-pool:latest';
 // Bot instances stored under monorepo data directory
 const BOT_BASE_DIR = process.env.BOT_BASE_DIR || path.join(__dirname, '../../../data/bot-instances');
+// Platform detection - chown is Linux-only
+const IS_WINDOWS = process.platform === 'win32';
 const SHARED_DATA_DIR = process.env.SHARED_DATA_DIR || path.join(__dirname, '../../../data/shared-market-data');
 const STRATEGIES_DIR = process.env.MAIN_STRATEGIES_SOURCE_DIR || path.join(__dirname, '../../../data/strategies');
 const POOL_HOST_MODE = (process.env.POOL_HOST_MODE || 'host').toLowerCase(); // host | container | auto
@@ -113,8 +115,8 @@ class ContainerPoolManager {
     this.botMapping = new Map(); // instanceId -> BotSlot
     this.nextPoolId = 1;
     
-    // Initialize
-    this._loadState();
+    // NOTE: _loadState() is called by pool-integration.js after construction
+    // Do not call it in constructor as it's async and we need proper initialization order
   }
   /**
    * Load persisted state from disk
@@ -124,10 +126,10 @@ class ContainerPoolManager {
       if (await fs.pathExists(this.stateFile)) {
         const data = JSON.parse(await fs.readFile(this.stateFile, 'utf8'));
         
-        // Restore pools
+        // Restore pools - use pool.id as the Map key, not the object key
         if (data.pools) {
-          for (const [id, pool] of Object.entries(data.pools)) {
-            this.pools.set(id, pool);
+          for (const [_, pool] of Object.entries(data.pools)) {
+            this.pools.set(pool.id, pool);
           }
         }
         
@@ -287,9 +289,12 @@ class ContainerPoolManager {
     // (removed pre-creation of empty bot-1, bot-2, bot-3 folders)
     
     // Set ownership to UID 1000 (ftuser in container) for writable directories
-    await execPromise(`chown -R 1000:1000 "${path.join(poolDir, 'logs')}"`);
-    await execPromise(`chown -R 1000:1000 "${path.join(poolDir, 'bots')}"`);
-    await execPromise(`chown -R 1000:1000 "${path.join(poolDir, 'supervisor')}"`);
+    // Skip on Windows as chown is not available
+    if (!IS_WINDOWS) {
+      await execPromise(`chown -R 1000:1000 "${path.join(poolDir, 'logs')}"`).catch(e => console.warn('chown logs failed:', e.message));
+      await execPromise(`chown -R 1000:1000 "${path.join(poolDir, 'bots')}"`).catch(e => console.warn('chown bots failed:', e.message));
+      await execPromise(`chown -R 1000:1000 "${path.join(poolDir, 'supervisor')}"`).catch(e => console.warn('chown supervisor failed:', e.message));
+    }
     
     // Create supervisord configuration
     const supervisorConfig = this._generateSupervisorConfig(poolId);
@@ -347,10 +352,18 @@ class ContainerPoolManager {
     
     console.log(`[ContainerPool] Allocating slot for bot ${instanceId} (user: ${userId})`);
     
-    // Check if bot already has a slot
+    // Check if bot already has a slot in botMapping
     if (this.botMapping.has(instanceId)) {
-      console.log(`[ContainerPool] Bot ${instanceId} already has a slot`);
+      console.log(`[ContainerPool] Bot ${instanceId} already has a slot in botMapping`);
       return this.botMapping.get(instanceId);
+    }
+    
+    // Also check if bot exists in any pool's bots array (cleanup stale reference)
+    for (const [poolId, existingPool] of this.pools) {
+      if (existingPool.bots.includes(instanceId)) {
+        console.log(`[ContainerPool] Found stale bot ${instanceId} in pool ${poolId}, cleaning up`);
+        existingPool.bots = existingPool.bots.filter(id => id !== instanceId);
+      }
     }
     
     // Find or create a pool with capacity FOR THIS USER
@@ -377,8 +390,10 @@ class ContainerPoolManager {
       createdAt: new Date().toISOString()
     };
     
-    // Add bot to pool
-    pool.bots.push(instanceId);
+    // Add bot to pool (ensure no duplicates)
+    if (!pool.bots.includes(instanceId)) {
+      pool.bots.push(instanceId);
+    }
     this.botMapping.set(instanceId, slot);
     await this._saveState();
     
@@ -405,6 +420,12 @@ class ContainerPoolManager {
     
     console.log(`[ContainerPool] Starting bot ${instanceId} in pool ${pool.id}`);
     
+    // Ensure pool directories exist (in case they were deleted or pool is being recreated)
+    await fs.ensureDir(pool.poolDir);
+    await fs.ensureDir(path.join(pool.poolDir, 'supervisor'));
+    await fs.ensureDir(path.join(pool.poolDir, 'logs'));
+    await fs.ensureDir(path.join(pool.poolDir, 'bots'));
+    
     // Generate bot-specific supervisor program config
     const programConfig = this._generateBotProgramConfig(instanceId, slot, config);
     const programConfigPath = path.join(pool.poolDir, 'supervisor', `bot-${instanceId}.conf`);
@@ -416,7 +437,10 @@ class ContainerPoolManager {
     await fs.writeFile(path.join(botConfigDir, 'config.json'), JSON.stringify(config, null, 2));
     
     // Set ownership to ftuser (UID 1000) so bot can write logs and db
-    await execPromise(`chown -R 1000:1000 "${botConfigDir}"`);
+    // Skip on Windows as chown is not available
+    if (!IS_WINDOWS) {
+      await execPromise(`chown -R 1000:1000 "${botConfigDir}"`).catch(e => console.warn('chown botConfigDir failed:', e.message));
+    }
     
     // Notify supervisord to reload and start the new program
     // Use atomic operation pattern: reread, update, then start with verification
@@ -999,6 +1023,18 @@ files = /pool/supervisor/bot-*.conf
       portMappings.push(`      - "${p}:${p}"`);
     }
     
+    // Convert paths to absolute and Docker-compatible format
+    // Docker on Windows needs absolute paths to avoid WSL path resolution issues
+    const toDockerPath = (p) => {
+      // First resolve to absolute path
+      const absPath = path.resolve(p);
+      // Convert Windows paths to Docker-compatible format (forward slashes)
+      return absPath.replace(/\\/g, '/');
+    };
+    const poolDirDocker = toDockerPath(poolDir);
+    const strategiesDirDocker = toDockerPath(this.strategiesDir);
+    const sharedDataDirDocker = toDockerPath(this.sharedDataDir);
+    
     return `version: '3.8'
 services:
   freqtrade-pool:
@@ -1007,22 +1043,25 @@ services:
     restart: unless-stopped
     volumes:
       # Pool-level config and supervisor files (rw for dynamic bot configs)
-      - ${poolDir}/supervisor:/pool/supervisor:rw
-      - ${poolDir}/bots:/pool/bots:rw
-      - ${poolDir}/logs:/pool/logs:rw
+      - ${poolDirDocker}/supervisor/supervisord.conf:/etc/supervisor/supervisord.conf:ro
+      - ${poolDirDocker}/supervisor:/pool/supervisor:rw
+      - ${poolDirDocker}/bots:/pool/bots:rw
+      - ${poolDirDocker}/logs:/pool/logs:rw
       # Shared strategies (read-only, same for all bots)
-      - ${this.strategiesDir}:/pool/strategies:ro
+      - ${strategiesDirDocker}:/pool/strategies:ro
       # Shared market data
-      - ${this.sharedDataDir}:/freqtrade/shared_data:ro
+      - ${sharedDataDirDocker}:/freqtrade/shared_data:ro
     ports:
 ${portMappings.join('\n')}
     environment:
       - POOL_ID=${poolId}
+    command: ["supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
     healthcheck:
       test: ["CMD", "/usr/local/bin/healthcheck.sh"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
 `;
   }
 

@@ -4,8 +4,11 @@ const express = require("express");
 const path = require("path");
 const { PostHog } = require("posthog-node");
 
-// Load environment variables
-dotenv.config();
+// Load environment variables based on NODE_ENV
+const envFile = process.env.NODE_ENV === 'production' 
+  ? '.env.production' 
+  : '.env.development';
+dotenv.config({ path: path.join(__dirname, envFile) });
 const cors = require("cors");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");

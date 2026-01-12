@@ -400,7 +400,18 @@ router.post('/provision', auth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    const currentBalance = user.paperWallet?.balance || 0;
+    // Initialize paperWallet if not set (use default 1000 balance)
+    if (!user.paperWallet || user.paperWallet.balance === undefined) {
+      console.log(`[Provision] Initializing paperWallet for user ${userId} with default balance`);
+      user.paperWallet = {
+        balance: 1000,
+        currency: 'USD',
+        lastUpdated: new Date()
+      };
+      await user.save();
+    }
+
+    const currentBalance = user.paperWallet.balance;
     
     // Check sufficient funds
     if (allocation > currentBalance) {
@@ -791,7 +802,9 @@ router.post('/sync-wallet', auth, async (req, res) => {
       });
     }
 
-    const runningBots = new Set(botsResult.data.map(bot => bot.instanceId));
+    // botsResult.data is { success: true, bots: [] } - extract the bots array
+    const botsArray = botsResult.data?.bots || [];
+    const runningBots = new Set(botsArray.map(bot => bot.instanceId));
     console.log(`[Sync Wallet] Found ${runningBots.size} running bots:`, Array.from(runningBots));
 
     // Check for orphaned allocations
