@@ -64,6 +64,12 @@ async function initPoolSystem(options = {}) {
   
   // Load persisted state
   await poolManager._loadState();
+  // Immediately sync state with reality to remove/mark non-existent pools
+  try {
+    await poolManager.syncPoolState();
+  } catch (err) {
+    console.warn('[PoolIntegration] Pool state sync failed:', err.message);
+  }
   
   // Start health monitoring
   if (options.enableHealthMonitor !== false) {

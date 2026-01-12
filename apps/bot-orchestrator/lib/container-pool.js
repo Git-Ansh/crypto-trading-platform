@@ -30,6 +30,17 @@ const { spawn, exec, execSync } = require('child_process');
 const util = require('util');
 const execPromise = util.promisify(exec);
 
+// Normalize a filesystem path to an absolute, Docker-friendly format
+// - Resolves relative segments to absolute
+// - Converts all backslashes to forward slashes
+function normalizePath(p) {
+  try {
+    return path.resolve(p).replace(/\\/g, '/');
+  } catch (_err) {
+    return (p || '').replace(/\\/g, '/');
+  }
+}
+
 // Configuration - 3 bots per user pool
 const MAX_BOTS_PER_CONTAINER = parseInt(process.env.MAX_BOTS_PER_CONTAINER) || 3;
 const POOL_CONTAINER_PREFIX = process.env.POOL_CONTAINER_PREFIX || 'freqtrade-pool';
@@ -105,10 +116,11 @@ class ContainerPoolManager {
     this.poolPrefix = options.poolPrefix || POOL_CONTAINER_PREFIX;
     this.basePort = options.basePort || POOL_BASE_PORT;
     this.poolImage = options.poolImage || POOL_IMAGE;
-    this.botBaseDir = options.botBaseDir || BOT_BASE_DIR;
-    this.sharedDataDir = options.sharedDataDir || SHARED_DATA_DIR;
-    this.strategiesDir = options.strategiesDir || STRATEGIES_DIR;
-    this.stateFile = options.stateFile || path.join(this.botBaseDir, '.container-pool-state.json');
+    // CRITICAL: Normalize all directory paths to absolute forward-slash format (prevents WSL backslash issues)
+    this.botBaseDir = normalizePath(options.botBaseDir || BOT_BASE_DIR);
+    this.sharedDataDir = normalizePath(options.sharedDataDir || SHARED_DATA_DIR);
+    this.strategiesDir = normalizePath(options.strategiesDir || STRATEGIES_DIR);
+    this.stateFile = normalizePath(options.stateFile || path.join(this.botBaseDir, '.container-pool-state.json'));
     
     // State
     this.pools = new Map(); // poolId -> PoolContainer
@@ -129,6 +141,10 @@ class ContainerPoolManager {
         // Restore pools - use pool.id as the Map key, not the object key
         if (data.pools) {
           for (const [_, pool] of Object.entries(data.pools)) {
+            // Normalize poolDir paths from state (relative/backslashes -> absolute forward-slash)
+            if (pool.poolDir) {
+              pool.poolDir = normalizePath(pool.poolDir);
+            }
             this.pools.set(pool.id, pool);
           }
         }
@@ -154,8 +170,18 @@ class ContainerPoolManager {
    */
   async _saveState() {
     try {
+      // Normalize all pool paths before saving to ensure consistency and absoluteness
+      const normalizedPools = {};
+      for (const [poolId, pool] of this.pools) {
+        const normalizedPool = { ...pool };
+        if (normalizedPool.poolDir) {
+          normalizedPool.poolDir = normalizePath(normalizedPool.poolDir);
+        }
+        normalizedPools[poolId] = normalizedPool;
+      }
+
       const data = {
-        pools: Object.fromEntries(this.pools),
+        pools: normalizedPools,
         botMapping: Object.fromEntries(this.botMapping),
         nextPoolId: this.nextPoolId,
         updatedAt: new Date().toISOString()
@@ -274,12 +300,12 @@ class ContainerPoolManager {
     console.log(`[ContainerPool] Creating new user pool: ${poolId} (container: ${containerName})`);
     
     // Create user directory if it doesn't exist
-    const userDir = path.join(this.botBaseDir, userId);
+    const userDir = normalizePath(path.join(this.botBaseDir, userId));
     await fs.ensureDir(userDir);
     
-    // Create pool directory structure under user directory
+    // Create pool directory structure under user directory (absolute & forward slashes)
     // Structure: data/bot-instances/{userId}/{userId}-pool-N/
-    const poolDir = path.join(userDir, `${userId}-pool-${poolNumber}`);
+    const poolDir = normalizePath(path.join(userDir, `${userId}-pool-${poolNumber}`));
     await fs.ensureDir(poolDir);
     await fs.ensureDir(path.join(poolDir, 'supervisor'));
     await fs.ensureDir(path.join(poolDir, 'logs'));
@@ -798,14 +824,11 @@ class ContainerPoolManager {
    * Get pool statistics
    */
   getPoolStats() {
-    const stats = {
-      totalPools: this.pools.size,
-      totalBots: this.botMapping.size,
-      pools: []
-    };
-    
+    // Only report RUNNING pools to frontend metrics to avoid phantom entries
+    const poolsOut = [];
     for (const [id, pool] of this.pools) {
-      stats.pools.push({
+      if (pool.status !== 'running') continue;
+      poolsOut.push({
         id: pool.id,
         userId: pool.userId,
         containerName: pool.containerName,
@@ -816,8 +839,12 @@ class ContainerPoolManager {
         bots: pool.bots
       });
     }
-    
-    return stats;
+
+    return {
+      totalPools: poolsOut.length,
+      totalBots: this.botMapping.size,
+      pools: poolsOut
+    };
   }
   
   /**
@@ -826,7 +853,8 @@ class ContainerPoolManager {
    * @returns {Object}
    */
   getUserPoolStats(userId) {
-    const userPools = this.getUserPools(userId);
+    // Filter to RUNNING pools to avoid phantom entries
+    const userPools = this.getUserPools(userId).filter(p => p.status === 'running');
     const userBots = [];
     
     for (const pool of userPools) {
@@ -1213,6 +1241,8 @@ environment=FREQTRADE_USER_DATA_DIR="/pool/bots/${instanceId}"
         const nowRunning = await this._isContainerRunning(pool.containerName);
         if (nowRunning) {
           console.log(`[ContainerPool] ✓ Started existing container ${pool.containerName}`);
+          pool.status = 'running';
+          await this._saveState();
           return true;
         }
       } catch (startErr) {
@@ -1220,6 +1250,46 @@ environment=FREQTRADE_USER_DATA_DIR="/pool/bots/${instanceId}"
       }
       
       // Container doesn't exist or won't start, recreate it
+      // First, ensure pool directory structure is complete
+      const composeFile = path.join(pool.poolDir, 'docker-compose.yml');
+      const supervisorDir = path.join(pool.poolDir, 'supervisor');
+      const supervisorConf = path.join(supervisorDir, 'supervisord.conf');
+      
+      const needsRebuild = !(await fs.pathExists(composeFile)) || 
+                           !(await fs.pathExists(supervisorConf));
+      
+      if (needsRebuild) {
+        console.log(`[ContainerPool] Pool directory incomplete, rebuilding structure for ${pool.id}...`);
+        
+        // Ensure all directories exist
+        await fs.ensureDir(pool.poolDir);
+        await fs.ensureDir(supervisorDir);
+        await fs.ensureDir(path.join(pool.poolDir, 'logs'));
+        await fs.ensureDir(path.join(pool.poolDir, 'bots'));
+        
+        // Regenerate supervisor config
+        const supervisorConfig = this._generateSupervisorConfig(pool.id);
+        await fs.writeFile(supervisorConf, supervisorConfig);
+        
+        // Regenerate docker-compose.yml
+        const composeContent = this._generatePoolComposeFile(
+          pool.id, 
+          pool.containerName, 
+          pool.basePort, 
+          pool.poolDir
+        );
+        await fs.writeFile(composeFile, composeContent);
+        
+        // Set ownership (Linux only)
+        if (!IS_WINDOWS) {
+          await execPromise(`chown -R 1000:1000 "${path.join(pool.poolDir, 'logs')}"`).catch(e => console.warn('chown logs failed:', e.message));
+          await execPromise(`chown -R 1000:1000 "${path.join(pool.poolDir, 'bots')}"`).catch(e => console.warn('chown bots failed:', e.message));
+          await execPromise(`chown -R 1000:1000 "${supervisorDir}"`).catch(e => console.warn('chown supervisor failed:', e.message));
+        }
+        
+        console.log(`[ContainerPool] ✓ Pool directory structure rebuilt`);
+      }
+      
       console.log(`[ContainerPool] Recreating pool container from compose file...`);
       await this._runDockerCompose(pool.poolDir, ['up', '-d']);
       await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for full startup
