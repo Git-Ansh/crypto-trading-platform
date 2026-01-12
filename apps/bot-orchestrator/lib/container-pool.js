@@ -666,18 +666,19 @@ class ContainerPoolManager {
   /**
    * Remove a bot from its pool container
    * @param {string} instanceId - Bot instance ID
+   * @returns {Object} Result with success status and details
    */
   async removeBotFromPool(instanceId) {
     const slot = this.botMapping.get(instanceId);
     if (!slot) {
       console.warn(`[ContainerPool] No slot found for bot ${instanceId}`);
-      return;
+      return { success: false, reason: 'no_slot_found' };
     }
     
     const pool = this.pools.get(slot.poolId);
     if (!pool) {
       console.warn(`[ContainerPool] Pool ${slot.poolId} not found`);
-      return;
+      return { success: false, reason: 'pool_not_found' };
     }
     
     console.log(`[ContainerPool] Removing bot ${instanceId} from pool ${pool.id}`);
@@ -724,8 +725,11 @@ class ContainerPoolManager {
         // Don't auto-remove, let cleanup job handle it
       }
       
+      return { success: true, removedDir: path.join(pool.poolDir, 'bots', instanceId) };
+      
     } catch (err) {
       console.error(`[ContainerPool] Failed to remove bot ${instanceId}: ${err.message}`);
+      return { success: false, reason: 'error', error: err.message };
     }
   }
 

@@ -1276,6 +1276,7 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
 
     // 1. Check if bot is pooled and handle appropriately
     let isPooled = false;
+    let poolRemovalHandledDirectory = false;
     if (poolSystemInitialized) {
       try {
         isPooled = isInstancePooled(instanceId);
@@ -1296,8 +1297,13 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
         // - Removing config files
         // - Updating pool state
         // - Cleaning up bot directory
-        await poolManager.removeBotFromPool(instanceId);
-        console.log(`[API] ✓ Bot ${instanceId} removed from pool`);
+        const poolResult = await poolManager.removeBotFromPool(instanceId);
+        if (poolResult?.success) {
+          console.log(`[API] ✓ Bot ${instanceId} removed from pool`);
+          poolRemovalHandledDirectory = true;
+        } else {
+          console.warn(`[API] Pool removal returned: ${JSON.stringify(poolResult)}`);
+        }
       } catch (poolErr) {
         console.warn(`[API] Error removing bot from pool: ${poolErr.message}`);
       }
@@ -1322,12 +1328,16 @@ app.delete('/api/bots/:instanceId', authenticateToken, checkInstanceOwnership, a
     }
 
     // 2. Remove the instance directory (use req.instanceDir for pool support)
+    // For pooled bots, removeBotFromPool already handles this, but we do it as a fallback
     const instanceDirToRemove = req.instanceDir || path.join(BOT_BASE_DIR, userId, instanceId);
     if (await fs.pathExists(instanceDirToRemove)) {
       await fs.remove(instanceDirToRemove);
       console.log(`[API] ✓ Instance directory removed: ${instanceDirToRemove}`);
+    } else if (!poolRemovalHandledDirectory) {
+      // Only log as warning if pool removal didn't handle it (meaning we expected to find it)
+      console.warn(`[API] Instance directory not found: ${instanceDirToRemove}`);
     } else {
-      console.log(`[API] Instance directory not found: ${instanceDirToRemove}`);
+      console.log(`[API] Instance directory already removed by pool manager: ${instanceDirToRemove}`);
     }
 
     // 3. Optional: Clean up Turso database if it exists
