@@ -696,6 +696,7 @@ router.delete('/bots/:instanceId', auth, async (req, res) => {
     // Try to delete the bot from bot-orchestrator
     let orchestratorDeleted = false;
     let orchestratorError = null;
+    let cashedOutAmount = null;  // Actual balance from the bot
 
     try {
       const deleteResult = await proxyRequest('DELETE', `/api/bots/${instanceId}`, token);
@@ -706,6 +707,11 @@ router.delete('/bots/:instanceId', auth, async (req, res) => {
         console.warn(`[Delete Bot] Orchestrator deletion failed: ${orchestratorError}`);
       } else {
         console.log(`[Delete Bot] Orchestrator deletion: ${deleteResult.success ? 'Success' : 'Bot not found (404)'}`);
+        // Extract the actual cashed out amount from the bot's balance
+        if (deleteResult.data?.cashedOut?.amount) {
+          cashedOutAmount = deleteResult.data.cashedOut.amount;
+          console.log(`[Delete Bot] Cashed out amount from orchestrator: ${cashedOutAmount}`);
+        }
       }
     } catch (err) {
       orchestratorError = err.message;
@@ -717,7 +723,9 @@ router.delete('/bots/:instanceId', auth, async (req, res) => {
     let walletUpdate = null;
     if (allocation) {
       const now = new Date();
-      const returnAmount = allocation.currentValue || allocation.allocatedAmount;
+      // Use the actual cashed out amount from the bot if available, 
+      // otherwise fall back to stored currentValue or initial allocation
+      const returnAmount = cashedOutAmount ?? allocation.currentValue ?? allocation.allocatedAmount;
       const currentBalance = user.paperWallet?.balance || 0;
       const newBalance = currentBalance + returnAmount;
       const pnl = returnAmount - allocation.allocatedAmount;
